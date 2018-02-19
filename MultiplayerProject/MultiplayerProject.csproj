@@ -54,6 +54,8 @@
     <Compile Include="Source\GameObjects\Laser.cs" />
     <Compile Include="Source\Managers\CollisionManager.cs" />
     <Compile Include="Source\Managers\EnemyManager.cs" />
+    <Compile Include="Source\Managers\ExplosionManager.cs" />
+    <Compile Include="Source\Managers\LaserManager.cs" />
     <Compile Include="Source\MultiplayerGame.cs" />
     <Compile Include="Source\ParallaxingBackground.cs" />
     <Compile Include="Source\GameObjects\Player.cs" />

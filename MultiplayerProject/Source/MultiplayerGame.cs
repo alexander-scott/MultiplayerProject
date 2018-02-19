@@ -27,7 +27,9 @@ namespace MultiplayerProject
         float                   _playerMoveSpeed;
 
         EnemyManager            _enemyManager;
+        LaserManager            _laserManager;
         CollisionManager        _collisionManager;
+        ExplosionManager        _explosionManager;
 
         // Image used to display the static background
         Texture2D mainBackground;
@@ -35,19 +37,6 @@ namespace MultiplayerProject
 
         ParallaxingBackground bgLayer1;
         ParallaxingBackground bgLayer2;
-
-        List<Laser> laserBeams;
-        // texture to hold the laser.
-        Texture2D laserTexture;
-        // govern how fast our laser can fire.
-        TimeSpan laserSpawnTime;
-        TimeSpan previousLaserSpawnTime;
-
-        // Collections of explosions
-        List<Explosion> explosions;
-
-        //Texture to hold explosion animation.
-        Texture2D explosionTexture;
 
         public MultiplayerGame()
         {
@@ -72,17 +61,13 @@ namespace MultiplayerProject
             _enemyManager = new EnemyManager();
             _enemyManager.Initalise(Content, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
+            _laserManager = new LaserManager();
+            _laserManager.Initalise(Content, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+
             _collisionManager = new CollisionManager();
 
-            // init our laser
-            laserBeams = new List<Laser>();
-            const float SECONDS_IN_MINUTE = 60f;
-            const float RATE_OF_FIRE = 200f;
-            laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
-            previousLaserSpawnTime = TimeSpan.Zero;
-
-            // init our collection of explosions.
-            explosions = new List<Explosion>();
+            _explosionManager = new ExplosionManager();
+            _explosionManager.Initalise(Content);
 
             base.Initialize();
         }
@@ -104,12 +89,6 @@ namespace MultiplayerProject
             bgLayer1.Initialize(Content, "bgLayer1", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -1);
             bgLayer2.Initialize(Content, "bgLayer2", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -2);
             mainBackground = Content.Load<Texture2D>("mainbackground");
-
-            // load th texture to serve as the laser
-            laserTexture = Content.Load<Texture2D>("laser");
-
-            // load the explosion sheet
-            explosionTexture = Content.Load<Texture2D>("explosion");
         }
 
         protected override void Update(GameTime gameTime)
@@ -133,21 +112,10 @@ namespace MultiplayerProject
             bgLayer2.Update(gameTime);
 
             _enemyManager.Update(gameTime);
-            _collisionManager.CheckCollision(_enemyManager.Enemies, laserBeams);
+            _laserManager.Update(gameTime);
+            _explosionManager.Update(gameTime);
 
-            UpdateExplosions(gameTime);
-
-            // update laserbeams
-            for (var i = 0; i < laserBeams.Count; i++)
-            {
-                laserBeams[i].Update(gameTime);
-                // Remove the beam when its deactivated or is at the end of the screen.
-                if (!laserBeams[i].Active || laserBeams[i].Position.X > GraphicsDevice.Viewport.Width)
-                {
-                    AddExplosion(laserBeams[i].Position);
-                    laserBeams.Remove(laserBeams[i]);
-                }
-            }
+            _collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
 
             base.Update(gameTime);
         }
@@ -204,83 +172,12 @@ namespace MultiplayerProject
 
             if (_currentKeyboardState.IsKeyDown(Keys.Space) || _currentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                FireLaser(gameTime);
+                _laserManager.FireLaser(gameTime, _player.Position);
             }
 
             // Make sure that the player does not go out of bounds
             _player.Position.X = MathHelper.Clamp(_player.Position.X, 0, GraphicsDevice.Viewport.Width);
             _player.Position.Y = MathHelper.Clamp(_player.Position.Y, 0, GraphicsDevice.Viewport.Height);
-        }
-
-        private void UpdateExplosions(GameTime gameTime)
-        {
-            for (var e = 0; e < explosions.Count; e++)
-            {
-                explosions[e].Update(gameTime);
-
-                if (!explosions[e].Active)
-                    explosions.Remove(explosions[e]);
-            }
-        }
-
-        protected void FireLaser(GameTime gameTime)
-        {
-            // govern the rate of fire for our lasers
-            if (gameTime.TotalGameTime - previousLaserSpawnTime > laserSpawnTime)
-            {
-                previousLaserSpawnTime = gameTime.TotalGameTime;
-                // Add the laer to our list.
-                AddLaser();
-            }
-        }
-
-        protected void AddLaser()
-        {
-            Animation laserAnimation = new Animation();
-            // initlize the laser animation
-            laserAnimation.Initialize(laserTexture,
-                _player.Position,
-                46,
-                16,
-                1,
-                30,
-                Color.White,
-                1f,
-                true);
-
-            Laser laser = new Laser();
-            // Get the starting postion of the laser.
-
-            var laserPostion = _player.Position;
-            // Adjust the position slightly to match the muzzle of the cannon.
-            //laserPostion.Y += 37;
-            laserPostion.X += 70;
-
-            // init the laser
-            laser.Initialize(laserAnimation, laserPostion);
-            laserBeams.Add(laser);
-            /* todo: add code to create a laser. */
-            // laserSoundInstance.Play();
-        }
-
-        protected void AddExplosion(Vector2 enemyPosition)
-        {
-            Animation explosionAnimation = new Animation();
-
-            explosionAnimation.Initialize(explosionTexture,
-                enemyPosition,
-                134,
-                134,
-                12,
-                30,
-                Color.White,
-                1.0f,
-                true);
-
-            Explosion explosion = new Explosion();
-            explosion.Initialize(explosionAnimation, enemyPosition);
-
-            explosions.Add(explosion);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -301,17 +198,9 @@ namespace MultiplayerProject
 
             _enemyManager.Draw(_spriteBatch);
 
-            // Draw the lasers.
-            foreach (var l in laserBeams)
-            {
-                l.Draw(_spriteBatch);
-            }
+            _laserManager.Draw(_spriteBatch);
 
-            // draw explosions
-            foreach (var e in explosions)
-            {
-                e.Draw(_spriteBatch);
-            }
+            _explosionManager.Draw(_spriteBatch);
 
             // Draw the Player
             _player.Draw(_spriteBatch);

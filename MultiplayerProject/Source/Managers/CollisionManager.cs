@@ -5,7 +5,7 @@ namespace MultiplayerProject.Source
 {
     class CollisionManager
     {
-        public void CheckCollision(List<Enemy> enemies, List<Laser> lasers)
+        public void CheckCollision(List<Enemy> enemies, List<Laser> lasers, ExplosionManager explosionManager)
         {
             Rectangle rectangle2;
             Rectangle laserRectangle;
@@ -36,6 +36,8 @@ namespace MultiplayerProject.Source
                         // play the sound of explosion.
                         //var explosion = explosionSound.CreateInstance();
                         //explosion.Play();
+
+                        explosionManager.AddExplosion(lb.Position);
 
                         // kill off the enemy
                         e.Health = 0;
