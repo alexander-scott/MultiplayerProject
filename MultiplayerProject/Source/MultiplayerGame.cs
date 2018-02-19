@@ -124,6 +124,7 @@ namespace MultiplayerProject
             bgLayer2.Update(gameTime);
 
             UpdateEnemies(gameTime);
+            UpdateCOllision();
 
             base.Update(gameTime);
         }
@@ -208,7 +209,6 @@ namespace MultiplayerProject
 
         private void UpdateEnemies(GameTime gameTime)
         {
-
             // Spawn a new enemy enemy every 1.5 seconds
             if (gameTime.TotalGameTime - previousSpawnTime > enemySpawnTime)
             {
@@ -226,6 +226,47 @@ namespace MultiplayerProject
                 if (enemies[i].Active == false)
                 {
                     enemies.RemoveAt(i);
+                }
+            }
+        }
+
+        private void UpdateCOllision()
+        {
+            // Use the Rectangle’s built-in intersect function to
+            // determine if two objects are overlapping
+
+            Rectangle rectangle1;
+            Rectangle rectangle2;
+
+            // Only create the rectangle once for the player
+            rectangle1 = new Rectangle((int)_player.Position.X,
+                (int)_player.Position.Y,
+                _player.Width,
+                _player.Height);
+
+            // Do the collision between the player and the enemies
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                rectangle2 = new Rectangle((int)enemies[i].Position.X,
+                    (int)enemies[i].Position.Y,
+                    enemies[i].Width,
+                 enemies[i].Height);
+
+                // Determine if the two objects collided with each
+                // other
+                if(rectangle1.Intersects(rectangle2))          
+                {
+                    // Subtract the health from the player based on
+                    // the enemy damage
+                    _player.Health -= enemies[i].Damage;
+
+                    // Since the enemy collided with the player
+                    // destroy it
+                    enemies[i].Health = 0;
+
+                    // If the player health is less than zero we died
+                    if (_player.Health <= 0)
+                        _player.Active = false;
                 }
             }
         }
