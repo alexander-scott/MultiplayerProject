@@ -52,6 +52,7 @@
     <Compile Include="Source\GameObjects\Enemy.cs" />
     <Compile Include="Source\GameObjects\Explosion.cs" />
     <Compile Include="Source\GameObjects\Laser.cs" />
+    <Compile Include="Source\Managers\BackgroundManager.cs" />
     <Compile Include="Source\Managers\CollisionManager.cs" />
     <Compile Include="Source\Managers\EnemyManager.cs" />
     <Compile Include="Source\Managers\ExplosionManager.cs" />

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
@@ -24,19 +22,13 @@ namespace MultiplayerProject
         MouseState              _currentMouseState;
         MouseState              _previousMouseState;
 
-        float                   _playerMoveSpeed;
-
         EnemyManager            _enemyManager;
         LaserManager            _laserManager;
         CollisionManager        _collisionManager;
         ExplosionManager        _explosionManager;
+        BackgroundManager       _backgroundManager;
 
-        // Image used to display the static background
-        Texture2D mainBackground;
-        Rectangle rectBackground;
-
-        ParallaxingBackground bgLayer1;
-        ParallaxingBackground bgLayer2;
+        float                   _playerMoveSpeed = 8.0f;
 
         public MultiplayerGame()
         {
@@ -46,16 +38,9 @@ namespace MultiplayerProject
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
             // Initialize the player class
             _player = new Player();
 
-            bgLayer1 = new ParallaxingBackground();
-            bgLayer2 = new ParallaxingBackground();
-            rectBackground = new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-
-            _playerMoveSpeed = 8.0f;
             TouchPanel.EnabledGestures = GestureType.FreeDrag;
 
             _enemyManager = new EnemyManager();
@@ -64,10 +49,13 @@ namespace MultiplayerProject
             _laserManager = new LaserManager();
             _laserManager.Initalise(Content, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
-            _collisionManager = new CollisionManager();
-
             _explosionManager = new ExplosionManager();
             _explosionManager.Initalise(Content);
+
+            _backgroundManager = new BackgroundManager();
+            _backgroundManager.Initalise(Content, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+
+            _collisionManager = new CollisionManager();
 
             base.Initialize();
         }
@@ -85,10 +73,6 @@ namespace MultiplayerProject
             Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
 
             _player.Initialize(playerAnimation, playerPosition);
-
-            bgLayer1.Initialize(Content, "bgLayer1", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -1);
-            bgLayer2.Initialize(Content, "bgLayer2", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -2);
-            mainBackground = Content.Load<Texture2D>("mainbackground");
         }
 
         protected override void Update(GameTime gameTime)
@@ -96,7 +80,6 @@ namespace MultiplayerProject
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
             _previousGamePadState = _currentGamePadState;
             _previousKeyboardState = _currentKeyboardState;
             _previousMouseState = _currentMouseState;
@@ -107,9 +90,7 @@ namespace MultiplayerProject
 
             UpdatePlayer(gameTime);
 
-            // Update the parallaxing background
-            bgLayer1.Update(gameTime);
-            bgLayer2.Update(gameTime);
+            _backgroundManager.Update(gameTime);
 
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
@@ -189,12 +170,7 @@ namespace MultiplayerProject
             // Start drawing
             _spriteBatch.Begin();
 
-            //Draw the Main Background Texture
-            _spriteBatch.Draw(mainBackground, rectBackground, Color.White);
-
-            // Draw the moving background
-            bgLayer1.Draw(_spriteBatch);
-            bgLayer2.Draw(_spriteBatch);
+            _backgroundManager.Draw(_spriteBatch);
 
             _enemyManager.Draw(_spriteBatch);
 
