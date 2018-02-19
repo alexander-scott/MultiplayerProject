@@ -25,6 +25,14 @@ namespace MultiplayerProject
 
         float                   _playerMoveSpeed;
 
+        // Image used to display the static background
+        Texture2D mainBackground;
+        Rectangle rectBackground;
+        float scale = 1f;
+
+        ParallaxingBackground bgLayer1;
+        ParallaxingBackground bgLayer2;
+
         public MultiplayerGame()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -37,6 +45,13 @@ namespace MultiplayerProject
 
             // Initialize the player class
             _player = new Player();
+
+            bgLayer1 = new ParallaxingBackground();
+            bgLayer2 = new ParallaxingBackground();
+
+            bgLayer1.Initialize(Content, "bgLayer1", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -1);
+            bgLayer2.Initialize(Content, "bgLayer2", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -2);
+            mainBackground = Content.Load<Texture2D>("mainbackground");
 
             _playerMoveSpeed = 8.0f;
             TouchPanel.EnabledGestures = GestureType.FreeDrag;
@@ -75,6 +90,10 @@ namespace MultiplayerProject
             _currentMouseState = Mouse.GetState();
 
             UpdatePlayer(gameTime);
+
+            // Update the parallaxing background
+            bgLayer1.Update(gameTime);
+            bgLayer2.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -142,6 +161,13 @@ namespace MultiplayerProject
 
             // Start drawing
             _spriteBatch.Begin();
+
+            //Draw the Main Background Texture
+            _spriteBatch.Draw(mainBackground, rectBackground, Color.White);
+
+            // Draw the moving background
+            bgLayer1.Draw(_spriteBatch);
+            bgLayer2.Draw(_spriteBatch);
 
             // Draw the Player
             _player.Draw(_spriteBatch);

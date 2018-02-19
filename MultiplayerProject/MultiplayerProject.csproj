@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Source\Animation.cs" />
     <Compile Include="Source\MultiplayerGame.cs" />
+    <Compile Include="Source\ParallaxingBackground.cs" />
     <Compile Include="Source\Player.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
