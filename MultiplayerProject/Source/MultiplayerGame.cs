@@ -47,6 +47,19 @@ namespace MultiplayerProject
         // A random number generator
         Random random;
 
+        List<Laser> laserBeams;
+        // texture to hold the laser.
+        Texture2D laserTexture;
+        // govern how fast our laser can fire.
+        TimeSpan laserSpawnTime;
+        TimeSpan previousLaserSpawnTime;
+
+        // Collections of explosions
+        List<Explosion> explosions;
+
+        //Texture to hold explosion animation.
+        Texture2D explosionTexture;
+
         public MultiplayerGame()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -79,6 +92,16 @@ namespace MultiplayerProject
             // Initialize our random number generator
             random = new Random();
 
+            // init our laser
+            laserBeams = new List<Laser>();
+            const float SECONDS_IN_MINUTE = 60f;
+            const float RATE_OF_FIRE = 200f;
+            laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
+            previousLaserSpawnTime = TimeSpan.Zero;
+
+            // init our collection of explosions.
+            explosions = new List<Explosion>();
+
             base.Initialize();
         }
 
@@ -101,6 +124,12 @@ namespace MultiplayerProject
             mainBackground = Content.Load<Texture2D>("mainbackground");
 
             enemyTexture = Content.Load<Texture2D>("mineAnimation");
+
+            // load th texture to serve as the laser
+            laserTexture = Content.Load<Texture2D>("laser");
+
+            // load the explosion sheet
+            explosionTexture = Content.Load<Texture2D>("explosion");
         }
 
         protected override void Update(GameTime gameTime)
@@ -124,7 +153,19 @@ namespace MultiplayerProject
             bgLayer2.Update(gameTime);
 
             UpdateEnemies(gameTime);
+            UpdateExplosions(gameTime);
             UpdateCOllision();
+
+            // update laserbeams
+            for (var i = 0; i < laserBeams.Count; i++)
+            {
+                laserBeams[i].Update(gameTime);
+                // Remove the beam when its deactivated or is at the end of the screen.
+                if (!laserBeams[i].Active || laserBeams[i].Position.X > GraphicsDevice.Viewport.Width)
+                {
+                    laserBeams.Remove(laserBeams[i]);
+                }
+            }
 
             base.Update(gameTime);
         }
@@ -179,9 +220,14 @@ namespace MultiplayerProject
                 _player.Position.Y += _playerMoveSpeed;
             }
 
+            if (_currentKeyboardState.IsKeyDown(Keys.Space) || _currentGamePadState.Buttons.X == ButtonState.Pressed)
+            {
+                FireLaser(gameTime);
+            }
+
             // Make sure that the player does not go out of bounds
-            _player.Position.X = MathHelper.Clamp(_player.Position.X, 0, GraphicsDevice.Viewport.Width - _player.Width);
-            _player.Position.Y = MathHelper.Clamp(_player.Position.Y, 0, GraphicsDevice.Viewport.Height - _player.Height);
+            _player.Position.X = MathHelper.Clamp(_player.Position.X, 0, GraphicsDevice.Viewport.Width);
+            _player.Position.Y = MathHelper.Clamp(_player.Position.Y, 0, GraphicsDevice.Viewport.Height);
         }
 
         private void AddEnemy()
@@ -230,13 +276,26 @@ namespace MultiplayerProject
             }
         }
 
+
+        private void UpdateExplosions(GameTime gameTime)
+        {
+            for (var e = 0; e < explosions.Count; e++)
+            {
+                explosions[e].Update(gameTime);
+
+                if (!explosions[e].Active)
+                    explosions.Remove(explosions[e]);
+            }
+        }
+
+
         private void UpdateCOllision()
         {
             // Use the Rectangle’s built-in intersect function to
             // determine if two objects are overlapping
-
             Rectangle rectangle1;
             Rectangle rectangle2;
+            Rectangle laserRectangle;
 
             // Only create the rectangle once for the player
             rectangle1 = new Rectangle((int)_player.Position.X,
@@ -244,31 +303,110 @@ namespace MultiplayerProject
                 _player.Width,
                 _player.Height);
 
-            // Do the collision between the player and the enemies
-            for (int i = 0; i < enemies.Count; i++)
+            // detect collisions between the player and all enemies.
+            enemies.ForEach(e =>
             {
-                rectangle2 = new Rectangle((int)enemies[i].Position.X,
-                    (int)enemies[i].Position.Y,
-                    enemies[i].Width,
-                 enemies[i].Height);
+                //create a retangle for the enemy
+                rectangle2 = new Rectangle(
+                    (int)e.Position.X,
+                    (int)e.Position.Y,
+                    e.Width,
+                    e.Height);
 
-                // Determine if the two objects collided with each
-                // other
-                if(rectangle1.Intersects(rectangle2))          
+                // now see if this enemy collide with any laser shots
+                laserBeams.ForEach(lb =>
                 {
-                    // Subtract the health from the player based on
-                    // the enemy damage
-                    _player.Health -= enemies[i].Damage;
+                    // create a rectangle for this laserbeam
+                    laserRectangle = new Rectangle(
+                    (int)lb.Position.X,
+                    (int)lb.Position.Y,
+                    lb.Width,
+                    lb.Height);
 
-                    // Since the enemy collided with the player
-                    // destroy it
-                    enemies[i].Health = 0;
+                    // test the bounds of the laer and enemy
+                    if (laserRectangle.Intersects(rectangle2))
+                    {
+                        // play the sound of explosion.
+                        //var explosion = explosionSound.CreateInstance();
+                        //explosion.Play();
 
-                    // If the player health is less than zero we died
-                    if (_player.Health <= 0)
-                        _player.Active = false;
-                }
+                        // Show the explosion where the enemy was...
+                        AddExplosion(e.Position);
+
+                        // kill off the enemy
+                        e.Health = 0;
+
+                        //record the kill
+                        //myGame.Stage.EnemiesKilled++;
+
+                        // kill off the laserbeam
+                        lb.Active = false;
+
+                        // record your score
+                        //myGame.Score += e.Value;
+                    }
+                });
+            });
+        }
+
+        protected void FireLaser(GameTime gameTime)
+        {
+            // govern the rate of fire for our lasers
+            if (gameTime.TotalGameTime - previousLaserSpawnTime > laserSpawnTime)
+            {
+                previousLaserSpawnTime = gameTime.TotalGameTime;
+                // Add the laer to our list.
+                AddLaser();
             }
+        }
+
+        protected void AddLaser()
+        {
+            Animation laserAnimation = new Animation();
+            // initlize the laser animation
+            laserAnimation.Initialize(laserTexture,
+                _player.Position,
+                46,
+                16,
+                1,
+                30,
+                Color.White,
+                1f,
+                true);
+
+            Laser laser = new Laser();
+            // Get the starting postion of the laser.
+
+            var laserPostion = _player.Position;
+            // Adjust the position slightly to match the muzzle of the cannon.
+            //laserPostion.Y += 37;
+            laserPostion.X += 70;
+
+            // init the laser
+            laser.Initialize(laserAnimation, laserPostion);
+            laserBeams.Add(laser);
+            /* todo: add code to create a laser. */
+            // laserSoundInstance.Play();
+        }
+
+        protected void AddExplosion(Vector2 enemyPosition)
+        {
+            Animation explosionAnimation = new Animation();
+
+            explosionAnimation.Initialize(explosionTexture,
+                enemyPosition,
+                134,
+                134,
+                12,
+                30,
+                Color.White,
+                1.0f,
+                true);
+
+            Explosion explosion = new Explosion();
+            explosion.Initialize(explosionAnimation, enemyPosition);
+
+            explosions.Add(explosion);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -290,6 +428,18 @@ namespace MultiplayerProject
             for (int i = 0; i < enemies.Count; i++)
             {
                 enemies[i].Draw(_spriteBatch);
+            }
+
+            // Draw the lasers.
+            foreach (var l in laserBeams)
+            {
+                l.Draw(_spriteBatch);
+            }
+
+            // draw explosions
+            foreach (var e in explosions)
+            {
+                e.Draw(_spriteBatch);
             }
 
             // Draw the Player
