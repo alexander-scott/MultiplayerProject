@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -33,6 +34,19 @@ namespace MultiplayerProject
         ParallaxingBackground bgLayer1;
         ParallaxingBackground bgLayer2;
 
+        // Enemies
+        Texture2D enemyTexture;
+
+        List<Enemy> enemies;
+
+        // The rate at which the enemies appear
+        TimeSpan enemySpawnTime;
+
+        TimeSpan previousSpawnTime;
+
+        // A random number generator
+        Random random;
+
         public MultiplayerGame()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -48,13 +62,22 @@ namespace MultiplayerProject
 
             bgLayer1 = new ParallaxingBackground();
             bgLayer2 = new ParallaxingBackground();
-
-            bgLayer1.Initialize(Content, "bgLayer1", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -1);
-            bgLayer2.Initialize(Content, "bgLayer2", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -2);
-            mainBackground = Content.Load<Texture2D>("mainbackground");
+            rectBackground = new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
             _playerMoveSpeed = 8.0f;
             TouchPanel.EnabledGestures = GestureType.FreeDrag;
+
+            // Initialize the enemies list
+            enemies = new List<Enemy>();
+
+            // Set the time keepers to zero
+            previousSpawnTime = TimeSpan.Zero;
+
+            // Used to determine how fast enemy respawns
+            enemySpawnTime = TimeSpan.FromSeconds(1.0f);
+
+            // Initialize our random number generator
+            random = new Random();
 
             base.Initialize();
         }
@@ -73,6 +96,11 @@ namespace MultiplayerProject
 
             _player.Initialize(playerAnimation, playerPosition);
 
+            bgLayer1.Initialize(Content, "bgLayer1", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -1);
+            bgLayer2.Initialize(Content, "bgLayer2", GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, -2);
+            mainBackground = Content.Load<Texture2D>("mainbackground");
+
+            enemyTexture = Content.Load<Texture2D>("mineAnimation");
         }
 
         protected override void Update(GameTime gameTime)
@@ -94,6 +122,8 @@ namespace MultiplayerProject
             // Update the parallaxing background
             bgLayer1.Update(gameTime);
             bgLayer2.Update(gameTime);
+
+            UpdateEnemies(gameTime);
 
             base.Update(gameTime);
         }
@@ -153,6 +183,53 @@ namespace MultiplayerProject
             _player.Position.Y = MathHelper.Clamp(_player.Position.Y, 0, GraphicsDevice.Viewport.Height - _player.Height);
         }
 
+        private void AddEnemy()
+        {
+            // Create the animation object
+            Animation enemyAnimation = new Animation();
+
+            // Initialize the animation with the correct animation information
+            enemyAnimation.Initialize(enemyTexture, Vector2.Zero, 47, 61, 8, 30, Color.White, 1f, true);
+
+            // Randomly generate the position of the enemy
+            Vector2 position = new Vector2(GraphicsDevice.Viewport.Width + enemyTexture.Width / 2,
+
+            random.Next(100, GraphicsDevice.Viewport.Height - 100));
+
+            // Create an enemy
+            Enemy enemy = new Enemy();
+
+            // Initialize the enemy
+            enemy.Initialize(enemyAnimation, position);
+
+            // Add the enemy to the active enemies list
+            enemies.Add(enemy);
+        }
+
+        private void UpdateEnemies(GameTime gameTime)
+        {
+
+            // Spawn a new enemy enemy every 1.5 seconds
+            if (gameTime.TotalGameTime - previousSpawnTime > enemySpawnTime)
+            {
+                previousSpawnTime = gameTime.TotalGameTime;
+
+                // Add an Enemy
+                AddEnemy();
+            }
+
+            // Update the Enemies
+            for (int i = enemies.Count - 1; i >= 0; i--)
+            {
+                enemies[i].Update(gameTime);
+
+                if (enemies[i].Active == false)
+                {
+                    enemies.RemoveAt(i);
+                }
+            }
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -168,6 +245,11 @@ namespace MultiplayerProject
             // Draw the moving background
             bgLayer1.Draw(_spriteBatch);
             bgLayer2.Draw(_spriteBatch);
+
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                enemies[i].Draw(_spriteBatch);
+            }
 
             // Draw the Player
             _player.Draw(_spriteBatch);

@@ -49,26 +49,48 @@ namespace MultiplayerProject.Source
             {
                 // Update the position of the screen by adding the speed
                 Positions[i].X += Speed;
+            }
 
-                // If the speed has the background moving to the left
+            for (int i = 0; i < Positions.Length; i++)
+            {
                 if (Speed <= 0)
                 {
-                    // Check the texture is out of view then put that texture at the end of the screen
+                    // Check if the texture is out of view and then put that texture at the end of the screen.
                     if (Positions[i].X <= -Texture.Width)
                     {
-                        Positions[i].X = Texture.Width * (Positions.Length - 1);
+                        WrapTextureToLeft(i);
                     }
                 }
-                // If the speed has the background moving to the right
                 else
                 {
-                    // Check if the texture is out of view then position it to the start of the screen
                     if (Positions[i].X >= Texture.Width * (Positions.Length - 1))
                     {
-                        Positions[i].X = -Texture.Width;
+                        WrapTextureToRight(i);
                     }
                 }
             }
+        }
+
+        private void WrapTextureToLeft(int index)
+        {
+            // If the textures are scrolling to the left, when the tile wraps, it should be put at the
+            // one pixel to the right of the tile before it.
+            int prevTexture = index - 1;
+            if (prevTexture < 0)
+                prevTexture = Positions.Length - 1;
+
+            Positions[index].X = Positions[prevTexture].X + Texture.Width;
+        }
+
+        private void WrapTextureToRight(int index)
+        {
+            // If the textures are scrolling to the right, when the tile wraps, it should be placed to the left
+            // of the tile that comes after it.
+            int nextTexture = index + 1;
+            if (nextTexture == Positions.Length)
+                nextTexture = 0;
+
+            Positions[index].X = Positions[nextTexture].X - Texture.Width;
         }
 
         public void Draw(SpriteBatch spriteBatch)
