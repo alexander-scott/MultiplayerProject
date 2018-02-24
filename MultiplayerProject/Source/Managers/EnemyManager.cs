@@ -10,73 +10,73 @@ namespace MultiplayerProject.Source
     {
         public List<Enemy> Enemies
         {
-            get { return enemies; }
+            get { return _enemies; }
         }
 
         // Enemies
-        Texture2D enemyTexture;
+        private Texture2D _enemyTexture;
 
-        List<Enemy> enemies;
+        private List<Enemy> _enemies;
 
         // The rate at which the enemies appear
-        TimeSpan enemySpawnTime;
+        private TimeSpan _enemySpawnTime;
 
-        TimeSpan previousSpawnTime;
+        private TimeSpan _previousSpawnTime;
 
         // A random number generator
-        Random random;
+        private Random _random;
 
         private int _screenWidth;
         private int _screenHeight;
 
         public void Initalise(ContentManager content, int screenWidth, int screenHeight)
         {
-            enemyTexture = content.Load<Texture2D>("mineAnimation");
+            _enemyTexture = content.Load<Texture2D>("mineAnimation");
 
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
 
             // Initialize the enemies list
-            enemies = new List<Enemy>();
+            _enemies = new List<Enemy>();
 
             // Set the time keepers to zero
-            previousSpawnTime = TimeSpan.Zero;
+            _previousSpawnTime = TimeSpan.Zero;
 
             // Used to determine how fast enemy respawns
-            enemySpawnTime = TimeSpan.FromSeconds(1.0f);
+            _enemySpawnTime = TimeSpan.FromSeconds(1.0f);
 
             // Initialize our random number generator
-            random = new Random();
+            _random = new Random();
         }
 
         public void Update(GameTime gameTime)
         {
             // Spawn a new enemy enemy every 1.5 seconds
-            if (gameTime.TotalGameTime - previousSpawnTime > enemySpawnTime)
+            if (gameTime.TotalGameTime - _previousSpawnTime > _enemySpawnTime)
             {
-                previousSpawnTime = gameTime.TotalGameTime;
+                _previousSpawnTime = gameTime.TotalGameTime;
 
                 // Add an Enemy
                 AddEnemy();
             }
 
             // Update the Enemies
-            for (int i = enemies.Count - 1; i >= 0; i--)
+            for (int i = _enemies.Count - 1; i >= 0; i--)
             {
-                enemies[i].Update(gameTime);
+                _enemies[i].Update(gameTime);
 
-                if (enemies[i].Active == false)
+                if (_enemies[i].Active == false)
                 {
-                    enemies.RemoveAt(i);
+                    _enemies.RemoveAt(i);
                 }
             }
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            for (int i = 0; i < enemies.Count; i++)
+            for (int i = 0; i < _enemies.Count; i++)
             {
-                enemies[i].Draw(spriteBatch);
+                _enemies[i].Draw(spriteBatch);
             }
         }
 
@@ -86,12 +86,12 @@ namespace MultiplayerProject.Source
             Animation enemyAnimation = new Animation();
 
             // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(enemyTexture, Vector2.Zero, 47, 61, 8, 30, Color.White, 1f, true);
+            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 47, 61, 8, 30, Color.White, 1f, true);
 
             // Randomly generate the position of the enemy
-            Vector2 position = new Vector2(_screenWidth + enemyTexture.Width / 2,
+            Vector2 position = new Vector2(_screenWidth + _enemyTexture.Width / 2,
 
-            random.Next(100, _screenHeight - 100));
+            _random.Next(100, _screenHeight - 100));
 
             // Create an enemy
             Enemy enemy = new Enemy();
@@ -100,7 +100,7 @@ namespace MultiplayerProject.Source
             enemy.Initialize(enemyAnimation, position);
 
             // Add the enemy to the active enemies list
-            enemies.Add(enemy);
+            _enemies.Add(enemy);
         }
     }
 }

@@ -27,17 +27,17 @@ namespace MultiplayerProject.Source
         // Get the width of the enemy ship
         public int Width
         {
-            get { return EnemyAnimation._frameWidth; }
+            get { return EnemyAnimation.FrameWidth; }
         }
 
         // Get the height of the enemy ship
         public int Height
         {
-            get { return EnemyAnimation._frameHeight; }
+            get { return EnemyAnimation.FrameHeight; }
         }
 
         // The speed at which the enemy moves
-        float enemyMoveSpeed;
+        private float _enemyMoveSpeed;
 
         public void Initialize(Animation animation, Vector2 position)
         {    
@@ -57,7 +57,7 @@ namespace MultiplayerProject.Source
             Damage = 10;
 
             // Set how fast the enemy moves
-            enemyMoveSpeed = 6f;
+            _enemyMoveSpeed = 6f;
 
             // Set the score value of the enemy
             Value = 100;
@@ -66,10 +66,10 @@ namespace MultiplayerProject.Source
         public void Update(GameTime gameTime)
         {
             // The enemy always moves to the left so decrement its x position
-            Position.X -= enemyMoveSpeed;
+            Position.X -= _enemyMoveSpeed;
 
             // Update the position of the Animation
-            EnemyAnimation._position = Position;
+            EnemyAnimation.Position = Position;
 
             // Update Animation
             EnemyAnimation.Update(gameTime);

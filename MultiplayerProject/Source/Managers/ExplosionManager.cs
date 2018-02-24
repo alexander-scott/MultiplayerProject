@@ -8,28 +8,28 @@ namespace MultiplayerProject.Source
     class ExplosionManager
     {
         // Collections of explosions
-        List<Explosion> explosions;
+        private List<Explosion> _explosions;
 
         //Texture to hold explosion animation.
-        Texture2D explosionTexture;
+        private Texture2D _explosionTexture;
 
         public void Initalise(ContentManager content)
         {
             // init our collection of explosions.
-            explosions = new List<Explosion>();
+            _explosions = new List<Explosion>();
 
             // load the explosion sheet
-            explosionTexture = content.Load<Texture2D>("explosion");
+            _explosionTexture = content.Load<Texture2D>("explosion");
         }
 
         public void Update(GameTime gameTime)
         {
-            for (var e = 0; e < explosions.Count; e++)
+            for (var e = 0; e < _explosions.Count; e++)
             {
-                explosions[e].Update(gameTime);
+                _explosions[e].Update(gameTime);
 
-                if (!explosions[e].Active)
-                    explosions.Remove(explosions[e]);
+                if (!_explosions[e].Active)
+                    _explosions.Remove(_explosions[e]);
             }
         }
 
@@ -37,7 +37,7 @@ namespace MultiplayerProject.Source
         {
             Animation explosionAnimation = new Animation();
 
-            explosionAnimation.Initialize(explosionTexture,
+            explosionAnimation.Initialize(_explosionTexture,
                 enemyPosition,
                 134,
                 134,
@@ -50,13 +50,13 @@ namespace MultiplayerProject.Source
             Explosion explosion = new Explosion();
             explosion.Initialize(explosionAnimation, enemyPosition);
 
-            explosions.Add(explosion);
+            _explosions.Add(explosion);
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
             // draw explosions
-            foreach (var e in explosions)
+            foreach (var e in _explosions)
             {
                 e.Draw(spriteBatch);
             }

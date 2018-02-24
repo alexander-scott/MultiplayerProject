@@ -21,13 +21,13 @@ namespace MultiplayerProject.Source
         // Get the width of the player ship
         public int Width
         {
-            get { return PlayerAnimation._frameWidth; }
+            get { return PlayerAnimation.FrameWidth; }
         }
 
         // Get the height of the player ship
         public int Height
         {
-            get { return PlayerAnimation._frameHeight; }
+            get { return PlayerAnimation.FrameHeight; }
         }
 
         public void Initialize(Animation animation, Vector2 position)
@@ -46,7 +46,7 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            PlayerAnimation._position = Position;
+            PlayerAnimation.Position = Position;
             PlayerAnimation.Update(gameTime);
         }
 
