@@ -16,18 +16,21 @@ namespace MultiplayerProject.Source
         private int _screenWidth;
         private int _screenHeight;
 
-        public void Initalise(ContentManager content, int screenWidth, int screenHeight)
+        public BackgroundManager(int screenWidth, int screenHeight)
+        {
+            _screenWidth = screenWidth;
+            _screenHeight = screenHeight;
+        }
+
+        public void Initalise(ContentManager content)
         {
             _bgLayer1 = new ParallaxingBackground();
             _bgLayer2 = new ParallaxingBackground();
-            _rectBackground = new Rectangle(0, 0, screenWidth, screenHeight);
+            _rectBackground = new Rectangle(0, 0, _screenWidth, _screenHeight);
 
-            _bgLayer1.Initialize(content, "bgLayer1", screenWidth, screenHeight, -1);
-            _bgLayer2.Initialize(content, "bgLayer2", screenWidth, screenHeight, -2);
+            _bgLayer1.Initialize(content, "bgLayer1", _screenWidth, _screenHeight, -1);
+            _bgLayer2.Initialize(content, "bgLayer2", _screenWidth, _screenHeight, -2);
             _mainBackground = content.Load<Texture2D>("mainbackground");
-
-            _screenWidth = screenWidth;
-            _screenHeight = screenHeight;
         }
 
         public void Update(GameTime gameTime)

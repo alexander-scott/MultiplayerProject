@@ -116,7 +116,7 @@ namespace MultiplayerProject.Source
             // Only draw the animation when we are active
             if (Active)
             {
-                spriteBatch.Draw(_spriteStrip, _destinationRect, _sourceRect, _color);
+                spriteBatch.Draw(_spriteStrip, null, _destinationRect, _sourceRect, Vector2.Zero, 0, new Vector2(1,1), _color);
             }
         }
     }

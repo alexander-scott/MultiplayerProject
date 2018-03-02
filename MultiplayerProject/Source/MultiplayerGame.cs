@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Input.Touch;
 
 using MultiplayerProject.Source;
 
@@ -9,26 +8,26 @@ namespace MultiplayerProject
 {
     public class MultiplayerGame : Game
     {
-        GraphicsDeviceManager   _graphics;
-        SpriteBatch             _spriteBatch;
-        Player                  _player;
+        private GraphicsDeviceManager   _graphics;
+        private SpriteBatch             _spriteBatch;
+        private Player                  _player;
 
-        KeyboardState           _currentKeyboardState;
-        KeyboardState           _previousKeyboardState;
+        private KeyboardState           _currentKeyboardState;
+        private KeyboardState           _previousKeyboardState;
 
-        GamePadState            _currentGamePadState;
-        GamePadState            _previousGamePadState;
+        private GamePadState            _currentGamePadState;
+        private GamePadState            _previousGamePadState;
 
-        MouseState              _currentMouseState;
-        MouseState              _previousMouseState;
+        private MouseState              _currentMouseState;
+        private MouseState              _previousMouseState;
 
-        EnemyManager            _enemyManager;
-        LaserManager            _laserManager;
-        CollisionManager        _collisionManager;
-        ExplosionManager        _explosionManager;
-        BackgroundManager       _backgroundManager;
+        private EnemyManager            _enemyManager;
+        private LaserManager            _laserManager;
+        private CollisionManager        _collisionManager;
+        private ExplosionManager        _explosionManager;
+        private BackgroundManager       _backgroundManager;
 
-        float                   _playerMoveSpeed = 8.0f;
+        private const float             _playerMoveSpeed = 8.0f;
 
         public MultiplayerGame()
         {
@@ -38,23 +37,12 @@ namespace MultiplayerProject
 
         protected override void Initialize()
         {
-            // Initialize the player class
-            _player = new Player();
-
-            TouchPanel.EnabledGestures = GestureType.FreeDrag;
-
-            _enemyManager = new EnemyManager();
-            _enemyManager.Initalise(Content, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-
-            _laserManager = new LaserManager();
-            _laserManager.Initalise(Content, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _player = new Player(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _enemyManager = new EnemyManager(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _laserManager = new LaserManager(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _backgroundManager = new BackgroundManager(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
             _explosionManager = new ExplosionManager();
-            _explosionManager.Initalise(Content);
-
-            _backgroundManager = new BackgroundManager();
-            _backgroundManager.Initalise(Content, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-
             _collisionManager = new CollisionManager();
 
             base.Initialize();
@@ -65,17 +53,33 @@ namespace MultiplayerProject
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // Load the player resources
-            Animation playerAnimation = new Animation();
-            Texture2D playerTexture = Content.Load<Texture2D>("shipAnimation");
-            playerAnimation.Initialize(playerTexture, Vector2.Zero, 115, 69, 8, 30, Color.White, 1f, true);
-
             Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
+            _player.Initialize(Content, playerPosition);
 
-            _player.Initialize(playerAnimation, playerPosition);
+            _enemyManager.Initalise(Content);
+            _laserManager.Initalise(Content);
+            _explosionManager.Initalise(Content);
+            _backgroundManager.Initalise(Content);
+
+            base.LoadContent();
         }
 
         protected override void Update(GameTime gameTime)
+        {
+            ProcessInput(gameTime);
+
+            _player.Update(gameTime);
+            _backgroundManager.Update(gameTime);
+            _enemyManager.Update(gameTime);
+            _laserManager.Update(gameTime);
+            _explosionManager.Update(gameTime);
+
+            _collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
+
+            base.Update(gameTime);
+        }
+
+        private void ProcessInput(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
@@ -87,47 +91,6 @@ namespace MultiplayerProject
             _currentKeyboardState = Keyboard.GetState();
             _currentGamePadState = GamePad.GetState(PlayerIndex.One);
             _currentMouseState = Mouse.GetState();
-
-            UpdatePlayer(gameTime);
-
-            _backgroundManager.Update(gameTime);
-
-            _enemyManager.Update(gameTime);
-            _laserManager.Update(gameTime);
-            _explosionManager.Update(gameTime);
-
-            _collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
-
-            base.Update(gameTime);
-        }
-
-        private void UpdatePlayer(GameTime gameTime)
-        {
-            _player.Update(gameTime);
-
-            // Windows 8 Touch Gestures for MonoGame
-            while (TouchPanel.IsGestureAvailable)
-            {
-                GestureSample gesture = TouchPanel.ReadGesture();
-
-                if (gesture.GestureType == GestureType.FreeDrag)
-                {
-                    _player.Position += gesture.Delta;
-                }
-            }
-
-            //Get Mouse State then Capture the Button type and Respond Button Press
-            Vector2 mousePosition = new Vector2(_currentMouseState.X, _currentMouseState.Y);
-
-            if (_currentMouseState.LeftButton == ButtonState.Pressed)
-            {
-                Vector2 posDelta = mousePosition - _player.Position;
-
-                posDelta.Normalize();
-                posDelta = posDelta * _playerMoveSpeed;
-
-                _player.Position = _player.Position + posDelta;
-            }
 
             // Thumbstick controls
             _player.Position.X += _currentGamePadState.ThumbSticks.Left.X * _playerMoveSpeed;
@@ -155,17 +118,11 @@ namespace MultiplayerProject
             {
                 _laserManager.FireLaser(gameTime, _player.Position);
             }
-
-            // Make sure that the player does not go out of bounds
-            _player.Position.X = MathHelper.Clamp(_player.Position.X, 0, GraphicsDevice.Viewport.Width);
-            _player.Position.Y = MathHelper.Clamp(_player.Position.Y, 0, GraphicsDevice.Viewport.Height);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            // TODO: Add your drawing code here
 
             // Start drawing
             _spriteBatch.Begin();
@@ -178,7 +135,6 @@ namespace MultiplayerProject
 
             _explosionManager.Draw(_spriteBatch);
 
-            // Draw the Player
             _player.Draw(_spriteBatch);
 
             // Stop drawing

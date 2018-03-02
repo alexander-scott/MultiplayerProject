@@ -13,15 +13,48 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin player.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:player.png
+#begin bgLayer1.xnb
+/importer:
+/processor:
+/build:bgLayer1.xnb
+
+#begin bgLayer2.xnb
+/importer:
+/processor:
+/build:bgLayer2.xnb
+
+#begin Content.mgcb
+/importer:
+/processor:
+/build:Content.mgcb
+
+#begin explosion.xnb
+/importer:
+/processor:
+/build:explosion.xnb
+
+#begin laser.xnb
+/importer:
+/processor:
+/build:laser.xnb
+
+#begin mainbackground.xnb
+/importer:
+/processor:
+/build:mainbackground.xnb
+
+#begin mineAnimation.xnb
+/importer:
+/processor:
+/build:mineAnimation.xnb
+
+#begin player.xnb
+/importer:
+/processor:
+/build:player.xnb
+
+#begin shipAnimation.xnb
+/importer:
+/processor:
+/build:shipAnimation.xnb
 

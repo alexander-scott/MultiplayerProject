@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
@@ -30,9 +31,23 @@ namespace MultiplayerProject.Source
             get { return PlayerAnimation.FrameHeight; }
         }
 
-        public void Initialize(Animation animation, Vector2 position)
+        private int _height;
+        private int _width;
+
+        public Player(int height, int width)
         {
-            PlayerAnimation = animation;
+            _height = height;
+            _width = width;
+        }
+
+        public void Initialize(ContentManager content, Vector2 position)
+        {
+            // Load the player resources
+            Animation playerAnimation = new Animation();
+            Texture2D playerTexture = content.Load<Texture2D>("shipAnimation");
+            playerAnimation.Initialize(playerTexture, Vector2.Zero, 115, 69, 8, 30, Color.White, 1f, true);
+
+            PlayerAnimation = playerAnimation;
 
             // Set the starting position of the player around the middle of the screen and to the back
             Position = position;
@@ -47,6 +62,11 @@ namespace MultiplayerProject.Source
         public void Update(GameTime gameTime)
         {
             PlayerAnimation.Position = Position;
+
+            // Make sure that the player does not go out of bounds
+            Position.X = MathHelper.Clamp(Position.X, 0, _height);
+            Position.Y = MathHelper.Clamp(Position.Y, 0, _width);
+
             PlayerAnimation.Update(gameTime);
         }
 

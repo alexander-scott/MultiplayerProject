@@ -1,8 +1,8 @@
-#Multiplayer Space Shooter
+# Multiplayer Space Shooter
 
-##Overview
+## Overview
 
-###General
+### General
 
 The game that will be created for Concurrent and Multiplayer Game Programming
 is a variation of the original 2D space shooter games developed for arcade.
@@ -15,18 +15,19 @@ The aim of the game is to be the last one standing. At the end of each game
 a scoreboard is presented detailing the order in which people died/survived
 and how many kills each player got. 
 
-###Multiplayer aspect
+### Multiplayer aspect
 
 The spaceships that the player will be fighting against are player controlled.
-This will be achieved through either a LAN setup or a server/client setup, depending
-on how the player wants to play the game. 
+This will be achieved through a server/client setup where the server will 
+be able to hold multiple instances of a networked game. The server will also persist
+data through a text file which will track things like games won/lost/deaths/kills etc.
 
 The game will also feature a lobby where the players can meet and agree to start
 a game instance. The lobby will also feature an optional matchmaking system that
 will feature selecting players that are local to one another and with a basic
 skill based selection system (games won and lost).
 
-###Future features
+### Future features
 
 The game might feature AI spaceships where the AI processing is done on the server
 and synced between clients.

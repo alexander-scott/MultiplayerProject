@@ -25,7 +25,13 @@ namespace MultiplayerProject.Source
         private int _screenWidth;
         private int _screenHeight;
 
-        public void Initalise(ContentManager content, int screenWidth, int screenHeight)
+        public LaserManager(int screenWidth, int screenHeight)
+        {
+            _screenWidth = screenWidth;
+            _screenHeight = screenHeight;
+        }
+
+        public void Initalise(ContentManager content)
         {
             // init our laser
             _laserBeams = new List<Laser>();
@@ -33,9 +39,6 @@ namespace MultiplayerProject.Source
             const float RATE_OF_FIRE = 200f;
             _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
             _previousLaserSpawnTime = TimeSpan.Zero;
-
-            _screenWidth = screenWidth;
-            _screenHeight = screenHeight;
 
             // load th texture to serve as the laser
             _laserTexture = content.Load<Texture2D>("laser");

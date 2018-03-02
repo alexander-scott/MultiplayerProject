@@ -8,33 +8,29 @@ namespace MultiplayerProject.Source
 {
     class EnemyManager
     {
-        public List<Enemy> Enemies
-        {
-            get { return _enemies; }
-        }
+        public List<Enemy> Enemies { get { return _enemies; } }
 
-        // Enemies
         private Texture2D _enemyTexture;
 
         private List<Enemy> _enemies;
 
-        // The rate at which the enemies appear
         private TimeSpan _enemySpawnTime;
-
         private TimeSpan _previousSpawnTime;
 
-        // A random number generator
         private Random _random;
 
         private int _screenWidth;
         private int _screenHeight;
 
-        public void Initalise(ContentManager content, int screenWidth, int screenHeight)
+        public EnemyManager(int screenWidth, int screenHeight)
         {
-            _enemyTexture = content.Load<Texture2D>("mineAnimation");
-
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
+        }
+
+        public void Initalise(ContentManager content)
+        {
+            _enemyTexture = content.Load<Texture2D>("mineAnimation");
 
             // Initialize the enemies list
             _enemies = new List<Enemy>();
@@ -90,8 +86,7 @@ namespace MultiplayerProject.Source
 
             // Randomly generate the position of the enemy
             Vector2 position = new Vector2(_screenWidth + _enemyTexture.Width / 2,
-
-            _random.Next(100, _screenHeight - 100));
+                _random.Next(100, _screenHeight - 100));
 
             // Create an enemy
             Enemy enemy = new Enemy();
