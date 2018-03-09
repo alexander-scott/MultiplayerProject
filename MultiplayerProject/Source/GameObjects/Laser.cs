@@ -12,6 +12,8 @@ namespace MultiplayerProject.Source
         // position of the laser
         public Vector2 Position;
 
+        public float Rotation;
+
         // set the laser to active
         public bool Active;
 
@@ -36,17 +38,23 @@ namespace MultiplayerProject.Source
         // Laser beams range.
         //private int _laserRange;
 
-        public void Initialize(Animation animation, Vector2 position)
+        public void Initialize(Animation animation, Vector2 position, float rotation)
         {
             LaserAnimation = animation;
             Position = position;
+            Rotation = rotation;
             Active = true;
         }
 
         public void Update(GameTime gameTime)
         {
-            Position.X += _laserMoveSpeed;
+            Vector2 direction = new Vector2((float)Math.Cos(Rotation),
+                                     (float)Math.Sin(Rotation));
+            direction.Normalize();
+            Position += direction * _laserMoveSpeed;
+
             LaserAnimation.Position = Position;
+            LaserAnimation.Rotation = Rotation;
             LaserAnimation.Update(gameTime);
         }
 

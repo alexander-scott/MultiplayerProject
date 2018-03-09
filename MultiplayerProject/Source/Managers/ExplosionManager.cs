@@ -39,6 +39,7 @@ namespace MultiplayerProject.Source
 
             explosionAnimation.Initialize(_explosionTexture,
                 enemyPosition,
+                0,
                 134,
                 134,
                 12,

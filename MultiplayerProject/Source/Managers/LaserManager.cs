@@ -25,6 +25,10 @@ namespace MultiplayerProject.Source
         private int _screenWidth;
         private int _screenHeight;
 
+        const float SECONDS_IN_MINUTE = 60f;
+        const float RATE_OF_FIRE = 200f;
+        const float LASER_SPAWN_DISTANCE = 70f;
+
         public LaserManager(int screenWidth, int screenHeight)
         {
             _screenWidth = screenWidth;
@@ -33,27 +37,25 @@ namespace MultiplayerProject.Source
 
         public void Initalise(ContentManager content)
         {
-            // init our laser
+            // Init our laser
             _laserBeams = new List<Laser>();
-            const float SECONDS_IN_MINUTE = 60f;
-            const float RATE_OF_FIRE = 200f;
+
             _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
             _previousLaserSpawnTime = TimeSpan.Zero;
 
-            // load th texture to serve as the laser
+            // Load the texture to serve as the laser
             _laserTexture = content.Load<Texture2D>("laser");
         }
 
         public void Update(GameTime gameTime)
         {
-            // update laserbeams
+            // Update laserbeams
             for (var i = 0; i < _laserBeams.Count; i++)
             {
                 _laserBeams[i].Update(gameTime);
                 // Remove the beam when its deactivated or is at the end of the screen.
                 if (!_laserBeams[i].Active || _laserBeams[i].Position.X > _screenWidth)
                 {
-                    //AddExplosion(laserBeams[i].Position);
                     _laserBeams.Remove(_laserBeams[i]);
                 }
             }
@@ -68,23 +70,24 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void FireLaser(GameTime gameTime, Vector2 position)
+        public void FireLaser(GameTime gameTime, Vector2 position, float rotation)
         {
-            // govern the rate of fire for our lasers
+            // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
             {
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
                 // Add the laer to our list.
-                AddLaser(position);
+                AddLaser(position, rotation);
             }
         }
 
-        public void AddLaser(Vector2 position)
+        public void AddLaser(Vector2 position, float rotation)
         {
             Animation laserAnimation = new Animation();
-            // initlize the laser animation
+            // Initlize the laser animation
             laserAnimation.Initialize(_laserTexture,
                 position,
+                rotation,
                 46,
                 16,
                 1,
@@ -94,18 +97,17 @@ namespace MultiplayerProject.Source
                 true);
 
             Laser laser = new Laser();
-            // Get the starting postion of the laser.
+            Vector2 direction = new Vector2((float)Math.Cos(rotation),
+                                     (float)Math.Sin(rotation));
+            direction.Normalize();
 
+            // Move the starting position to be slightly in front of the cannon
             var laserPostion = position;
-            // Adjust the position slightly to match the muzzle of the cannon.
-            //laserPostion.Y += 37;
-            laserPostion.X += 70;
+            laserPostion += direction * LASER_SPAWN_DISTANCE;
 
-            // init the laser
-            laser.Initialize(laserAnimation, laserPostion);
+            // Init the laser
+            laser.Initialize(laserAnimation, laserPostion, rotation);
             _laserBeams.Add(laser);
-            /* todo: add code to create a laser. */
-            // laserSoundInstance.Play();
         }
     }
 }

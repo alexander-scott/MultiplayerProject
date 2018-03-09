@@ -1,10 +1,18 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
     class CollisionManager
     {
+        private GraphicsDevice _device;
+
+        public CollisionManager(GraphicsDevice device)
+        {
+            _device = device;
+        }
+
         public void CheckCollision(List<Enemy> enemies, List<Laser> lasers, ExplosionManager explosionManager)
         {
             Rectangle rectangle2;
@@ -15,8 +23,8 @@ namespace MultiplayerProject.Source
             {
                 //create a retangle for the enemy
                 rectangle2 = new Rectangle(
-                    (int)e.Position.X,
-                    (int)e.Position.Y,
+                    (int)e.CentrePosition.X,
+                    (int)e.CentrePosition.Y,
                     e.Width,
                     e.Height);
 
@@ -53,6 +61,53 @@ namespace MultiplayerProject.Source
                     }
                 });
             });
+        }
+
+        public void Draw(SpriteBatch spriteBatch, List<Enemy> enemies, List<Laser> lasers)
+        {
+            foreach (Enemy enemy in enemies)
+            {
+                Texture2D texture = new Texture2D(_device, enemy.Width, enemy.Height);
+                texture.CreateBorder(1, Color.Red);
+                spriteBatch.Draw(texture, enemy.CentrePosition, Color.White);
+            }
+
+            foreach (Laser laser in lasers)
+            {
+                Texture2D texture = new Texture2D(_device, laser.Width, laser.Height);
+                texture.CreateBorder(1, Color.Blue);
+                spriteBatch.Draw(texture, laser.Position, Color.White);
+            }
+        }
+    }
+
+    static class Utilities
+    {
+        public static void CreateBorder(this Texture2D texture, int borderWidth, Color borderColor)
+        {
+            Color[] colors = new Color[texture.Width * texture.Height];
+
+            for (int x = 0; x < texture.Width; x++)
+            {
+                for (int y = 0; y < texture.Height; y++)
+                {
+                    bool colored = false;
+                    for (int i = 0; i <= borderWidth; i++)
+                    {
+                        if (x == i || y == i || x == texture.Width - 1 - i || y == texture.Height - 1 - i)
+                        {
+                            colors[x + y * texture.Width] = borderColor;
+                            colored = true;
+                            break;
+                        }
+                    }
+
+                    if (colored == false)
+                        colors[x + y * texture.Width] = Color.Transparent;
+                }
+            }
+
+            texture.SetData(colors);
         }
     }
 }

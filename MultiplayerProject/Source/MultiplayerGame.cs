@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using MultiplayerProject.Source;
+using System;
 
 namespace MultiplayerProject
 {
@@ -27,8 +28,6 @@ namespace MultiplayerProject
         private ExplosionManager        _explosionManager;
         private BackgroundManager       _backgroundManager;
 
-        private const float             _playerMoveSpeed = 8.0f;
-
         public MultiplayerGame()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -43,7 +42,7 @@ namespace MultiplayerProject
             _backgroundManager = new BackgroundManager(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
             _explosionManager = new ExplosionManager();
-            _collisionManager = new CollisionManager();
+            _collisionManager = new CollisionManager(GraphicsDevice);
 
             base.Initialize();
         }
@@ -53,9 +52,7 @@ namespace MultiplayerProject
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
-            _player.Initialize(Content, playerPosition);
-
+            _player.Initialize(Content);
             _enemyManager.Initalise(Content);
             _laserManager.Initalise(Content);
             _explosionManager.Initalise(Content);
@@ -93,30 +90,30 @@ namespace MultiplayerProject
             _currentMouseState = Mouse.GetState();
 
             // Thumbstick controls
-            _player.Position.X += _currentGamePadState.ThumbSticks.Left.X * _playerMoveSpeed;
-            _player.Position.Y -= _currentGamePadState.ThumbSticks.Left.Y * _playerMoveSpeed;
+            //_player.State.Position.X += _currentGamePadState.ThumbSticks.Left.X * _playerMoveSpeed;
+            //_player.State.Position.Y -= _currentGamePadState.ThumbSticks.Left.Y * _playerMoveSpeed;
 
             // Keyboard/Dpad controls
             if (_currentKeyboardState.IsKeyDown(Keys.Left) || _currentGamePadState.DPad.Left == ButtonState.Pressed)
             {
-                _player.Position.X -= _playerMoveSpeed;
+                _player.RotateLeft(gameTime);
             }
             if (_currentKeyboardState.IsKeyDown(Keys.Right) || _currentGamePadState.DPad.Right == ButtonState.Pressed)
             {
-                _player.Position.X += _playerMoveSpeed;
+                _player.RotateRight(gameTime);
             }
             if (_currentKeyboardState.IsKeyDown(Keys.Up) || _currentGamePadState.DPad.Up == ButtonState.Pressed)
             {
-                _player.Position.Y -= _playerMoveSpeed;
+                _player.MoveForward(gameTime);
             }
             if (_currentKeyboardState.IsKeyDown(Keys.Down) || _currentGamePadState.DPad.Down == ButtonState.Pressed)
             {
-                _player.Position.Y += _playerMoveSpeed;
+                _player.MoveBackward(gameTime);
             }
 
             if (_currentKeyboardState.IsKeyDown(Keys.Space) || _currentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                _laserManager.FireLaser(gameTime, _player.Position);
+                _laserManager.FireLaser(gameTime, _player.Position, _player.Rotation);
             }
         }
 
@@ -134,6 +131,8 @@ namespace MultiplayerProject
             _laserManager.Draw(_spriteBatch);
 
             _explosionManager.Draw(_spriteBatch);
+
+            _collisionManager.Draw(_spriteBatch, _enemyManager.Enemies, _laserManager.Lasers);
 
             _player.Draw(_spriteBatch);
 

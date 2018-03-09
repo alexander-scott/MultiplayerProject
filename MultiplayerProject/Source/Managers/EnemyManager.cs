@@ -82,7 +82,7 @@ namespace MultiplayerProject.Source
             Animation enemyAnimation = new Animation();
 
             // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 47, 61, 8, 30, Color.White, 1f, true);
+            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
 
             // Randomly generate the position of the enemy
             Vector2 position = new Vector2(_screenWidth + _enemyTexture.Width / 2,

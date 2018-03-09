@@ -22,6 +22,9 @@ namespace MultiplayerProject.Source
         // Width of a given frame
         public Vector2 Position;
 
+        // Rotation of the animation
+        public float Rotation;
+
         // The image representing the collection of images used for animation
         private Texture2D _spriteStrip;
 
@@ -49,7 +52,7 @@ namespace MultiplayerProject.Source
         // The area where we want to display the image strip in the game
         private Rectangle _destinationRect = new Rectangle();
 
-        public void Initialize(Texture2D texture, Vector2 position, int frameWidth, int frameHeight, int frameCount, int frametime, Color color, float scale, bool looping)
+        public void Initialize(Texture2D texture, Vector2 position, float rotation, int frameWidth, int frameHeight, int frameCount, int frametime, Color color, float scale, bool looping)
         {
             // Keep a local copy of the values passed in
             _color = color;
@@ -61,6 +64,7 @@ namespace MultiplayerProject.Source
             FrameHeight = frameHeight;
             Looping = looping;
             Position = position;
+            Rotation = rotation;
 
             _spriteStrip = texture;
 
@@ -116,7 +120,8 @@ namespace MultiplayerProject.Source
             // Only draw the animation when we are active
             if (Active)
             {
-                spriteBatch.Draw(_spriteStrip, null, _destinationRect, _sourceRect, Vector2.Zero, 0, new Vector2(1,1), _color);
+                Vector2 origin = new Vector2(FrameWidth / 2, FrameHeight / 2);
+                spriteBatch.Draw(_spriteStrip, Position, _sourceRect, Color.White, Rotation, origin, 1, SpriteEffects.None, 0);
             }
         }
     }

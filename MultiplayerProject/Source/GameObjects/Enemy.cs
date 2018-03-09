@@ -14,10 +14,15 @@ namespace MultiplayerProject.Source
         public int Damage; // The amount of damage the enemy inflicts on the player ship
         public int Value;  // The amount of score the enemy will give to the player
 
+        public Vector2 CentrePosition { get { return new Vector2(Position.X - Width/2, Position.Y - Height / 2); } }
         public int Width { get { return EnemyAnimation.FrameWidth; } }
         public int Height { get { return EnemyAnimation.FrameHeight; } }
 
-        private const float _enemyMoveSpeed = 6f;
+        const float ENEMY_MOVE_SPEED = 6f;
+
+        const int ENEMY_STARTING_HEALTH = 10;
+        const int ENEMY_DAMAGE = 10;
+        const int ENEMY_DEATH_SCORE_INCREASE = 100;
 
         public void Initialize(Animation animation, Vector2 position)
         {    
@@ -27,17 +32,17 @@ namespace MultiplayerProject.Source
 
             Active = true;
 
-            Health = 10;
+            Health = ENEMY_STARTING_HEALTH;
 
-            Damage = 10;
+            Damage = ENEMY_DAMAGE;
 
-            Value = 100;
+            Value = ENEMY_DEATH_SCORE_INCREASE;
         }
 
         public void Update(GameTime gameTime)
         {
             // The enemy always moves to the left so decrement its x position
-            Position.X -= _enemyMoveSpeed;
+            Position.X -= ENEMY_MOVE_SPEED;
 
             // Update the position of the Animation
             EnemyAnimation.Position = Position;
