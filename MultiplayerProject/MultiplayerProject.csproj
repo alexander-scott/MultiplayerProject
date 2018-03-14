@@ -58,6 +58,9 @@
     <Compile Include="Source\Managers\ExplosionManager.cs" />
     <Compile Include="Source\Managers\LaserManager.cs" />
     <Compile Include="Source\MultiplayerGame.cs" />
+    <Compile Include="Source\Networking\Client\SimpleClient.cs" />
+    <Compile Include="Source\Networking\Server\Client.cs" />
+    <Compile Include="Source\Networking\Server\SimpleServer.cs" />
     <Compile Include="Source\ParallaxingBackground.cs" />
     <Compile Include="Source\GameObjects\Player.cs" />
     <Compile Include="Source\Program.cs" />
