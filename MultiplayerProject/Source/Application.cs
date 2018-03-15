@@ -34,7 +34,7 @@ namespace MultiplayerProject
         private MouseState              _currentMouseState;
         private MouseState              _previousMouseState;
 
-        private IScene _currentScene;
+        private IScene                  _currentScene;
 
         private const string hostname = "127.0.0.1";
         private const int port = 4444;
@@ -83,7 +83,6 @@ namespace MultiplayerProject
         {
             MainMenu menu = (MainMenu)_currentScene;
             menu.SetMessage("You are the server.");
-            Console.WriteLine("fdsasdfssdffs");
 
             SimpleServer _simpleServer = new SimpleServer(hostname, port);
             _simpleServer.Start();

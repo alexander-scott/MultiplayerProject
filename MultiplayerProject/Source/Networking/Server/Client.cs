@@ -9,14 +9,15 @@ using System.Threading.Tasks;
 
 namespace MultiplayerProject
 {
+    // protoc -I=. --csharp_out=./ ./networkpackages.proto
     public class Client
     {
         public Socket ClientSocket;
         public string ID;
 
         public NetworkStream Stream;
-        public StreamReader Reader;
-        public StreamWriter Writer;
+        public BinaryReader Reader;
+        public BinaryWriter Writer;
 
         private Thread _thread;
 
@@ -24,8 +25,8 @@ namespace MultiplayerProject
         {
             ClientSocket = socket;
             Stream = new NetworkStream(ClientSocket, true);
-            Reader = new StreamReader(Stream, Encoding.UTF8);
-            Writer = new StreamWriter(Stream, Encoding.UTF8);
+            Reader = new BinaryReader(Stream, Encoding.UTF8);
+            Writer = new BinaryWriter(Stream, Encoding.UTF8);
 
             ID = Guid.NewGuid().ToString();
         }
@@ -47,8 +48,13 @@ namespace MultiplayerProject
 
         public void SendPacketToClient(string text)
         {
-            Writer.WriteLine(text);
+            Writer.Write(text);
             Writer.Flush();
+        }
+
+        public void SendPacketToClient(NetworkPacket packet)
+        {
+            //Writer.WriteLine();
         }
 
         private void SocketMethod()

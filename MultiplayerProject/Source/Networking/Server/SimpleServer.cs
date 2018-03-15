@@ -22,11 +22,6 @@ namespace MultiplayerProject
             _tcpListener = new TcpListener(ip, port);
         }
 
-        ~SimpleServer()
-        {
-            Stop();
-        }
-
         public void Start()
         {
             _thread = new Thread(new ThreadStart(ListenForClients));
@@ -69,7 +64,7 @@ namespace MultiplayerProject
 
                 client.SendPacketToClient("Send 0 for available options");
 
-                while ((receivedMessage = client.Reader.ReadLine()) != null)
+                while ((receivedMessage = client.Reader.ReadString()) != null)
                 {
                     Console.WriteLine("Received...");
 

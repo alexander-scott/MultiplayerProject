@@ -21,8 +21,8 @@ namespace MultiplayerProject
     {
         private TcpClient _tcpClient;
         private NetworkStream _stream;
-        private StreamWriter _writer;
-        private StreamReader _reader;
+        private BinaryWriter _writer;
+        private BinaryReader _reader;
         private Thread _thread;
 
         public SimpleClient()
@@ -36,8 +36,8 @@ namespace MultiplayerProject
             {
                 _tcpClient.Connect(hostname, port);
                 _stream = _tcpClient.GetStream();
-                _writer = new StreamWriter(_stream, Encoding.UTF8);
-                _reader = new StreamReader(_stream, Encoding.UTF8);
+                _writer = new BinaryWriter(_stream, Encoding.UTF8);
+                _reader = new BinaryReader(_stream, Encoding.UTF8);
             }
             catch (Exception e)
             {
@@ -79,7 +79,7 @@ namespace MultiplayerProject
         {
             while(true)
             {
-                Console.WriteLine("Server says: " + _reader.ReadLine());
+                Console.WriteLine("Server says: " + _reader.ReadString());
                 Console.WriteLine();
             }
         }
