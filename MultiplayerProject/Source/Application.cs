@@ -7,6 +7,8 @@ using System;
 
 namespace MultiplayerProject
 {
+    public delegate void SimpleDelegate(string str);
+
     public class Application : Game
     {
         private GraphicsDeviceManager   _graphics;
@@ -23,17 +25,54 @@ namespace MultiplayerProject
 
         private IScene _currentScene;
 
+        private const string hostname = "127.0.0.1";
+        private const int port = 4444;
+
         public Application()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+
+            MainMenu.OnServerStartRequested += OnServerStartRequested;
+            MainMenu.OnClientStartRequested += OnClientStartRequested;
         }
 
         protected override void Initialize()
         {
-            _currentScene = new MainGame(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _currentScene = new MainMenu(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
             base.Initialize();
+        }
+
+        private void OnClientStartRequested(string str)
+        {
+            SimpleClient _client = new SimpleClient();
+            MainMenu menu = (MainMenu)_currentScene;
+
+            menu.SetMessage("Attempting to connect...");
+            if (_client.Connect(hostname, port))
+            {
+                menu.SetMessage("Connected...");
+                try
+                {
+                    _client.Run();
+                }
+                catch (NotConnectedException e)
+                {
+                    menu.SetMessage("Client not Connected: " + e.Message);
+                }
+            }
+            else
+            {
+                menu.SetMessage("Failed to connect to: " + hostname + ":" + port);
+            }
+        }
+
+        private void OnServerStartRequested(string str)
+        {
+            SimpleServer _simpleServer = new SimpleServer(hostname, port);
+            _simpleServer.Start();
+            _simpleServer.Stop();
         }
 
         protected override void LoadContent()

@@ -74,6 +74,12 @@
     <None Include="Content\bgLayer1.xnb" />
     <None Include="Content\bgLayer2.xnb" />
     <None Include="Content\explosion.xnb" />
+    <Content Include="Content\Font.spritefont">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Font.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Content\laser.xnb" />
     <None Include="Content\mainbackground.xnb" />
     <None Include="Content\mineAnimation.xnb" />
