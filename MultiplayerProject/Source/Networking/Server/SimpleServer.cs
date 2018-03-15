@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiplayerProject.Source;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -60,30 +61,38 @@ namespace MultiplayerProject
         {
             try
             {
-                string receivedMessage;
-
-                client.SendPacketToClient("Send 0 for available options");
-
-                while ((receivedMessage = client.Reader.ReadString()) != null)
+                while (true)
                 {
-                    Console.WriteLine("Received...");
-
-                    foreach (Client c in _clients)
+                    string message;
+                    while ((message = client.Reader.ReadString()) != null)
                     {
-                        c.SendPacketToClient("Client number " + client.ID + " sent " + receivedMessage + " to the Server!");
-                    }
+                        byte[] bytes = Convert.FromBase64String(message);
+                        using (var stream = new MemoryStream(bytes))
+                        {
+                            Console.WriteLine("Received...");
 
-                    if (Int32.TryParse(receivedMessage, out int i))
-                    {
-                        client.SendPacketToClient(GetReturnMessage(i));
+                            // if we have a valid package do stuff
+                            // this loops until there isnt enough data for a package or empty
+                            while (stream.HasValidPackage(out int messageSize))
+                            {
+                                switch (stream.UnPackMessage(messageSize, out byte[] buffer))
+                                {
+                                    case MessageType.NetworkPacket:
+                                        var myClassCopy = buffer.DeserializeFromBytes<NetworkPacket>();
+                                        // do stuff with your class
+                                        break;
+                                    case MessageType.NetworkPacketString:
+                                        break;
+                                    case MessageType.Message3:
+                                        break;
+                                    case MessageType.Message4:
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException();
+                                }
+                            }
+                        }
                     }
-                    else
-                    {
-                        client.SendPacketToClient(GetReturnMessage(-1));
-                    }
-
-                    if (i == 9)
-                        break;
                 }
             }
             catch (Exception e)
@@ -94,50 +103,6 @@ namespace MultiplayerProject
             {
                 client.Stop();
             }
-        }
-
-        private static string GetReturnMessage(int code)
-        {
-            string returnMessage;
-
-            switch (code)
-            {
-                case 0:
-                    returnMessage = "Send 1, 3, 5 or 7 for a joke. Send 9 to close the connection.";
-                    break;
-                case 1:
-                    returnMessage = "What dog can jump higher than a building? Send 2 for punchline!";
-                    break;
-                case 2:
-                    returnMessage = "Any dog, buildings can't jump!";
-                    break;
-                case 3:
-                    returnMessage = "When do Ducks wake up? Send 4 for punchline!";
-                    break;
-                case 4:
-                    returnMessage = "At the Quack of Dawn!";
-                    break;
-                case 5:
-                    returnMessage = "How do cows do mathematics? Send 6 for punchline!";
-                    break;
-                case 6:
-                    returnMessage = "They use a cow-culator.";
-                    break;
-                case 7:
-                    returnMessage = "How many programmers does it take to screw in a light bulb? Send 8 for punchline!";
-                    break;
-                case 8:
-                    returnMessage = "None, that's a hardware problem.";
-                    break;
-                case 9:
-                    returnMessage = "Bye!";
-                    break;
-                default:
-                    returnMessage = "Invalid Selection";
-                    break;
-            }
-
-            return returnMessage;
         }
     }
 }

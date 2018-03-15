@@ -9,15 +9,44 @@ namespace MultiplayerProject
 {
     public delegate void SimpleDelegate(string str);
 
-    public enum PacketType
+    public enum MessageType : byte
     {
-        TestPacket
+        NetworkPacket,
+        NetworkPacketString,
+        Message3,
+        Message4,
     }
 
-    public struct NetworkPacket
+    [Serializable]
+    public class NetworkPacket
     {
-        PacketType Type;
-        string Contents;
+        public byte[] SomeArbitaryBytes { get; set; }
+        public string SomeArbitaryString { get; set; }
+        public int SomeArbitaryInt { get; set; }
+        public double SomeArbitaryDouble { get; set; }
+
+        public NetworkPacket()
+        {
+            SomeArbitaryString = "hello";
+            SomeArbitaryInt = 7;
+            SomeArbitaryDouble = 98.1;
+            SomeArbitaryBytes = new byte[10];
+            for (var i = 0; i < SomeArbitaryBytes.Length; i++)
+            {
+                SomeArbitaryBytes[i] = (byte)i;
+            }
+        }
+    }
+
+    [Serializable]
+    public class NetworkPacketString
+    {
+        public string String { get; set; }
+
+        public NetworkPacketString()
+        {
+            String = "TEST";
+        }
     }
 
     public class Application : Game

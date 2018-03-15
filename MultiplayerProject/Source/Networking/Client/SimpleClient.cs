@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MultiplayerProject.Source;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,10 +12,10 @@ namespace MultiplayerProject
     class NotConnectedException : Exception
     {
         public NotConnectedException() : base("TcpClient not connected.")
-        {}
+        { }
 
         public NotConnectedException(string message) : base(message)
-        {}
+        { }
     }
 
     class SimpleClient
@@ -63,7 +64,7 @@ namespace MultiplayerProject
             {
                 Console.WriteLine("Unexpected Error: " + e.Message);
             }
-         }
+        }
 
         public void Stop()
         {
@@ -72,15 +73,63 @@ namespace MultiplayerProject
 
         public void SendMessageToServer(NetworkPacket packet)
         {
-            
+            var bytes = packet.PackMessage(MessageType.NetworkPacket);
+            _writer.Write(Convert.ToBase64String(bytes));
+            _writer.Flush();
         }
 
         private void ProcessServerResponse()
         {
-            while(true)
+            while (true)
             {
-                Console.WriteLine("Server says: " + _reader.ReadString());
-                Console.WriteLine();
+                string message;
+                while ((message = _reader.ReadString()) != null)
+                {
+                    byte[] bytes = Convert.FromBase64String(message);
+                    using (var stream = new MemoryStream(bytes))
+                    {
+                        // if we have a valid package do stuff
+                        // this loops until there isnt enough data for a package or empty
+                        while (stream.HasValidPackage(out Int32 messageSize))
+                        {
+                            switch (stream.UnPackMessage(messageSize, out byte[] buffer))
+                            {
+                                case MessageType.NetworkPacket:
+                                    // do stuff with your class
+                                    break;
+                                case MessageType.NetworkPacketString:
+                                    var myClassCopy = buffer.DeserializeFromBytes<NetworkPacketString>();
+                                    Console.WriteLine("Server says: " + myClassCopy.String);
+                                    Console.WriteLine();
+                                    break;
+                                case MessageType.Message3:
+                                    break;
+                                case MessageType.Message4:
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    public static class StreamHelpers
+    {
+        public static byte[] ReadAllBytes(this BinaryReader reader)
+        {
+            const int bufferSize = 4096;
+            using (var ms = new MemoryStream())
+            {
+                byte[] buffer = new byte[bufferSize];
+                int count;
+                while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
+                    ms.Write(buffer, 0, count);
+                return ms.ToArray();
             }
         }
     }

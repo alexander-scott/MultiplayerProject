@@ -62,6 +62,7 @@
     <Compile Include="Source\Managers\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\Networking\Client\SimpleClient.cs" />
+    <Compile Include="Source\Networking\Package.cs" />
     <Compile Include="Source\Networking\Server\Client.cs" />
     <Compile Include="Source\Networking\Server\SimpleServer.cs" />
     <Compile Include="Source\Effects\ParallaxingBackground.cs" />
