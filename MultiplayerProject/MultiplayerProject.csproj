@@ -48,7 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Source\Animation.cs" />
+    <Compile Include="Source\Effects\Animation.cs" />
     <Compile Include="Source\GameObjects\Enemy.cs" />
     <Compile Include="Source\GameObjects\Explosion.cs" />
     <Compile Include="Source\GameObjects\Laser.cs" />
@@ -61,10 +61,11 @@
     <Compile Include="Source\Networking\Client\SimpleClient.cs" />
     <Compile Include="Source\Networking\Server\Client.cs" />
     <Compile Include="Source\Networking\Server\SimpleServer.cs" />
-    <Compile Include="Source\ParallaxingBackground.cs" />
+    <Compile Include="Source\Effects\ParallaxingBackground.cs" />
     <Compile Include="Source\GameObjects\Player.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Source\Scenes\MainGame.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -106,5 +107,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

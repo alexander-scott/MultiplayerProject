@@ -6,13 +6,6 @@ namespace MultiplayerProject.Source
 {
     class CollisionManager
     {
-        private GraphicsDevice _device;
-
-        public CollisionManager(GraphicsDevice device)
-        {
-            _device = device;
-        }
-
         public void CheckCollision(List<Enemy> enemies, List<Laser> lasers, ExplosionManager explosionManager)
         {
             Rectangle rectangle2;
@@ -63,18 +56,18 @@ namespace MultiplayerProject.Source
             });
         }
 
-        public void Draw(SpriteBatch spriteBatch, List<Enemy> enemies, List<Laser> lasers)
+        public void Draw(GraphicsDevice device, SpriteBatch spriteBatch, List<Enemy> enemies, List<Laser> lasers)
         {
             foreach (Enemy enemy in enemies)
             {
-                Texture2D texture = new Texture2D(_device, enemy.Width, enemy.Height);
+                Texture2D texture = new Texture2D(device, enemy.Width, enemy.Height);
                 texture.CreateBorder(1, Color.Red);
                 spriteBatch.Draw(texture, enemy.CentrePosition, Color.White);
             }
 
             foreach (Laser laser in lasers)
             {
-                Texture2D texture = new Texture2D(_device, laser.Width, laser.Height);
+                Texture2D texture = new Texture2D(device, laser.Width, laser.Height);
                 texture.CreateBorder(1, Color.Blue);
                 spriteBatch.Draw(texture, laser.Position, Color.White);
             }
