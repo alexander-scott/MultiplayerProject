@@ -3,15 +3,14 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
-    public class MainGame
+    public class MainGame : IScene
     {
+        public int Width { get { return _width; } }
+        public int Height { get { return _height; } }
+
         private Player _player;
 
         private EnemyManager _enemyManager;
@@ -20,8 +19,14 @@ namespace MultiplayerProject.Source
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
 
+        private int _width;
+        private int _height;
+
         public MainGame(int width, int height)
         {
+            _width = width;
+            _height = height;
+            
             _player = new Player(width, height);
             _enemyManager = new EnemyManager(width, height);
             _laserManager = new LaserManager(width, height);

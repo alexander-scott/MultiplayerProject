@@ -57,7 +57,7 @@
     <Compile Include="Source\Managers\EnemyManager.cs" />
     <Compile Include="Source\Managers\ExplosionManager.cs" />
     <Compile Include="Source\Managers\LaserManager.cs" />
-    <Compile Include="Source\MultiplayerGame.cs" />
+    <Compile Include="Source\Application.cs" />
     <Compile Include="Source\Networking\Client\SimpleClient.cs" />
     <Compile Include="Source\Networking\Server\Client.cs" />
     <Compile Include="Source\Networking\Server\SimpleServer.cs" />
@@ -65,7 +65,9 @@
     <Compile Include="Source\GameObjects\Player.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Source\Scenes\IScene.cs" />
     <Compile Include="Source\Scenes\MainGame.cs" />
+    <Compile Include="Source\Scenes\MainMenu.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

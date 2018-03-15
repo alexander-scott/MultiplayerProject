@@ -7,7 +7,7 @@ using System;
 
 namespace MultiplayerProject
 {
-    public class MultiplayerGame : Game
+    public class Application : Game
     {
         private GraphicsDeviceManager   _graphics;
         private SpriteBatch             _spriteBatch;
@@ -21,9 +21,9 @@ namespace MultiplayerProject
         private MouseState              _currentMouseState;
         private MouseState              _previousMouseState;
 
-        private MainGame _game;
+        private IScene _currentScene;
 
-        public MultiplayerGame()
+        public Application()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -31,7 +31,7 @@ namespace MultiplayerProject
 
         protected override void Initialize()
         {
-            _game = new MainGame(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _currentScene = new MainGame(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
             base.Initialize();
         }
@@ -41,7 +41,7 @@ namespace MultiplayerProject
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            _game.Initalise(Content);
+            _currentScene.Initalise(Content);
 
             base.LoadContent();
         }
@@ -50,7 +50,7 @@ namespace MultiplayerProject
         {
             ProcessInput(gameTime);
 
-            _game.Update(gameTime);
+            _currentScene.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -68,7 +68,7 @@ namespace MultiplayerProject
             _currentGamePadState = GamePad.GetState(PlayerIndex.One);
             _currentMouseState = Mouse.GetState();
 
-            _game.ProcessInput(gameTime, _currentKeyboardState, _currentGamePadState, _currentMouseState);
+            _currentScene.ProcessInput(gameTime, _currentKeyboardState, _currentGamePadState, _currentMouseState);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -78,7 +78,7 @@ namespace MultiplayerProject
             // Start drawing
             _spriteBatch.Begin();
 
-            _game.Draw(_spriteBatch);
+            _currentScene.Draw(_spriteBatch);
 
             // Stop drawing
             _spriteBatch.End();

@@ -16,7 +16,7 @@ namespace MultiplayerProject
         [STAThread]
         static void Main()
         {
-            using (var game = new MultiplayerGame())
+            using (var game = new Application())
                 game.Run();
 
         //    Console.WriteLine("Press 1 to be a server, 2 to be a client:");
