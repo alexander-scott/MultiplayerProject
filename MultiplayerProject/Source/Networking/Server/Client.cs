@@ -45,7 +45,7 @@ namespace MultiplayerProject
             }
         }
 
-        public void SendText(string text)
+        public void SendPacketToClient(string text)
         {
             Writer.WriteLine(text);
             Writer.Flush();

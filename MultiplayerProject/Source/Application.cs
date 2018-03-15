@@ -9,6 +9,17 @@ namespace MultiplayerProject
 {
     public delegate void SimpleDelegate(string str);
 
+    public enum PacketType
+    {
+        TestPacket
+    }
+
+    public struct NetworkPacket
+    {
+        PacketType Type;
+        string Contents;
+    }
+
     public class Application : Game
     {
         private GraphicsDeviceManager   _graphics;
@@ -70,9 +81,13 @@ namespace MultiplayerProject
 
         private void OnServerStartRequested(string str)
         {
+            MainMenu menu = (MainMenu)_currentScene;
+            menu.SetMessage("You are the server.");
+            Console.WriteLine("fdsasdfssdffs");
+
             SimpleServer _simpleServer = new SimpleServer(hostname, port);
             _simpleServer.Start();
-            _simpleServer.Stop();
+            //_simpleServer.Stop();
         }
 
         protected override void LoadContent()

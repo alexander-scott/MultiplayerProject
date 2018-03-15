@@ -5,12 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace MultiplayerProject
 {
     class SimpleServer
     {
         private TcpListener _tcpListener;
+        private Thread _thread;
 
         private static List<Client> _clients = new List<Client>();
 
@@ -20,10 +22,32 @@ namespace MultiplayerProject
             _tcpListener = new TcpListener(ip, port);
         }
 
+        ~SimpleServer()
+        {
+            Stop();
+        }
+
         public void Start()
         {
+            _thread = new Thread(new ThreadStart(ListenForClients));
+            _thread.Start();
+        }
+
+        public void Stop()
+        {
+            for (int i = 0; i < _clients.Count; i++)
+            {
+                _clients[i].Stop();
+            }
+
+            _tcpListener.Stop();
+            _thread.Abort();
+        }
+
+        private void ListenForClients()
+        {
             _tcpListener.Start();
-            
+
             Console.WriteLine("Listening...");
 
             while (true)
@@ -37,23 +61,13 @@ namespace MultiplayerProject
             }
         }
 
-        public void Stop()
-        {
-            for (int i = 0; i < _clients.Count; i++)
-            {
-                _clients[i].Stop();
-            }
-
-            _tcpListener.Stop();
-        }
-
         internal static void SocketMethod(Client client)
         {
             try
             {
                 string receivedMessage;
 
-                client.SendText("Send 0 for available options");
+                client.SendPacketToClient("Send 0 for available options");
 
                 while ((receivedMessage = client.Reader.ReadLine()) != null)
                 {
@@ -61,16 +75,16 @@ namespace MultiplayerProject
 
                     foreach (Client c in _clients)
                     {
-                        c.SendText("Client number " + client.ID + " sent " + receivedMessage + " to the Server!");
+                        c.SendPacketToClient("Client number " + client.ID + " sent " + receivedMessage + " to the Server!");
                     }
 
                     if (Int32.TryParse(receivedMessage, out int i))
                     {
-                        client.SendText(GetReturnMessage(i));
+                        client.SendPacketToClient(GetReturnMessage(i));
                     }
                     else
                     {
-                        client.SendText(GetReturnMessage(-1));
+                        client.SendPacketToClient(GetReturnMessage(-1));
                     }
 
                     if (i == 9)

@@ -19,11 +19,13 @@ namespace MultiplayerProject.Source
 
         private SpriteFont _font;
         private string _message;
+        private bool _awaitingInput;
 
         public MainMenu(int width, int height)
         {
             _width = width;
             _height = height;
+            _awaitingInput = true;
 
             _message = "Press S to be a server \nPress C to be a client";
         }
@@ -40,13 +42,18 @@ namespace MultiplayerProject.Source
 
         public void ProcessInput(GameTime gameTime, KeyboardState keyboardState, GamePadState gamePadState, MouseState mouseState)
         {
+            if (!_awaitingInput)
+                return;
+
             if (keyboardState.IsKeyDown(Keys.S))
             {
                 OnServerStartRequested("str");
+                _awaitingInput = false;
             }
             else if (keyboardState.IsKeyDown(Keys.C))
             {
                 OnClientStartRequested("str");
+                _awaitingInput = false;
             }
         }
 

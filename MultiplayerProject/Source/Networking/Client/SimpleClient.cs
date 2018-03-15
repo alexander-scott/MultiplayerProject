@@ -55,30 +55,25 @@ namespace MultiplayerProject
 
             try
             {
-                string userInput;
-
+                // Start listening for messages from the server
                 _thread = new Thread(new ThreadStart(ProcessServerResponse));
                 _thread.Start();
-
-                while ((userInput = Console.ReadLine()) != null)
-                {
-                    _writer.WriteLine(userInput);
-                    _writer.Flush();
-
-                    if (userInput.Equals("9"))
-                        break;
-                }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Unexpected Error: " + e.Message);
             }
-            finally
-            {
-                _tcpClient.Close();
-            }
-            Console.Read();
          }
+
+        public void Stop()
+        {
+            _tcpClient.Close();
+        }
+
+        public void SendMessageToServer(NetworkPacket packet)
+        {
+            
+        }
 
         private void ProcessServerResponse()
         {
