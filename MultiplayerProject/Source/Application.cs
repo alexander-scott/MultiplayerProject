@@ -7,44 +7,6 @@ using System;
 
 namespace MultiplayerProject
 {
-    public delegate void SimpleDelegate(string str);
-
-    public enum MessageType : byte
-    {
-        NetworkPacket,
-        NetworkPacketExtended
-    }
-
-    [Serializable]
-    public class NetworkPacketExtended : NetworkPacket
-    {
-        public byte[] SomeArbitaryBytes { get; set; }
-        public int SomeArbitaryInt { get; set; }
-        public double SomeArbitaryDouble { get; set; }
-
-        public NetworkPacketExtended()
-        {
-            SomeArbitaryInt = 7;
-            SomeArbitaryDouble = 98.1;
-            SomeArbitaryBytes = new byte[10];
-            for (var i = 0; i < SomeArbitaryBytes.Length; i++)
-            {
-                SomeArbitaryBytes[i] = (byte)i;
-            }
-        }
-    }
-
-    [Serializable]
-    public class NetworkPacket
-    {
-        public string String { get; set; }
-
-        public NetworkPacket()
-        {
-            String = "TEST";
-        }
-    }
-
     public class Application : Game
     {
         private GraphicsDeviceManager   _graphics;
@@ -85,13 +47,15 @@ namespace MultiplayerProject
             Client _client = new Client();
             MainMenu menu = (MainMenu)_currentScene;
 
-            menu.SetMessage("Attempting to connect...");
+            Console.WriteLine("Attempting to connect...");
             if (_client.Connect(hostname, port))
             {
-                menu.SetMessage("Connected...");
+                Console.WriteLine("Connected...");
                 try
                 {
                     _client.Run();
+                    _currentScene = new WaitingRoomScene(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+                    _currentScene.Initalise(Content);
                 }
                 catch (NotConnectedException e)
                 {

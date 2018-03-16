@@ -8,34 +8,49 @@ using System.Threading;
 
 namespace MultiplayerProject
 {
-    class Server
+    public class Server : IMessageable
     {
-        private TcpListener _tcpListener;
-        private Thread _thread;
+        public const int MAX_LOBBIES = 10;
 
-        private List<ServerConnection> _clients = new List<ServerConnection>();
+        public MessageableComponent ComponentType { get; set; }
+        public List<ServerConnection> Clients { get; set; }
+
+        private TcpListener _tcpListener;
+        private Thread _listenForClientsThread;
+
+        private WaitingRoom _waitingRoom;
 
         public Server(string ipAddress, int port)
         {
+            // Implement IMessageable
+            ComponentType = MessageableComponent.BaseServer;
+            Clients = new List<ServerConnection>();
+
+            // Setup TCP Listener
             IPAddress ip = IPAddress.Parse(ipAddress);
             _tcpListener = new TcpListener(ip, port);
+
+            // Create waiting room for connections
+            _waitingRoom = new WaitingRoom(MAX_LOBBIES);
         }
 
         public void Start()
         {
-            _thread = new Thread(new ThreadStart(ListenForClients));
-            _thread.Start();
+            // Start listening for incomming connections/clients
+            _listenForClientsThread = new Thread(new ThreadStart(ListenForClients));
+            _listenForClientsThread.Start();
         }
 
         public void Stop()
         {
-            for (int i = 0; i < _clients.Count; i++)
+            // Stop every clients connection to any component of the server
+            for (int i = 0; i < Clients.Count; i++)
             {
-                _clients[i].Stop();
+                Clients[i].StopAll();
             }
 
             _tcpListener.Stop();
-            _thread.Abort();
+            _listenForClientsThread.Abort();
         }
 
         private void ListenForClients()
@@ -50,8 +65,10 @@ namespace MultiplayerProject
                 Console.WriteLine("New Connection Made");
 
                 ServerConnection client = new ServerConnection(this, socket);
-                _clients.Add(client);
-                client.Start();
+                Clients.Add(client);
+                client.Start(this);
+
+                _waitingRoom.AddToWaitingRoom(client);
             }
         }
 
@@ -67,10 +84,6 @@ namespace MultiplayerProject
                         byte[] bytes = Convert.FromBase64String(message);
                         using (var stream = new MemoryStream(bytes))
                         {
-                            Console.WriteLine("Received...");
-
-                            // if we have a valid package do stuff
-                            // this loops until there isnt enough data for a package or empty
                             while (stream.HasValidPackage(out int messageSize))
                             {
                                 MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
@@ -86,20 +99,19 @@ namespace MultiplayerProject
             }
             finally
             {
-                client.Stop();
+                client.Stop(this);
             }
         }
 
         private void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
         {
+            // The only packets we should look for recieving here are disconnect or exit messages. Or perhaps info like round trip time or ping time
             switch (messageType)
             {
-                case MessageType.NetworkPacketExtended:
-                    var packet = packetBytes.DeserializeFromBytes<NetworkPacketExtended>();
-                    Console.WriteLine("Client says: " + packet.String);
+                case MessageType.NetworkPacket:
+                    var packet = packetBytes.DeserializeFromBytes<NetworkPacket>();
+                    Console.WriteLine("Client says: " + packet.SomeArbitaryString);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
         }
     }

@@ -7,8 +7,8 @@ namespace MultiplayerProject.Source
 {
     interface IScene
     {
-        int Width { get; }
-        int Height { get; }
+        int Width { get; set; }
+        int Height { get; set; }
 
         void Initalise(ContentManager content);
         void Update(GameTime gameTime);

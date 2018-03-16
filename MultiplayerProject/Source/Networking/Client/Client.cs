@@ -16,8 +16,10 @@ namespace MultiplayerProject
         { }
     }
 
-    class Client
+    public class Client
     {
+        public static event WaitingRoomDelegate OnWaitingRoomInformationRecieved;
+
         private TcpClient _tcpClient;
         private NetworkStream _stream;
         private BinaryWriter _writer;
@@ -69,7 +71,7 @@ namespace MultiplayerProject
             _tcpClient.Close();
         }
 
-        public void SendMessageToServer(NetworkPacket packet, MessageType type)
+        public void SendMessageToServer(BasePacket packet, MessageType type)
         {
             var bytes = packet.PackMessage(type);
             _writer.Write(Convert.ToBase64String(bytes));
@@ -86,8 +88,6 @@ namespace MultiplayerProject
                     byte[] bytes = Convert.FromBase64String(message);
                     using (var stream = new MemoryStream(bytes))
                     {
-                        // if we have a valid package do stuff
-                        // this loops until there isnt enough data for a package or empty
                         while (stream.HasValidPackage(out Int32 messageSize))
                         {
                             MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
@@ -104,11 +104,13 @@ namespace MultiplayerProject
             {
                 case MessageType.NetworkPacket:
                     var packet = packetBytes.DeserializeFromBytes<NetworkPacket>();
-                    Console.WriteLine("Server says: " + packet.String);
-                    Console.WriteLine();
+                    Console.WriteLine("Server says: " + packet.SomeArbitaryString);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+
+                case MessageType.WR_ServerSend_FullInfo:
+                    var waitingRooms = packetBytes.DeserializeFromBytes<WaitingRoomInformation>();
+                    OnWaitingRoomInformationRecieved(waitingRooms);
+                    break;
             }
         }
     }
