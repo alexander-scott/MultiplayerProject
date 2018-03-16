@@ -2,22 +2,20 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace MultiplayerProject
 {
-    class SimpleServer
+    class Server
     {
         private TcpListener _tcpListener;
         private Thread _thread;
 
-        private static List<Client> _clients = new List<Client>();
+        private List<ServerConnection> _clients = new List<ServerConnection>();
 
-        public SimpleServer(string ipAddress, int port)
+        public Server(string ipAddress, int port)
         {
             IPAddress ip = IPAddress.Parse(ipAddress);
             _tcpListener = new TcpListener(ip, port);
@@ -49,15 +47,15 @@ namespace MultiplayerProject
             while (true)
             {
                 Socket socket = _tcpListener.AcceptSocket();
-                Console.WriteLine("Connection Made");
+                Console.WriteLine("New Connection Made");
 
-                Client client = new Client(socket);
+                ServerConnection client = new ServerConnection(this, socket);
                 _clients.Add(client);
                 client.Start();
             }
         }
 
-        internal static void SocketMethod(Client client)
+        public void ProcessClientMessage(ServerConnection client)
         {
             try
             {
@@ -75,21 +73,8 @@ namespace MultiplayerProject
                             // this loops until there isnt enough data for a package or empty
                             while (stream.HasValidPackage(out int messageSize))
                             {
-                                switch (stream.UnPackMessage(messageSize, out byte[] buffer))
-                                {
-                                    case MessageType.NetworkPacket:
-                                        var myClassCopy = buffer.DeserializeFromBytes<NetworkPacket>();
-                                        // do stuff with your class
-                                        break;
-                                    case MessageType.NetworkPacketString:
-                                        break;
-                                    case MessageType.Message3:
-                                        break;
-                                    case MessageType.Message4:
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException();
-                                }
+                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
+                                RecieveClientMessage(client, type, buffer);
                             }
                         }
                     }
@@ -102,6 +87,19 @@ namespace MultiplayerProject
             finally
             {
                 client.Stop();
+            }
+        }
+
+        private void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        {
+            switch (messageType)
+            {
+                case MessageType.NetworkPacketExtended:
+                    var packet = packetBytes.DeserializeFromBytes<NetworkPacketExtended>();
+                    Console.WriteLine("Client says: " + packet.String);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }

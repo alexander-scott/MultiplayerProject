@@ -1,17 +1,14 @@
 ﻿using MultiplayerProject.Source;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MultiplayerProject
 {
     // protoc -I=. --csharp_out=./ ./networkpackages.proto
-    public class Client
+    class ServerConnection
     {
         public Socket ClientSocket;
         public string ID;
@@ -21,9 +18,11 @@ namespace MultiplayerProject
         public BinaryWriter Writer;
 
         private Thread _thread;
+        private Server _server;
 
-        public Client(Socket socket)
+        public ServerConnection(Server server, Socket socket)
         {
+            _server = server;
             ClientSocket = socket;
             Stream = new NetworkStream(ClientSocket, true);
             Reader = new BinaryReader(Stream, Encoding.UTF8);
@@ -34,7 +33,7 @@ namespace MultiplayerProject
 
         public void Start()
         {
-            _thread = new Thread(new ThreadStart(SocketMethod));
+            _thread = new Thread(new ThreadStart(ProcessClientMessage));
             _thread.Start();
         }
 
@@ -47,16 +46,16 @@ namespace MultiplayerProject
             }
         }
 
-        public void SendPacketToClient(NetworkPacket packet)
+        public void SendPacketToClient(NetworkPacket packet, MessageType type)
         {
-            byte[] bytes = packet.PackMessage(MessageType.NetworkPacket);
+            byte[] bytes = packet.PackMessage(type);
             Writer.Write(Convert.ToBase64String(bytes));
             Writer.Flush();
         }
 
-        private void SocketMethod()
+        private void ProcessClientMessage()
         {
-            SimpleServer.SocketMethod(this);
+            _server.ProcessClientMessage(this);
         }
     }
 }

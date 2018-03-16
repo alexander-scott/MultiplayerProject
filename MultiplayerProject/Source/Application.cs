@@ -12,22 +12,18 @@ namespace MultiplayerProject
     public enum MessageType : byte
     {
         NetworkPacket,
-        NetworkPacketString,
-        Message3,
-        Message4,
+        NetworkPacketExtended
     }
 
     [Serializable]
-    public class NetworkPacket
+    public class NetworkPacketExtended : NetworkPacket
     {
         public byte[] SomeArbitaryBytes { get; set; }
-        public string SomeArbitaryString { get; set; }
         public int SomeArbitaryInt { get; set; }
         public double SomeArbitaryDouble { get; set; }
 
-        public NetworkPacket()
+        public NetworkPacketExtended()
         {
-            SomeArbitaryString = "hello";
             SomeArbitaryInt = 7;
             SomeArbitaryDouble = 98.1;
             SomeArbitaryBytes = new byte[10];
@@ -39,11 +35,11 @@ namespace MultiplayerProject
     }
 
     [Serializable]
-    public class NetworkPacketString
+    public class NetworkPacket
     {
         public string String { get; set; }
 
-        public NetworkPacketString()
+        public NetworkPacket()
         {
             String = "TEST";
         }
@@ -86,7 +82,7 @@ namespace MultiplayerProject
 
         private void OnClientStartRequested(string str)
         {
-            SimpleClient _client = new SimpleClient();
+            Client _client = new Client();
             MainMenu menu = (MainMenu)_currentScene;
 
             menu.SetMessage("Attempting to connect...");
@@ -113,7 +109,7 @@ namespace MultiplayerProject
             MainMenu menu = (MainMenu)_currentScene;
             menu.SetMessage("You are the server.");
 
-            SimpleServer _simpleServer = new SimpleServer(hostname, port);
+            Server _simpleServer = new Server(hostname, port);
             _simpleServer.Start();
             //_simpleServer.Stop();
         }

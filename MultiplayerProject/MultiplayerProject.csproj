@@ -61,10 +61,10 @@
     <Compile Include="Source\Managers\ExplosionManager.cs" />
     <Compile Include="Source\Managers\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
-    <Compile Include="Source\Networking\Client\SimpleClient.cs" />
+    <Compile Include="Source\Networking\Client\Client.cs" />
     <Compile Include="Source\Networking\Package.cs" />
-    <Compile Include="Source\Networking\Server\Client.cs" />
-    <Compile Include="Source\Networking\Server\SimpleServer.cs" />
+    <Compile Include="Source\Networking\Server\ServerConnection.cs" />
+    <Compile Include="Source\Networking\Server\Server.cs" />
     <Compile Include="Source\Effects\ParallaxingBackground.cs" />
     <Compile Include="Source\GameObjects\Player.cs" />
     <Compile Include="Source\Program.cs" />
