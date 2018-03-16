@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
-    class Lobby
+    public class Lobby : IMessageable
     {
         public string LobbyName;
         public string ID;
 
-        private List<ServerConnection> _connectedClients;
-
         private int _maxConnections;
-        private int _connections;
+
+        public MessageableComponent ComponentType { get; set; }
+        public List<ServerConnection> ComponentClients { get; set; }
 
         public Lobby(int maxConnections, string name)
         {
@@ -22,24 +23,60 @@ namespace MultiplayerProject.Source
             LobbyName = name;
 
             ID = Guid.NewGuid().ToString();
-            _connectedClients = new List<ServerConnection>();
+            ComponentClients = new List<ServerConnection>();
         }
 
         public void AddClientToLobby(ServerConnection client)
         {
-            _connectedClients.Add(client);
-            _connections++;
-        }
+            ComponentClients.Add(client);
 
-        public void RemoveClientFromLobby(ServerConnection client)
-        {
-            _connectedClients.Remove(client);
-            _connections--;
+            client.AddServerComponent(this);
         }
 
         public LobbyInformation GetLobbyInformation()
         {
-            return new LobbyInformation(LobbyName, ID, _connectedClients);
+            return new LobbyInformation(LobbyName, ID, ComponentClients);
+        }
+
+        public void ProcessClientMessage(ServerConnection client)
+        {
+            try
+            {
+                while (true)
+                {
+                    string message;
+                    while ((message = client.Reader.ReadString()) != null)
+                    {
+                        byte[] bytes = Convert.FromBase64String(message);
+                        using (var stream = new MemoryStream(bytes))
+                        {
+                            while (stream.HasValidPackage(out int messageSize))
+                            {
+                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
+                                RecieveClientMessage(client, type, buffer);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error occured: " + e.Message);
+            }
+            finally
+            {
+                client.RemoveServerComponent(this);
+            }
+        }
+
+        private void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveClient(ServerConnection client)
+        {
+            ComponentClients.Remove(client);
         }
     }
 }

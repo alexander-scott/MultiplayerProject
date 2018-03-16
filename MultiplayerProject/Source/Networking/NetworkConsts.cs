@@ -22,6 +22,7 @@ namespace MultiplayerProject.Source
     {
         // Base
         NetworkPacket,
+        Client_Disconnect,
 
         // Waiting room
         WR_ServerSend_FullInfo, // Test

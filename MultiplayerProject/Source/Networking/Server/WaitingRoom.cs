@@ -11,7 +11,7 @@ namespace MultiplayerProject.Source
         public const int MAX_PEOPLE_PER_LOBBY = 6;
 
         public MessageableComponent ComponentType { get; set; }
-        public List<ServerConnection> Clients { get; set; }
+        public List<ServerConnection> ComponentClients { get; set; }
 
         private Dictionary<string,Lobby> _activeLobbys;
         private int _maxLobbies;
@@ -19,15 +19,16 @@ namespace MultiplayerProject.Source
         public WaitingRoom(int maxLobbies)
         {
             ComponentType = MessageableComponent.WaitingRoom;
-            Clients = new List<ServerConnection>();
+            ComponentClients = new List<ServerConnection>();
             _maxLobbies = maxLobbies;
             _activeLobbys = new Dictionary<string, Lobby>();
         }
 
         public void AddToWaitingRoom(ServerConnection connection)
         {
-            Clients.Add(connection);
-            connection.Start(this);
+            ComponentClients.Add(connection);
+
+            connection.AddServerComponent(this);
             connection.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
         }
 
@@ -89,13 +90,18 @@ namespace MultiplayerProject.Source
             }
             finally
             {
-                client.Stop(this);
+                client.RemoveServerComponent(this);
             }
         }
 
         private void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
         {
             throw new NotImplementedException();
+        }
+
+        public void RemoveClient(ServerConnection client)
+        {
+            ComponentClients.Remove(client);
         }
     }
 }

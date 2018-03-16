@@ -21,7 +21,7 @@ namespace MultiplayerProject
 
         private Server _server;
 
-        private Dictionary<MessageableComponent, Thread> _messageableComponents;
+        private Dictionary<IMessageable, Thread> _messageableComponents;
 
         public ServerConnection(Server server, Socket socket)
         {
@@ -33,30 +33,32 @@ namespace MultiplayerProject
 
             ID = Guid.NewGuid().ToString();
             Name = "Test Connection Name";
-            _messageableComponents = new Dictionary<MessageableComponent, Thread>();
+            _messageableComponents = new Dictionary<IMessageable, Thread>();
         }
 
-        public void Start(IMessageable component)
+        public void AddServerComponent(IMessageable component)
         {
             Thread thread = new Thread(() => ProcessClientMessage(component));
             thread.Start();
 
-            _messageableComponents.Add(component.ComponentType, thread);
+            _messageableComponents.Add(component, thread);
         }
 
-        public void Stop(IMessageable component)
+        public void RemoveServerComponent(IMessageable component)
         {
-            Thread thread = _messageableComponents[component.ComponentType];
+            Thread thread = _messageableComponents[component];
             thread.Abort();
-            _messageableComponents.Remove(component.ComponentType);
+            component.RemoveClient(this);
+            _messageableComponents.Remove(component);
         }
 
         public void StopAll()
         {
             ClientSocket.Close();
-            foreach (KeyValuePair<MessageableComponent, Thread> entry in _messageableComponents)
+            foreach (KeyValuePair<IMessageable, Thread> entry in _messageableComponents)
             {
                 entry.Value.Abort();
+                entry.Key.RemoveClient(this);
             }
             _messageableComponents.Clear();
         }

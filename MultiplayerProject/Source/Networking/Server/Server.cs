@@ -13,7 +13,7 @@ namespace MultiplayerProject
         public const int MAX_LOBBIES = 10;
 
         public MessageableComponent ComponentType { get; set; }
-        public List<ServerConnection> Clients { get; set; }
+        public List<ServerConnection> ComponentClients { get; set; }
 
         private TcpListener _tcpListener;
         private Thread _listenForClientsThread;
@@ -24,7 +24,7 @@ namespace MultiplayerProject
         {
             // Implement IMessageable
             ComponentType = MessageableComponent.BaseServer;
-            Clients = new List<ServerConnection>();
+            ComponentClients = new List<ServerConnection>();
 
             // Setup TCP Listener
             IPAddress ip = IPAddress.Parse(ipAddress);
@@ -44,9 +44,9 @@ namespace MultiplayerProject
         public void Stop()
         {
             // Stop every clients connection to any component of the server
-            for (int i = 0; i < Clients.Count; i++)
+            for (int i = 0; i < ComponentClients.Count; i++)
             {
-                Clients[i].StopAll();
+                ComponentClients[i].StopAll();
             }
 
             _tcpListener.Stop();
@@ -64,10 +64,13 @@ namespace MultiplayerProject
                 Socket socket = _tcpListener.AcceptSocket();
                 Console.WriteLine("New Connection Made");
 
+                // Create a new client instance
                 ServerConnection client = new ServerConnection(this, socket);
-                Clients.Add(client);
-                client.Start(this);
+                ComponentClients.Add(client);
 
+                client.AddServerComponent(this);
+
+                // Add this client to the waiting room
                 _waitingRoom.AddToWaitingRoom(client);
             }
         }
@@ -99,7 +102,7 @@ namespace MultiplayerProject
             }
             finally
             {
-                client.Stop(this);
+                client.RemoveServerComponent(this);
             }
         }
 
@@ -108,11 +111,15 @@ namespace MultiplayerProject
             // The only packets we should look for recieving here are disconnect or exit messages. Or perhaps info like round trip time or ping time
             switch (messageType)
             {
-                case MessageType.NetworkPacket:
-                    var packet = packetBytes.DeserializeFromBytes<NetworkPacket>();
-                    Console.WriteLine("Client says: " + packet.SomeArbitaryString);
+                case MessageType.Client_Disconnect:
+                    client.StopAll();
                     break;
             }
+        }
+
+        public void RemoveClient(ServerConnection client)
+        {
+            ComponentClients.Remove(client);
         }
     }
 }

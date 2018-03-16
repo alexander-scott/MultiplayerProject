@@ -10,8 +10,9 @@ namespace MultiplayerProject.Source
     {
         MessageableComponent ComponentType { get; set; }
 
-        List<ServerConnection> Clients { get; set; }
+        List<ServerConnection> ComponentClients { get; set; }
 
         void ProcessClientMessage(ServerConnection client);
+        void RemoveClient(ServerConnection client);
     }
 }
