@@ -10,7 +10,7 @@ namespace MultiplayerProject
 {
     public class Server : IMessageable
     {
-        public const int MAX_LOBBIES = 10;
+        public const int MAX_LOBBIES = 6;
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }

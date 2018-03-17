@@ -68,10 +68,35 @@ namespace MultiplayerProject.Source
             switch (type)
             {
                 case MessageType.WR_ClientRequest_CreateRoom:
-                    CreateNewLobby("TEST NEW LOBBY " + _activeLobbys.Count);
-                    foreach (var connectedClient in ComponentClients)
+                    if (_activeLobbys.Count < Server.MAX_LOBBIES)
                     {
-                        connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+                        CreateNewLobby("TEST NEW LOBBY " + _activeLobbys.Count);
+                        foreach (var connectedClient in ComponentClients)
+                        {
+                            connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+                        }
+                    }
+                    else
+                    {
+                        client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_FailCreateLobby);
+                    }
+                    break;
+
+                case MessageType.WR_ClientRequest_JoinRoom:
+                    StringPacket packet = buffer.DeserializeFromBytes<StringPacket>();
+                    Lobby joinedLobby = _activeLobbys[packet.String];
+                    if (joinedLobby.ComponentClients.Count < MAX_PEOPLE_PER_LOBBY)
+                    {
+                        client.SendPacketToClient(new StringPacket(packet.String), MessageType.WR_ServerResponse_SuccessJoinLobby);
+                        joinedLobby.AddClientToLobby(client);
+                        foreach (var connectedClient in ComponentClients)
+                        {
+                            connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+                        }
+                    }
+                    else
+                    {
+                        client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_FailJoinLobby);
                     }
                     break;
             }

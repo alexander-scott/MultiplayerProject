@@ -45,10 +45,9 @@ namespace MultiplayerProject.Source
         WR_ClientRequest_LeaveRoom,
         WR_ClientRequest_CreateRoom,
 
-        WR_ServerResponse_SuccessJoinRoom,
-        WR_ServerResponse_FailJoinRoom,
-        WR_ServerResponse_SuccessCreateRoom,
-        WR_ServerResponse_FailCreateRoom,
+        WR_ServerResponse_SuccessJoinLobby,
+        WR_ServerResponse_FailJoinLobby,
+        WR_ServerResponse_FailCreateLobby,
     }
 
     public struct InputInformation
@@ -71,6 +70,17 @@ namespace MultiplayerProject.Source
         public BasePacket()
         {
             SendDate = DateTime.UtcNow;
+        }
+    }
+
+    [Serializable]
+    public class StringPacket : BasePacket
+    {
+        public string String { get; set; }
+
+        public StringPacket(string s) : base()
+        {
+            String = s;
         }
     }
 

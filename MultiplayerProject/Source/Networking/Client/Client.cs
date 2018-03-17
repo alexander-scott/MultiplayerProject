@@ -87,21 +87,32 @@ namespace MultiplayerProject
 
         private void ProcessServerResponse()
         {
-            while (true)
+            try
             {
-                string message;
-                while ((message = _reader.ReadString()) != null)
+                while (true)
                 {
-                    byte[] bytes = Convert.FromBase64String(message);
-                    using (var stream = new MemoryStream(bytes))
+                    string message;
+                    while ((message = _reader.ReadString()) != null)
                     {
-                        while (stream.HasValidPackage(out Int32 messageSize))
+                        byte[] bytes = Convert.FromBase64String(message);
+                        using (var stream = new MemoryStream(bytes))
                         {
-                            MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                            _reciever.RecieveServerResponse(type, buffer);
+                            while (stream.HasValidPackage(out Int32 messageSize))
+                            {
+                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
+                                _reciever.RecieveServerResponse(type, buffer);
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error occured: " + e.Message);
+            }
+            finally
+            {
+                Stop();
             }
         }
     }

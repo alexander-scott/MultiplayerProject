@@ -85,9 +85,9 @@ namespace MultiplayerProject
                             while (stream.HasValidPackage(out int messageSize))
                             {
                                 MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                foreach (var component in _messageableComponents)
+                                for (int i = 0; i < _messageableComponents.Count; i++)
                                 {
-                                    component.RecieveClientMessage(this, type, buffer);
+                                    _messageableComponents[i].RecieveClientMessage(this, type, buffer);
                                 }
                             }
                         }

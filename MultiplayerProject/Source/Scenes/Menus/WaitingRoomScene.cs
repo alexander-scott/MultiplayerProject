@@ -19,13 +19,14 @@ namespace MultiplayerProject.Source
     public class WaitingRoomScene :  IScene
     {
         public static event EmptyDelegate OnNewLobbyClicked;
+        public static event StringDelegate OnJoinLobby;
 
         public int Width { get; set; }
         public int Height { get; set; }
 
         private WaitingRoomInformation _waitingRoom;
 
-        private int _joinedLobby;
+        private string _joinedLobbyID;
 
         private SpriteFont _font;
         private GraphicsDevice _device;
@@ -50,9 +51,14 @@ namespace MultiplayerProject.Source
             Height = height;
 
             _lobbyUIItems = new List<LobbyUIItem>();
-            _joinedLobby = -1;
 
             ClientMessageReciever.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
+            ClientMessageReciever.OnLobbySuccessfullyJoined += ClientMessageReciever_OnLobbySuccessfullyJoined;
+        }
+
+        private void ClientMessageReciever_OnLobbySuccessfullyJoined(string str)
+        {
+            _joinedLobbyID = str;
         }
 
         private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation waitingRoom)
@@ -117,7 +123,7 @@ namespace MultiplayerProject.Source
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
             // Is it possible to create a new room? Must me less rooms than max and this client can't currently be in a room
-            if (_lobbyUIItems.Count < WaitingRoom.MAX_PEOPLE_PER_LOBBY && _joinedLobby == -1)
+            if (_lobbyUIItems.Count < Server.MAX_LOBBIES && string.IsNullOrEmpty(_joinedLobbyID))
             {
                 // If mouse has been clicked
                 if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
@@ -154,6 +160,8 @@ namespace MultiplayerProject.Source
                     if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                     {
                         // Valid click on UI lobby
+                        OnJoinLobby(_waitingRoom.Lobbies[i].LobbyID);
+                        _joinedLobbyID = _waitingRoom.Lobbies[i].LobbyID;
                     }
                 }
             } 
@@ -162,7 +170,7 @@ namespace MultiplayerProject.Source
                 // Check all ui lobbies if any have the mouse over it
                 for (int i = 0; i < _lobbyUIItems.Count; i++)
                 {
-                    if (i != _joinedLobby) // Don't apply effect to the library we've already joined
+                    if (_waitingRoom.Lobbies[i].LobbyID != _joinedLobbyID) // Don't apply effect to the library we've already joined
                     {
                         if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                         {
