@@ -12,14 +12,7 @@ namespace MultiplayerProject
         private GraphicsDeviceManager   _graphics;
         private SpriteBatch             _spriteBatch;
 
-        private KeyboardState           _currentKeyboardState;
-        private KeyboardState           _previousKeyboardState;
-
-        private GamePadState            _currentGamePadState;
-        private GamePadState            _previousGamePadState;
-
-        private MouseState              _currentMouseState;
-        private MouseState              _previousMouseState;
+        private InputInformation        _inputInformation;
 
         private IScene                  _currentScene;
 
@@ -29,6 +22,7 @@ namespace MultiplayerProject
         public Application()
         {
             _graphics = new GraphicsDeviceManager(this);
+            IsMouseVisible = true;
             Content.RootDirectory = "Content";
 
             MainMenu.OnServerStartRequested += OnServerStartRequested;
@@ -55,7 +49,7 @@ namespace MultiplayerProject
                 {
                     _client.Run();
                     _currentScene = new WaitingRoomScene(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-                    _currentScene.Initalise(Content);
+                    _currentScene.Initalise(Content, _graphics.GraphicsDevice);
                 }
                 catch (NotConnectedException e)
                 {
@@ -83,7 +77,7 @@ namespace MultiplayerProject
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            _currentScene.Initalise(Content);
+            _currentScene.Initalise(Content, _graphics.GraphicsDevice);
 
             base.LoadContent();
         }
@@ -102,15 +96,15 @@ namespace MultiplayerProject
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            _previousGamePadState = _currentGamePadState;
-            _previousKeyboardState = _currentKeyboardState;
-            _previousMouseState = _currentMouseState;
+            _inputInformation.PreviousGamePadState = _inputInformation.CurrentGamePadState;
+            _inputInformation.PreviousKeyboardState = _inputInformation.CurrentKeyboardState;
+            _inputInformation.PreviousMouseState = _inputInformation.CurrentMouseState;
 
-            _currentKeyboardState = Keyboard.GetState();
-            _currentGamePadState = GamePad.GetState(PlayerIndex.One);
-            _currentMouseState = Mouse.GetState();
+            _inputInformation.CurrentKeyboardState = Keyboard.GetState();
+            _inputInformation.CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
+            _inputInformation.CurrentMouseState = Mouse.GetState();
 
-            _currentScene.ProcessInput(gameTime, _currentKeyboardState, _currentGamePadState, _currentMouseState);
+            _currentScene.ProcessInput(gameTime, _inputInformation);
         }
 
         protected override void Draw(GameTime gameTime)

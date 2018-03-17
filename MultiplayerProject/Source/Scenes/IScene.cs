@@ -10,9 +10,9 @@ namespace MultiplayerProject.Source
         int Width { get; set; }
         int Height { get; set; }
 
-        void Initalise(ContentManager content);
+        void Initalise(ContentManager content, GraphicsDevice graphicsDevice);
         void Update(GameTime gameTime);
-        void ProcessInput(GameTime gameTime, KeyboardState keyboardState, GamePadState gamePadState, MouseState mouseState);
+        void ProcessInput(GameTime gameTime, InputInformation inputInfo);
         void Draw(SpriteBatch spriteBatch);
     }
 }

@@ -32,22 +32,22 @@ namespace MultiplayerProject.Source
             spriteBatch.DrawString(_font, _message, new Vector2(161, 161), Color.Black);
         }
 
-        public void Initalise(ContentManager content)
+        public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
             _font = content.Load<SpriteFont>("Font");
         }
 
-        public void ProcessInput(GameTime gameTime, KeyboardState keyboardState, GamePadState gamePadState, MouseState mouseState)
+        public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
             if (!_awaitingInput)
                 return;
 
-            if (keyboardState.IsKeyDown(Keys.S))
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.S))
             {
                 OnServerStartRequested("str");
                 _awaitingInput = false;
             }
-            else if (keyboardState.IsKeyDown(Keys.C))
+            else if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.C))
             {
                 OnClientStartRequested("str");
                 _awaitingInput = false;

@@ -33,7 +33,7 @@ namespace MultiplayerProject.Source
             _collisionManager = new CollisionManager();
         }
 
-        public void Initalise(ContentManager content)
+        public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
             _player.Initialize(content);
             _enemyManager.Initalise(content);
@@ -53,31 +53,31 @@ namespace MultiplayerProject.Source
             _collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
         }
 
-        public void ProcessInput(GameTime gameTime, KeyboardState keyboardState, GamePadState gamePadState, MouseState mouseState)
+        public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
             // Thumbstick controls
-            //_player.State.Position.X += _currentGamePadState.ThumbSticks.Left.X * _playerMoveSpeed;
-            //_player.State.Position.Y -= _currentGamePadState.ThumbSticks.Left.Y * _playerMoveSpeed;
+            //_player.State.Position.X += _currentinputInfo.CurrentGamePadState.ThumbSticks.Left.X * _playerMoveSpeed;
+            //_player.State.Position.Y -= _currentinputInfo.CurrentGamePadState.ThumbSticks.Left.Y * _playerMoveSpeed;
 
             // Keyboard/Dpad controls
-            if (keyboardState.IsKeyDown(Keys.Left) || gamePadState.DPad.Left == ButtonState.Pressed)
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
             {
                 _player.RotateLeft(gameTime);
             }
-            if (keyboardState.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed)
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
             {
                 _player.RotateRight(gameTime);
             }
-            if (keyboardState.IsKeyDown(Keys.Up) || gamePadState.DPad.Up == ButtonState.Pressed)
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
             {
                 _player.MoveForward(gameTime);
             }
-            if (keyboardState.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed)
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
             {
                 _player.MoveBackward(gameTime);
             }
 
-            if (keyboardState.IsKeyDown(Keys.Space) || gamePadState.Buttons.X == ButtonState.Pressed)
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
                 _laserManager.FireLaser(gameTime, _player.Position, _player.Rotation);
             }
@@ -96,6 +96,6 @@ namespace MultiplayerProject.Source
             //_collisionManager.Draw(_graphics.GraphicsDevice, spriteBatch, _enemyManager.Enemies, _laserManager.Lasers);
 
             _player.Draw(spriteBatch);
-        }
+        }        
     }
 }

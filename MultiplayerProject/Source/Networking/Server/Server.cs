@@ -71,7 +71,7 @@ namespace MultiplayerProject
                 client.AddServerComponent(this);
 
                 // Add this client to the waiting room
-                _waitingRoom.AddToWaitingRoom(client);
+                _waitingRoom.AddClientToWaitingRoom(client);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,18 @@ namespace MultiplayerProject.Source
         WR_ServerResponse_FailJoinRoom,
         WR_ServerResponse_SuccessCreateRoom,
         WR_ServerResponse_FailCreateRoom,
+    }
+
+    public struct InputInformation
+    {
+        public KeyboardState CurrentKeyboardState;
+        public KeyboardState PreviousKeyboardState;
+
+        public GamePadState CurrentGamePadState;
+        public GamePadState PreviousGamePadState;
+
+        public MouseState CurrentMouseState;
+        public MouseState PreviousMouseState;
     }
 
     [Serializable]
