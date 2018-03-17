@@ -18,6 +18,7 @@ namespace MultiplayerProject
 
     public class Client
     {
+        public static event BasicDelegate OnServerForcedDisconnect;
         public static event WaitingRoomDelegate OnWaitingRoomInformationRecieved;
 
         private TcpClient _tcpClient;
@@ -68,6 +69,7 @@ namespace MultiplayerProject
 
         public void Stop()
         {
+            _thread.Abort();
             _tcpClient.Close();
         }
 
@@ -80,7 +82,7 @@ namespace MultiplayerProject
 
         private void ProcessServerResponse()
         {
-            while (true)
+            while (_tcpClient.Connected)
             {
                 string message;
                 while ((message = _reader.ReadString()) != null)
@@ -102,9 +104,8 @@ namespace MultiplayerProject
         {
             switch (messageType)
             {
-                case MessageType.NetworkPacket:
-                    var packet = packetBytes.DeserializeFromBytes<NetworkPacket>();
-                    Console.WriteLine("Server says: " + packet.SomeArbitaryString);
+                case MessageType.Server_Disconnect:
+                    OnServerForcedDisconnect();
                     break;
 
                 case MessageType.WR_ServerSend_FullInfo:

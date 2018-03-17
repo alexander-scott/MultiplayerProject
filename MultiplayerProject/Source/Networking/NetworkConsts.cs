@@ -7,9 +7,16 @@ using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
+    public delegate void BasicDelegate();
     public delegate void StringDelegate(string str);
-
     public delegate void WaitingRoomDelegate(WaitingRoomInformation waitingRoom);
+
+    public enum ApplicationType
+    {
+        None,
+        Client,
+        Server
+    }
 
     public enum MessageableComponent
     {
@@ -22,8 +29,8 @@ namespace MultiplayerProject.Source
     public enum MessageType : byte
     {
         // Base
-        NetworkPacket,
         Client_Disconnect,
+        Server_Disconnect,
 
         // Waiting room
         WR_ServerSend_FullInfo, // Test

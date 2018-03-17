@@ -15,6 +15,10 @@ namespace MultiplayerProject
         private InputInformation        _inputInformation;
 
         private IScene                  _currentScene;
+        private ApplicationType         _appType;
+
+        private Client _client;
+        private Server _server;
 
         private const string hostname = "127.0.0.1";
         private const int port = 4444;
@@ -23,22 +27,37 @@ namespace MultiplayerProject
         {
             _graphics = new GraphicsDeviceManager(this);
             IsMouseVisible = true;
+            _appType = ApplicationType.None;
             Content.RootDirectory = "Content";
 
             MainMenu.OnServerStartRequested += OnServerStartRequested;
             MainMenu.OnClientStartRequested += OnClientStartRequested;
+
+            Client.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
+        }
+
+        private void Client_OnDisconnectedFromServer()
+        {
+            _currentScene = new MainMenu(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _currentScene.Initalise(Content, _graphics.GraphicsDevice);
+
+            Console.WriteLine("Disconnected from server");
+
+            _client.Stop();
         }
 
         protected override void Initialize()
         {
             _currentScene = new MainMenu(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
-            base.Initialize();
+            base.Initialize(); 
         }
 
         private void OnClientStartRequested(string str)
         {
-            Client _client = new Client();
+            _client = new Client();
+            _appType = ApplicationType.Client;
+
             MainMenu menu = (MainMenu)_currentScene;
 
             Console.WriteLine("Attempting to connect...");
@@ -67,8 +86,10 @@ namespace MultiplayerProject
             MainMenu menu = (MainMenu)_currentScene;
             menu.SetMessage("You are the server.");
 
-            Server _simpleServer = new Server(hostname, port);
-            _simpleServer.Start();
+            _appType = ApplicationType.Server;
+
+            _server = new Server(hostname, port);
+            _server.Start();
             //_simpleServer.Stop();
         }
 
@@ -120,6 +141,22 @@ namespace MultiplayerProject
             _spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        protected override void OnExiting(object sender, EventArgs args)
+        {
+            switch (_appType)
+            {
+                case ApplicationType.Client:
+                    _client.SendMessageToServer(new BasePacket(), MessageType.Client_Disconnect);
+                    break;
+
+                case ApplicationType.Server:
+                    _server.SendMessageToAllClients(new BasePacket(), MessageType.Server_Disconnect);
+                    break;
+            }
+
+            base.OnExiting(sender, args);
         }
     }
 }

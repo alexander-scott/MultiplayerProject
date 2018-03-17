@@ -5,9 +5,10 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+
 namespace MultiplayerProject.Source
 {
-    public class WaitingRoomScene : IScene
+    public class WaitingRoomScene :  IScene
     {
         public int Width { get; set; }
         public int Height { get; set; }

@@ -53,6 +53,14 @@ namespace MultiplayerProject
             _listenForClientsThread.Abort();
         }
 
+        public void SendMessageToAllClients(BasePacket packet, MessageType packetType)
+        {
+            for (int i = 0; i < ComponentClients.Count; i++)
+            {
+                ComponentClients[i].SendPacketToClient(packet, packetType);
+            }
+        }
+
         private void ListenForClients()
         {
             _tcpListener.Start();
