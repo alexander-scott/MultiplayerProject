@@ -22,9 +22,6 @@ namespace MultiplayerProject.Source
             ComponentClients = new List<ServerConnection>();
             _maxLobbies = maxLobbies;
             _activeLobbys = new Dictionary<string, Lobby>();
-
-            CreateNewWaitingRoom("Test New Lobby1");
-            CreateNewWaitingRoom("Test New Lobby2");
         }
 
         public void AddClientToWaitingRoom(ServerConnection connection)
@@ -35,7 +32,7 @@ namespace MultiplayerProject.Source
             connection.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
         }
 
-        public void CreateNewWaitingRoom(string lobbyName)
+        public void CreateNewLobby(string lobbyName)
         {
             if (_activeLobbys.Count < _maxLobbies)
             {
@@ -71,7 +68,11 @@ namespace MultiplayerProject.Source
             switch (type)
             {
                 case MessageType.WR_ClientRequest_CreateRoom:
-                    float f = 0;
+                    CreateNewLobby("TEST NEW LOBBY " + _activeLobbys.Count);
+                    foreach (var connectedClient in ComponentClients)
+                    {
+                        connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+                    }
                     break;
             }
         }
