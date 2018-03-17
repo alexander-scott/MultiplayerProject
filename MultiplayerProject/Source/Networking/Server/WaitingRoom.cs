@@ -99,7 +99,12 @@ namespace MultiplayerProject.Source
 
         private void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
         {
-            throw new NotImplementedException();
+            switch (type)
+            {
+                case MessageType.WR_ClientRequest_CreateRoom:
+                    float f = 0;
+                    break;
+            }
         }
 
         public void RemoveClient(ServerConnection client)

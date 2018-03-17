@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
-    public delegate void BasicDelegate();
+    public delegate void EmptyDelegate();
     public delegate void StringDelegate(string str);
+    public delegate void IntDelegate(int i);
     public delegate void WaitingRoomDelegate(WaitingRoomInformation waitingRoom);
 
     public enum ApplicationType

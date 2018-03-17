@@ -18,18 +18,18 @@ namespace MultiplayerProject
 
     public class Client
     {
-        public static event BasicDelegate OnServerForcedDisconnect;
-        public static event WaitingRoomDelegate OnWaitingRoomInformationRecieved;
-
         private TcpClient _tcpClient;
         private NetworkStream _stream;
         private BinaryWriter _writer;
         private BinaryReader _reader;
         private Thread _thread;
 
+        private ClientMessageReciever _reciever;
+
         public Client()
         {
             _tcpClient = new TcpClient();
+            _reciever = new ClientMessageReciever(this);
         }
 
         public bool Connect(string hostname, int port)
@@ -82,7 +82,7 @@ namespace MultiplayerProject
 
         private void ProcessServerResponse()
         {
-            while (_tcpClient.Connected)
+            while (true)
             {
                 string message;
                 while ((message = _reader.ReadString()) != null)
@@ -93,25 +93,10 @@ namespace MultiplayerProject
                         while (stream.HasValidPackage(out Int32 messageSize))
                         {
                             MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                            RecieveServerResponse(type, buffer);
+                            _reciever.RecieveServerResponse(type, buffer);
                         }
                     }
                 }
-            }
-        }
-
-        private void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
-        {
-            switch (messageType)
-            {
-                case MessageType.Server_Disconnect:
-                    OnServerForcedDisconnect();
-                    break;
-
-                case MessageType.WR_ServerSend_FullInfo:
-                    var waitingRooms = packetBytes.DeserializeFromBytes<WaitingRoomInformation>();
-                    OnWaitingRoomInformationRecieved(waitingRooms);
-                    break;
             }
         }
     }

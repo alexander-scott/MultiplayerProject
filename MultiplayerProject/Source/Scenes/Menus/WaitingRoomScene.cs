@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-
 namespace MultiplayerProject.Source
 {
     public class LobbyUIItem
@@ -19,11 +18,12 @@ namespace MultiplayerProject.Source
 
     public class WaitingRoomScene :  IScene
     {
+        public static event EmptyDelegate OnNewLobbyClicked;
+
         public int Width { get; set; }
         public int Height { get; set; }
 
         private WaitingRoomInformation _waitingRoom;
-        private List<LobbyUIItem> _lobbyUIItems;
 
         private int _joinedLobby;
 
@@ -37,9 +37,11 @@ namespace MultiplayerProject.Source
         // New room button
         private Vector2 _newRoomButtonPosition;
         private Rectangle _newRoomButtonRect;
+        private Color _newRoomButtonColor;
         private const string _newRoomButtonText = "CREATE NEW ROOM";
 
         // Lobbys
+        private List<LobbyUIItem> _lobbyUIItems;
         private const int _lobbyStartYPos = 50;
 
         public WaitingRoomScene(int width, int height)
@@ -50,24 +52,26 @@ namespace MultiplayerProject.Source
             _lobbyUIItems = new List<LobbyUIItem>();
             _joinedLobby = -1;
 
-            Client.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
+            ClientMessageReciever.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
         }
 
         private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation waitingRoom)
         {
             _waitingRoom = waitingRoom;
             _lobbyUIItems.Clear();
+
             if (_waitingRoom != null)
             {
                 int startYPos = _lobbyStartYPos;
                 foreach (var lobby in _waitingRoom.Lobbies)
                 {
-                    LobbyUIItem uiItem = new LobbyUIItem();
-
-                    // Set Rect
-                    uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
-                    // Set Text
-                    uiItem.Text = lobby.LobbyName + " : " + lobby.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_LOBBY + " Players";
+                    LobbyUIItem uiItem = new LobbyUIItem
+                    {
+                        // Set Rect
+                        Rect = new Rectangle(50, startYPos, 500, 50),
+                        // Set Text
+                        Text = lobby.LobbyName + " : " + lobby.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_LOBBY + " Players"
+                    };
 
                     Vector2 size = _font.MeasureString(uiItem.Text);
                     float xScale = (uiItem.Rect.Width / size.X);
@@ -79,9 +83,11 @@ namespace MultiplayerProject.Source
                     int strHeight = (int)Math.Round(size.Y * scale);
 
                     // Set Position
-                    uiItem.Position = new Vector2();
-                    uiItem.Position.X = (((uiItem.Rect.Width - strWidth) / 2) + uiItem.Rect.X);
-                    uiItem.Position.Y = (((uiItem.Rect.Height - strHeight) / 2) + uiItem.Rect.Y);
+                    uiItem.Position = new Vector2
+                    {
+                        X = (((uiItem.Rect.Width - strWidth) / 2) + uiItem.Rect.X),
+                        Y = (((uiItem.Rect.Height - strHeight) / 2) + uiItem.Rect.Y)
+                    };
 
                     // Set border options
                     uiItem.BorderColour = Color.Blue;
@@ -105,28 +111,58 @@ namespace MultiplayerProject.Source
             _newRoomButtonPosition.X -= (_font.MeasureString(_newRoomButtonText).X / 2);
             _newRoomButtonRect = new Rectangle((int)_newRoomButtonPosition.X, (int)_newRoomButtonPosition.Y, 
                 (int)_font.MeasureString(_newRoomButtonText).X, (int)_font.MeasureString(_newRoomButtonText).Y);
+            _newRoomButtonColor = Color.Blue;
         }
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
+            // Is it possible to create a new room? Must me less rooms than max and this client can't currently be in a room
+            if (_lobbyUIItems.Count < WaitingRoom.MAX_PEOPLE_PER_LOBBY && _joinedLobby == -1)
+            {
+                // If mouse has been clicked
+                if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                {
+                    if (_newRoomButtonRect.Contains(inputInfo.CurrentMouseState.Position))
+                    {
+                        // New room valid click
+                        OnNewLobbyClicked();
+                    }
+                } 
+                else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
+                {
+                    if (_newRoomButtonRect.Contains(inputInfo.CurrentMouseState.Position))
+                    {
+                        _newRoomButtonColor = Color.LightGreen;
+                    }
+                    else
+                    {
+                        _newRoomButtonColor = Color.Blue;
+                    }
+                }
+            }
+            else
+            {
+                _newRoomButtonColor = Color.Red;
+            }
+
             // Check for click
             if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
             {
+                // Check all ui lobbies if any have been clicked on
                 for (int i = 0; i < _lobbyUIItems.Count; i++)
                 {
                     if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                     {
-                        
+                        // Valid click on UI lobby
                     }
                 }
             } 
-
-            // Hover over effect
-            if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Released)
+            else if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Released)
             {
+                // Check all ui lobbies if any have the mouse over it
                 for (int i = 0; i < _lobbyUIItems.Count; i++)
                 {
-                    if (i != _joinedLobby)
+                    if (i != _joinedLobby) // Don't apply effect to the library we've already joined
                     {
                         if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                         {
@@ -154,16 +190,17 @@ namespace MultiplayerProject.Source
             // Draw new room button
             spriteBatch.DrawString(_font, _newRoomButtonText, _newRoomButtonPosition, Color.White);
             Texture2D newRoomBtnTexture = new Texture2D(_device, _newRoomButtonRect.Width, _newRoomButtonRect.Height);
-            newRoomBtnTexture.CreateBorder(1, Color.Blue);
+            newRoomBtnTexture.CreateBorder(1, _newRoomButtonColor);
             spriteBatch.Draw(newRoomBtnTexture, _newRoomButtonPosition, Color.White);
 
             if (_lobbyUIItems.Count != 0)
             {
                 for (int i = 0; i < _lobbyUIItems.Count; i++)
                 {
-                    // Draw the string to the sprite batch!
+                    // Draw lobby ui item string
                     spriteBatch.DrawString(_font, _lobbyUIItems[i].Text, _lobbyUIItems[i].Position, Color.White);
 
+                    // Draw lobby ui item border
                     Texture2D texture = new Texture2D(_device, _lobbyUIItems[i].Rect.Width, _lobbyUIItems[i].Rect.Height);
                     texture.CreateBorder(_lobbyUIItems[i].BorderWidth, _lobbyUIItems[i].BorderColour);
                     spriteBatch.Draw(texture, _lobbyUIItems[i].Position, Color.White);
