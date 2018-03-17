@@ -66,38 +66,7 @@ namespace MultiplayerProject.Source
             return waitingRoomInfo;
         }
 
-        public void ProcessClientMessage(ServerConnection client)
-        {
-            try
-            {
-                while (true)
-                {
-                    string message;
-                    while ((message = client.Reader.ReadString()) != null)
-                    {
-                        byte[] bytes = Convert.FromBase64String(message);
-                        using (var stream = new MemoryStream(bytes))
-                        {
-                            while (stream.HasValidPackage(out int messageSize))
-                            {
-                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                RecieveClientMessage(client, type, buffer);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error occured: " + e.Message);
-            }
-            finally
-            {
-                client.RemoveServerComponent(this);
-            }
-        }
-
-        private void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
+        public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
         {
             switch (type)
             {
@@ -110,6 +79,6 @@ namespace MultiplayerProject.Source
         public void RemoveClient(ServerConnection client)
         {
             ComponentClients.Remove(client);
-        }
+        }        
     }
 }

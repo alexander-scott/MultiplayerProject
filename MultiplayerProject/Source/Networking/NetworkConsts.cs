@@ -29,6 +29,8 @@ namespace MultiplayerProject.Source
 
     public enum MessageType : byte
     {
+        TestPacket,
+
         // Base
         Client_Disconnect,
         Server_Disconnect,

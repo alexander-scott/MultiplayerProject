@@ -73,9 +73,10 @@ namespace MultiplayerProject
                 Console.WriteLine("New Connection Made");
 
                 // Create a new client instance
-                ServerConnection client = new ServerConnection(this, socket);
+                ServerConnection client = new ServerConnection(socket);
                 ComponentClients.Add(client);
 
+                client.StartListeningForMessages();
                 client.AddServerComponent(this);
 
                 // Add this client to the waiting room
@@ -83,38 +84,7 @@ namespace MultiplayerProject
             }
         }
 
-        public void ProcessClientMessage(ServerConnection client)
-        {
-            try
-            {
-                while (true)
-                {
-                    string message;
-                    while ((message = client.Reader.ReadString()) != null)
-                    {
-                        byte[] bytes = Convert.FromBase64String(message);
-                        using (var stream = new MemoryStream(bytes))
-                        {
-                            while (stream.HasValidPackage(out int messageSize))
-                            {
-                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                RecieveClientMessage(client, type, buffer);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error occured: " + e.Message);
-            }
-            finally
-            {
-                client.RemoveServerComponent(this);
-            }
-        }
-
-        private void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
         {
             // The only packets we should look for recieving here are disconnect or exit messages. Or perhaps info like round trip time or ping time
             switch (messageType)
@@ -128,6 +98,6 @@ namespace MultiplayerProject
         public void RemoveClient(ServerConnection client)
         {
             ComponentClients.Remove(client);
-        }
+        }     
     }
 }

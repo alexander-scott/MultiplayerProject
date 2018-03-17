@@ -125,6 +125,11 @@ namespace MultiplayerProject
             _inputInformation.CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
             _inputInformation.CurrentMouseState = Mouse.GetState();
 
+            if (_inputInformation.CurrentKeyboardState.IsKeyDown(Keys.Space) && _inputInformation.PreviousKeyboardState.IsKeyUp(Keys.Space))
+            {
+                _client.SendTestPacket();
+            }
+
             _currentScene.ProcessInput(gameTime, _inputInformation);
         }
 

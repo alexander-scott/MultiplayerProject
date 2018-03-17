@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
@@ -69,7 +66,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        private void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
+        public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
         {
             throw new NotImplementedException();
         }

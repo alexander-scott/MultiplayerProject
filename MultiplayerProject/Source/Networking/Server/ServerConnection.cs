@@ -19,13 +19,12 @@ namespace MultiplayerProject
         public BinaryReader Reader;
         public BinaryWriter Writer;
 
-        private Server _server;
+        private Thread _thread;
 
-        private Dictionary<IMessageable, Thread> _messageableComponents;
+        private List<IMessageable> _messageableComponents;
 
-        public ServerConnection(Server server, Socket socket)
+        public ServerConnection(Socket socket)
         {
-            _server = server;
             ClientSocket = socket;
             Stream = new NetworkStream(ClientSocket, true);
             Reader = new BinaryReader(Stream, Encoding.UTF8);
@@ -33,32 +32,33 @@ namespace MultiplayerProject
 
             ID = Guid.NewGuid().ToString();
             Name = "Test Connection Name";
-            _messageableComponents = new Dictionary<IMessageable, Thread>();
+            _messageableComponents = new List<IMessageable>();
         }
 
         public void AddServerComponent(IMessageable component)
         {
-            Thread thread = new Thread(() => ProcessClientMessage(component));
-            thread.Start();
-
-            _messageableComponents.Add(component, thread);
+            _messageableComponents.Add(component);
         }
 
         public void RemoveServerComponent(IMessageable component)
         {
-            Thread thread = _messageableComponents[component];
-            thread.Abort();
             component.RemoveClient(this);
             _messageableComponents.Remove(component);
+        }
+
+        public void StartListeningForMessages()
+        {
+            _thread = new Thread(new ThreadStart(ProcessClientMessage));
+            _thread.Start();
         }
 
         public void StopAll()
         {
             ClientSocket.Close();
-            foreach (KeyValuePair<IMessageable, Thread> entry in _messageableComponents)
+            _thread.Abort();
+            foreach (var component in _messageableComponents)
             {
-                entry.Value.Abort();
-                entry.Key.RemoveClient(this);
+                component.RemoveClient(this);
             }
             _messageableComponents.Clear();
         }
@@ -70,9 +70,38 @@ namespace MultiplayerProject
             Writer.Flush();
         }
 
-        private void ProcessClientMessage(IMessageable component)
+        private void ProcessClientMessage()
         {
-            component.ProcessClientMessage(this);
+            try
+            {
+                while (true)
+                {
+                    string message;
+                    while ((message = Reader.ReadString()) != null)
+                    {
+                        byte[] bytes = Convert.FromBase64String(message);
+                        using (var stream = new MemoryStream(bytes))
+                        {
+                            while (stream.HasValidPackage(out int messageSize))
+                            {
+                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
+                                foreach (var component in _messageableComponents)
+                                {
+                                    component.RecieveClientMessage(this, type, buffer);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error occured: " + e.Message);
+            }
+            finally
+            {
+                StopAll();
+            }
         }
     }
 }
