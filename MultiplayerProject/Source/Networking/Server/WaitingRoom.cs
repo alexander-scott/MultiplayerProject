@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-
-using MultiplayerProject.Source;
 
 namespace MultiplayerProject.Source
 {
@@ -30,7 +27,7 @@ namespace MultiplayerProject.Source
         {
             foreach (var connectedClient in ComponentClients)
             {
-                connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+                connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_WaitingRoomFullInfo);
             }
         }
 
@@ -39,7 +36,7 @@ namespace MultiplayerProject.Source
             ComponentClients.Add(connection);
 
             connection.AddServerComponent(this);
-            connection.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+            connection.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_WaitingRoomFullInfo);
         }
 
         public void CreateNewRoom(string roomName)

@@ -161,17 +161,18 @@ namespace MultiplayerProject.Source
                 {
                     _buttonText = "WAITING FOR MORE PLAYERS";
                     _state = WaitingRoomState.InRoomWaitingForPlayers;
+                    _readyToPlay = false;
                 }
                 else
                 {
                     if (!_readyToPlay)
                     {
-                        _buttonText = "CLICK TO READY";
+                        _buttonText = "CLICK TO READY (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
                         _state = WaitingRoomState.InRoomNotReady;
                     }
                     else
                     {
-                        _buttonText = "READY TO PLAY!";
+                        _buttonText = "READY TO PLAY! (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
                         _state = WaitingRoomState.InRoomReady;
                     }
                 }

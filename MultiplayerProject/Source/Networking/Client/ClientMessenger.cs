@@ -30,12 +30,12 @@ namespace MultiplayerProject.Source
 
         private void WaitingRoomScene_OnUnready()
         {
-            _client.SendMessageToServer(new BasePacket(), MessageType.WR_ClientRequest_Unready);
+            _client.SendMessageToServer(new BasePacket(), MessageType.GR_ClientRequest_Unready);
         }
 
         private void WaitingRoomScene_OnReady()
         {
-            _client.SendMessageToServer(new BasePacket(), MessageType.WR_ClientRequest_Ready);
+            _client.SendMessageToServer(new BasePacket(), MessageType.GR_ClientRequest_Ready);
         }
 
         private void WaitingRoomScene_OnLeaveRoom(string lobbyID)
@@ -61,7 +61,7 @@ namespace MultiplayerProject.Source
                     OnServerForcedDisconnect();
                     break;
 
-                case MessageType.WR_ServerSend_FullInfo:
+                case MessageType.WR_ServerSend_WaitingRoomFullInfo:
                     var waitingRooms = packetBytes.DeserializeFromBytes<WaitingRoomInformation>();
                     OnWaitingRoomInformationRecieved(waitingRooms);
                     break;
@@ -88,13 +88,13 @@ namespace MultiplayerProject.Source
                     break;
                 }
 
-                case MessageType.WR_ServerResponse_SuccessReady:
+                case MessageType.GR_ServerResponse_SuccessReady:
                     {
                         OnRoomSuccessfullyReady();
                         break;
                     }
 
-                case MessageType.WR_ServerResponse_SuccessUnready:
+                case MessageType.GR_ServerResponse_SuccessUnready:
                     {
                         OnRoomSuccessfullyUnready();
                         break;

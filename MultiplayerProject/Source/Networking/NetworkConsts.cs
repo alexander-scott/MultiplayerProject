@@ -36,7 +36,7 @@ namespace MultiplayerProject.Source
         Server_Disconnect,
 
         // Waiting room
-        WR_ServerSend_FullInfo, // Test
+        WR_ServerSend_WaitingRoomFullInfo,
         WR_ServerSend_SingleUpdate,
         WR_ServerSend_NewRoom,
         WR_ServerSend_DeleteRoom,
@@ -44,15 +44,26 @@ namespace MultiplayerProject.Source
         WR_ClientRequest_JoinRoom,
         WR_ClientRequest_LeaveRoom,
         WR_ClientRequest_CreateRoom,
-        WR_ClientRequest_Ready,
-        WR_ClientRequest_Unready,
 
         WR_ServerResponse_SuccessJoinRoom,
         WR_ServerResponse_SuccessLeaveRoom,
         WR_ServerResponse_FailJoinRoom,
         WR_ServerResponse_FailCreateRoom,
-        WR_ServerResponse_SuccessReady,
-        WR_ServerResponse_SuccessUnready,
+
+        // Game room
+        GR_ServerSend_GameRoomFullInfo,
+        GR_ServerSend_AllClientsReady,
+        GR_ServerSend_GameStart3,
+        GR_ServerSend_GameStart2,
+        GR_ServerSend_GameStart1,
+        GR_ServerSend_CountdownAborted,
+        GR_ServerSendGameStart,
+
+        GR_ClientRequest_Ready,
+        GR_ClientRequest_Unready,
+
+        GR_ServerResponse_SuccessReady,
+        GR_ServerResponse_SuccessUnready,
     }
 
     public struct InputInformation
@@ -90,6 +101,17 @@ namespace MultiplayerProject.Source
     }
 
     [Serializable]
+    public class IntPacket : BasePacket
+    {
+        public int Integer { get; set; }
+
+        public IntPacket(int i) : base()
+        {
+            Integer = i;
+        }
+    }
+
+    [Serializable]
     public class NetworkPacket : BasePacket
     {
         public byte[] SomeArbitaryBytes { get; set; }
@@ -116,13 +138,15 @@ namespace MultiplayerProject.Source
         public string RoomName { get; set; }
         public string RoomID { get; set; }
         public int ConnectionCount { get; set; }
+        public int ReadyCount { get; set; }
         public string[] ConnectionIDs { get; set; }
         public string[] ConnectionNames { get; set; }
 
-        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections) : base()
+        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections, int readyCount) : base()
         {
             RoomName = roomName;
             RoomID = roomID;
+            ReadyCount = readyCount;
             ConnectionCount = connections.Count;
 
             ConnectionIDs = new string[ConnectionCount];

@@ -16,7 +16,7 @@ namespace MultiplayerProject.Source
 
         private int _maxConnections;
         private Dictionary<ServerConnection, bool> _clientReadyStatus;
-        
+
         public GameRoom(int maxConnections, string name)
         {
             _maxConnections = maxConnections;
@@ -37,7 +37,7 @@ namespace MultiplayerProject.Source
 
         public RoomInformation GetRoomInformation()
         {
-            return new RoomInformation(RoomName, ID, ComponentClients);
+            return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount());
         }
 
         public void ProcessClientMessage(ServerConnection client)
@@ -80,28 +80,34 @@ namespace MultiplayerProject.Source
                         StringPacket leavePacket = buffer.DeserializeFromBytes<StringPacket>();
                         client.SendPacketToClient(new StringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveRoom);
                         RemoveClient(client);
-                        OnRoomStateChanged();
                         break;
                     }
 
-                case MessageType.WR_ClientRequest_Ready:
+                case MessageType.GR_ClientRequest_Ready:
                     {
-                        // Can this fail?
-                        client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_SuccessReady);
+                        // Can this request fail?
+                        client.SendPacketToClient(new BasePacket(), MessageType.GR_ServerResponse_SuccessReady);
                         _clientReadyStatus[client] = true;
 
-                        if (CheckAllClientsReady())
+                        OnRoomStateChanged();
+
+                        if (GetReadyCount() == ComponentClients.Count)
                         {
                             // START GAME
+                            
                         }
 
                         break;
                     }
 
-                case MessageType.WR_ClientRequest_Unready:
-                    client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_SuccessUnready);
-                    _clientReadyStatus[client] = false;
-                    break;
+                case MessageType.GR_ClientRequest_Unready:
+                    {
+                        client.SendPacketToClient(new BasePacket(), MessageType.GR_ServerResponse_SuccessUnready);
+                        _clientReadyStatus[client] = false;
+
+                        OnRoomStateChanged();
+                        break;
+                    }
             }
         }
 
@@ -110,9 +116,10 @@ namespace MultiplayerProject.Source
             ComponentClients.Remove(client);
             _clientReadyStatus.Remove(client);
             client.RemoveServerComponent(this);
+            OnRoomStateChanged();
         }
 
-        private bool CheckAllClientsReady()
+        private int GetReadyCount()
         {
             int numberOfClients = ComponentClients.Count;
 
@@ -125,7 +132,7 @@ namespace MultiplayerProject.Source
                 }
             }
 
-            return (readyCount == numberOfClients);
+            return readyCount;
         }
     }
 }
