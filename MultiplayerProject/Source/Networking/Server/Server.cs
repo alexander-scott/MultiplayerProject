@@ -1,4 +1,5 @@
-﻿using MultiplayerProject.Source;
+﻿using Microsoft.Xna.Framework;
+using MultiplayerProject.Source;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -99,6 +100,11 @@ namespace MultiplayerProject
         {
             ComponentClients.Remove(client);
             client.RemoveServerComponent(this);
-        }     
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            _waitingRoom.Update(gameTime);
+        }
     }
 }

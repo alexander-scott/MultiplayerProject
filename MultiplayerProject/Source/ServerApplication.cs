@@ -34,6 +34,8 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
+            _server.Update(gameTime);
+
             if (_currentScene == null)
                 return;
 

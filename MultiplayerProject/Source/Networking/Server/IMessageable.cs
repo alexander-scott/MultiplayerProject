@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,6 @@ namespace MultiplayerProject.Source
 
         void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes);
         void RemoveClient(ServerConnection client);
+        void Update(GameTime gameTime);
     }
 }

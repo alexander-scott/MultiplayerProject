@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Xna.Framework;
 
 namespace MultiplayerProject.Source
 {
@@ -122,6 +123,14 @@ namespace MultiplayerProject.Source
             }
 
             return readyCount;
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            if (_gameInstance == null)
+                return;
+
+            _gameInstance.Update(gameTime);
         }
     }
 }

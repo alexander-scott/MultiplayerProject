@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 
 namespace MultiplayerProject.Source
 {
@@ -140,6 +141,14 @@ namespace MultiplayerProject.Source
         {
             ComponentClients.Remove(client);
             client.RemoveServerComponent(this);
-        }        
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            for (int i = 0; i < _activeRooms.Count; i++)
+            {
+                _activeRooms[i].Update(gameTime);
+            }
+        }
     }
 }
