@@ -14,6 +14,7 @@ namespace MultiplayerProject.Source
         public string RoomName;
         public string ID;
 
+        private bool _isPlaying;
         private int _maxConnections;
         private Dictionary<ServerConnection, bool> _clientReadyStatus;
 
@@ -23,6 +24,7 @@ namespace MultiplayerProject.Source
             RoomName = name;
 
             _clientReadyStatus = new Dictionary<ServerConnection, bool>();
+            _isPlaying = false;
 
             ID = Guid.NewGuid().ToString();
             ComponentClients = new List<ServerConnection>();
@@ -37,7 +39,7 @@ namespace MultiplayerProject.Source
 
         public RoomInformation GetRoomInformation()
         {
-            return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount());
+            return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount(), _isPlaying);
         }
 
         public void ProcessClientMessage(ServerConnection client)
@@ -93,8 +95,12 @@ namespace MultiplayerProject.Source
 
                         if (GetReadyCount() == ComponentClients.Count)
                         {
+                            // TODO: Introduce a countdown here
+
                             // START GAME
-                            
+                            _isPlaying = true;
+                            // LAUNCH NEW GAME INSTANCE WITH CLIENTS
+
                         }
 
                         break;

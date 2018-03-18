@@ -141,13 +141,15 @@ namespace MultiplayerProject.Source
         public int ReadyCount { get; set; }
         public string[] ConnectionIDs { get; set; }
         public string[] ConnectionNames { get; set; }
+        public bool IsPlaying { get; set; }
 
-        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections, int readyCount) : base()
+        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections, int readyCount, bool isPlaying) : base()
         {
             RoomName = roomName;
             RoomID = roomID;
             ReadyCount = readyCount;
             ConnectionCount = connections.Count;
+            IsPlaying = isPlaying;
 
             ConnectionIDs = new string[ConnectionCount];
             ConnectionNames = new string[ConnectionCount];

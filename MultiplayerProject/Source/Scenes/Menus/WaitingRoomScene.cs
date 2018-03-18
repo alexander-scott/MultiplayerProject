@@ -82,7 +82,6 @@ namespace MultiplayerProject.Source
         {
             _readyToPlay = false;
             _waitingForResponseFromServer = false;
-            _buttonText = "CLICK TO READY";
             _state = WaitingRoomState.InRoomNotReady;
         }
 
@@ -90,7 +89,6 @@ namespace MultiplayerProject.Source
         {
             _readyToPlay = true;
             _waitingForResponseFromServer = false;
-            _buttonText = "READY TO PLAY!";
             _state = WaitingRoomState.InRoomReady;
         }
 
@@ -117,13 +115,12 @@ namespace MultiplayerProject.Source
                 int startYPos = _roomStartYPos;
                 foreach (var room in _waitingRoom.Rooms)
                 {
-                    GameRoomUIItem uiItem = new GameRoomUIItem
-                    {
-                        // Set Rect
-                        Rect = new Rectangle(50, startYPos, 500, 50),
-                        // Set Text
-                        Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players"
-                    };
+                    GameRoomUIItem uiItem = new GameRoomUIItem();
+                    uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
+                    if (!room.IsPlaying)
+                        uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
+                    else
+                        uiItem.Text = room.RoomName + " : PLAYING";
 
                     Vector2 size = _font.MeasureString(uiItem.Text);
                     float xScale = (uiItem.Rect.Width / size.X);
@@ -266,7 +263,7 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && !_waitingRoom.Rooms[i].IsPlaying)
                                 {
                                     OnJoinGameRoom(_waitingRoom.Rooms[i].RoomID);
                                     _waitingForResponseFromServer = true;
@@ -277,7 +274,11 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                if (_waitingRoom.Rooms[i].IsPlaying)
+                                {
+                                    _roomUIItems[i].BorderColour = Color.Red;
+                                }
+                                else if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                                 {
                                     _roomUIItems[i].BorderColour = Color.LightGreen;
                                 }
@@ -297,10 +298,13 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                if (_waitingRoom.Rooms[i].RoomID == _joinedRoomID)
                                 {
-                                    OnLeaveGameRoom(_waitingRoom.Rooms[i].RoomID);
-                                    _waitingForResponseFromServer = true;
+                                    if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                    {
+                                        OnLeaveGameRoom(_waitingRoom.Rooms[i].RoomID);
+                                        _waitingForResponseFromServer = true;
+                                    }
                                 }
                             }
                         }
@@ -323,7 +327,7 @@ namespace MultiplayerProject.Source
                                 {
                                     if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                                     {
-                                        _roomUIItems[i].BorderColour = Color.LightGreen;
+                                        _roomUIItems[i].BorderColour = Color.Red;
                                     }
                                     else
                                     {
@@ -337,25 +341,15 @@ namespace MultiplayerProject.Source
 
                 case WaitingRoomState.InRoomReady:
                     {
-                        if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        for (int i = 0; i < _roomUIItems.Count; i++)
                         {
-                            for (int i = 0; i < _roomUIItems.Count; i++)
+                            if (_waitingRoom.Rooms[i].RoomID == _joinedRoomID)
                             {
-                                if (_waitingRoom.Rooms[i].RoomID == _joinedRoomID)
-                                {
-                                    _roomUIItems[i].BorderColour = Color.LightGreen;
-                                }
-                                else
-                                {
-                                    if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
-                                    {
-                                        _roomUIItems[i].BorderColour = Color.Red;
-                                    }
-                                    else
-                                    {
-                                        _roomUIItems[i].BorderColour = Color.Blue;
-                                    }
-                                }
+                                _roomUIItems[i].BorderColour = Color.LightGreen;
+                            }
+                            else
+                            {
+                                _roomUIItems[i].BorderColour = Color.Blue;
                             }
                         }
                         break;
