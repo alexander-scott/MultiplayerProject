@@ -13,6 +13,8 @@ namespace MultiplayerProject.Source
         public int Height { get; set; }
 
         private List<Player> _players;
+        private Player _localPlayer;
+        private Client _client;
 
         private EnemyManager _enemyManager;
         private LaserManager _laserManager;
@@ -20,12 +22,16 @@ namespace MultiplayerProject.Source
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
 
-        public MainGame(int width, int height, int playerCount, string[] playerIDs, string localPlayerID)
+        private int framesSinceLastSend;
+        private int framesBetweenPackets = 6;
+
+        public MainGame(int width, int height, int playerCount, string[] playerIDs, string localPlayerID, Client client)
         {
             Width = width;
             Height = height;
 
             _players = new List<Player>();
+            _client = client; 
 
             for (int i = 0; i < playerCount; i++)
             {
@@ -33,7 +39,10 @@ namespace MultiplayerProject.Source
                 player.NetworkID = playerIDs[i];
 
                 if (playerIDs[i] == localPlayerID)
+                {
+                    _localPlayer = player;
                     player.IsLocal = true;
+                } 
                 else
                     player.IsLocal = false;
 
@@ -78,33 +87,27 @@ namespace MultiplayerProject.Source
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
-            for (int i = 0; i < _players.Count; i++)
-            {
-                if (_players[i].IsLocal)
-                {
-                    // Keyboard/Dpad controls
-                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
-                    {
-                        _players[i].RotateLeft(gameTime);
-                    }
-                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
-                    {
-                        _players[i].RotateRight(gameTime);
-                    }
-                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
-                    {
-                        _players[i].MoveForward(gameTime);
-                    }
-                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
-                    {
-                        _players[i].MoveBackward(gameTime);
-                    }
+            // Is it time to send outgoing network packets?
+            bool sendPacketThisFrame = false;
 
-                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
-                    {
-                        _laserManager.FireLaser(gameTime, _players[i].Position, _players[i].Rotation);
-                    }
-                }
+            framesSinceLastSend++;
+
+            if (framesSinceLastSend >= framesBetweenPackets)
+            {
+                sendPacketThisFrame = true;
+                framesSinceLastSend = 0;
+            }
+
+            KeyboardMovementInput condensedInput = ProcessInputForLocalPlayer(gameTime, inputInfo);
+
+            // SEND UPDATE PACKET TO SERVER
+            if (sendPacketThisFrame)
+            {
+                PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
+                packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
+                packet.Input = condensedInput;
+
+                _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
             }
         }
 
@@ -124,6 +127,41 @@ namespace MultiplayerProject.Source
             {
                 _players[i].Draw(spriteBatch);
             }
-        }        
+        }    
+        
+        private KeyboardMovementInput ProcessInputForLocalPlayer(GameTime gameTime, InputInformation inputInfo)
+        {
+            KeyboardMovementInput input = new KeyboardMovementInput();
+
+            // Keyboard/Dpad controls
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
+            {
+                _localPlayer.RotateLeft(gameTime);
+                input.LeftPressed = true;
+            }
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
+            {
+                _localPlayer.RotateRight(gameTime);
+                input.RightPressed = true;
+            }
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
+            {
+                _localPlayer.MoveForward(gameTime);
+                input.UpPressed = true;
+            }
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
+            {
+                _localPlayer.MoveBackward(gameTime);
+                input.DownPressed = true;
+            }
+
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
+            {
+                _laserManager.FireLaser(gameTime, _localPlayer.Position, _localPlayer.Rotation);
+                input.FirePressed = true;
+            }
+
+            return input;
+        }
     }
 }

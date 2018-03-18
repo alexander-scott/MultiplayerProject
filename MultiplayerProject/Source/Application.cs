@@ -91,8 +91,9 @@ namespace MultiplayerProject
 
         private void ProcessInput(GameTime gameTime)
         {
-            if (!IsActive)
-                return;
+            // This fixes the issue of clicking through windows
+            //if (!IsActive)
+            //    return;
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Input;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 
@@ -65,6 +66,8 @@ namespace MultiplayerProject.Source
 
         // Game instance
         GI_ServerSend_LoadNewGame,
+        
+        GI_ClientSend_PlayerUpdatePacket,
     }
 
     public struct InputInformation
@@ -191,6 +194,45 @@ namespace MultiplayerProject.Source
             {
                 PlayerIDs[i] = players[i].ID;
             }
+        }
+    }
+
+    [Serializable]
+    public class PlayerUpdatePacket : BasePacket
+    {
+        public float TotalGameTime { get; set; }
+        public float XPosition { get; set; }
+        public float YPosition { get; set; }
+        public float Speed { get; set; }
+        public float Rotation { get; set; }
+        public KeyboardMovementInput Input { get; set; }
+
+        public PlayerUpdatePacket(float xPosition, float yPosition, float speed,
+            float rotation) :base()
+        {
+            XPosition = xPosition;
+            YPosition = yPosition;
+            Speed = speed;
+            Rotation = rotation;
+        }
+    }
+
+    [Serializable]
+    public class KeyboardMovementInput
+    {
+        public bool LeftPressed { get; set; }
+        public bool RightPressed { get; set; }
+        public bool UpPressed { get; set; }
+        public bool DownPressed { get; set; }
+        public bool FirePressed { get; set; }
+
+        public KeyboardMovementInput()
+        {
+            LeftPressed = false;
+            RightPressed = false;
+            UpPressed = false;
+            DownPressed = false;
+            FirePressed = false;
         }
     }
 }

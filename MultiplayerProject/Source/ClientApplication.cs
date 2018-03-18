@@ -99,7 +99,8 @@ namespace MultiplayerProject.Source
         private void ClientMessenger_OnLoadNewGame(GameInstanceInformation gameInstance)
         {
             _sceneLoading = true;
-            _currentScene = new MainGame(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.LocalPlayerID);
+            _currentScene = new MainGame(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height, 
+                gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.LocalPlayerID, _client);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
             _sceneLoading = false;
         }

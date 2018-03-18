@@ -114,5 +114,10 @@ namespace MultiplayerProject.Source
         {
             PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
+
+        public PlayerUpdatePacket BuildUpdatePacket()
+        {
+            return new PlayerUpdatePacket(PlayerState.Position.X, PlayerState.Position.Y, PlayerState.Speed, PlayerState.Rotation);
+        }
     }
 }

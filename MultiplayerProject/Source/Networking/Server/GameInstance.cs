@@ -49,7 +49,12 @@ namespace MultiplayerProject.Source
         {
             switch (messageType)
             {
-
+                case MessageType.GI_ClientSend_PlayerUpdatePacket:
+                    {
+                        var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
+                        float f = 0;
+                        break;
+                    }
             }
         }
 
