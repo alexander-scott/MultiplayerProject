@@ -4,9 +4,9 @@ using System.IO;
 
 namespace MultiplayerProject.Source
 {
-    public class Lobby : IMessageable
+    public class GameRoom : IMessageable
     {
-        public string LobbyName;
+        public string RoomName;
         public string ID;
 
         private int _maxConnections;
@@ -14,24 +14,24 @@ namespace MultiplayerProject.Source
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
 
-        public Lobby(int maxConnections, string name)
+        public GameRoom(int maxConnections, string name)
         {
             _maxConnections = maxConnections;
-            LobbyName = name;
+            RoomName = name;
 
             ID = Guid.NewGuid().ToString();
             ComponentClients = new List<ServerConnection>();
         }
 
-        public void AddClientToLobby(ServerConnection client)
+        public void AddClientToRoom(ServerConnection client)
         {
             ComponentClients.Add(client);
             client.AddServerComponent(this);
         }
 
-        public LobbyInformation GetLobbyInformation()
+        public RoomInformation GetRoomInformation()
         {
-            return new LobbyInformation(LobbyName, ID, ComponentClients);
+            return new RoomInformation(RoomName, ID, ComponentClients);
         }
 
         public void ProcessClientMessage(ServerConnection client)

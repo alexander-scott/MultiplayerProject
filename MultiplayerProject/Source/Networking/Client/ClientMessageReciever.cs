@@ -26,17 +26,17 @@ namespace MultiplayerProject.Source
 
         private void WaitingRoomScene_OnLeaveLobby(string lobbyID)
         {
-            _client.SendMessageToServer(new StringPacket(lobbyID), MessageType.WR_ClientRequest_LeaveLobby);
+            _client.SendMessageToServer(new StringPacket(lobbyID), MessageType.WR_ClientRequest_LeaveRoom);
         }
 
         private void WaitingRoomScene_OnJoinLobby(string lobbyID)
         {
-            _client.SendMessageToServer(new StringPacket(lobbyID), MessageType.WR_ClientRequest_JoinLobby);
+            _client.SendMessageToServer(new StringPacket(lobbyID), MessageType.WR_ClientRequest_JoinRoom);
         }
 
         private void WaitingRoomScene_OnNewLobbyClicked()
         {
-            _client.SendMessageToServer(new BasePacket(), MessageType.WR_ClientRequest_CreateLobby);
+            _client.SendMessageToServer(new BasePacket(), MessageType.WR_ClientRequest_CreateRoom);
         }
 
         public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
@@ -52,22 +52,22 @@ namespace MultiplayerProject.Source
                     OnWaitingRoomInformationRecieved(waitingRooms);
                     break;
 
-                case MessageType.WR_ServerResponse_FailJoinLobby:
+                case MessageType.WR_ServerResponse_FailJoinRoom:
                     Console.WriteLine("FAILED TO JOIN ROOM");
                     break;
 
-                case MessageType.WR_ServerResponse_FailCreateLobby:
+                case MessageType.WR_ServerResponse_FailCreateRoom:
                     Console.WriteLine("FAILED TO CREATE ROOM");
                     break;
 
-                case MessageType.WR_ServerResponse_SuccessJoinLobby:
+                case MessageType.WR_ServerResponse_SuccessJoinRoom:
                 {
                     StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
                     OnLobbySuccessfullyJoined(lobbyID.String);
                     break;
                 }
 
-                case MessageType.WR_ServerResponse_SuccessLeaveLobby:
+                case MessageType.WR_ServerResponse_SuccessLeaveRoom:
                 {
                     StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
                     OnLobbySuccessfullyLeft(lobbyID.String);

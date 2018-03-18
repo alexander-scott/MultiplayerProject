@@ -23,7 +23,7 @@ namespace MultiplayerProject.Source
     {
         BaseServer,
         WaitingRoom,
-        Lobby,
+        GameRoom,
         Game
     }
 
@@ -41,14 +41,14 @@ namespace MultiplayerProject.Source
         WR_ServerSend_NewRoom,
         WR_ServerSend_DeleteRoom,
 
-        WR_ClientRequest_JoinLobby,
-        WR_ClientRequest_LeaveLobby,
-        WR_ClientRequest_CreateLobby,
+        WR_ClientRequest_JoinRoom,
+        WR_ClientRequest_LeaveRoom,
+        WR_ClientRequest_CreateRoom,
 
-        WR_ServerResponse_SuccessJoinLobby,
-        WR_ServerResponse_SuccessLeaveLobby,
-        WR_ServerResponse_FailJoinLobby,
-        WR_ServerResponse_FailCreateLobby,
+        WR_ServerResponse_SuccessJoinRoom,
+        WR_ServerResponse_SuccessLeaveRoom,
+        WR_ServerResponse_FailJoinRoom,
+        WR_ServerResponse_FailCreateRoom,
     }
 
     public struct InputInformation
@@ -107,18 +107,18 @@ namespace MultiplayerProject.Source
     }
 
     [Serializable]
-    public class LobbyInformation : BasePacket
+    public class RoomInformation : BasePacket
     {
-        public string LobbyName { get; set; }
-        public string LobbyID { get; set; }
+        public string RoomName { get; set; }
+        public string RoomID { get; set; }
         public int ConnectionCount { get; set; }
         public string[] ConnectionIDs { get; set; }
         public string[] ConnectionNames { get; set; }
 
-        public LobbyInformation(string lobbyName, string lobbyID, List<ServerConnection> connections) : base()
+        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections) : base()
         {
-            LobbyName = lobbyName;
-            LobbyID = lobbyID;
+            RoomName = roomName;
+            RoomID = roomID;
             ConnectionCount = connections.Count;
 
             ConnectionIDs = new string[ConnectionCount];
@@ -134,8 +134,8 @@ namespace MultiplayerProject.Source
     [Serializable]
     public class WaitingRoomInformation : BasePacket
     {
-        public LobbyInformation[] Lobbies;
-        public int LobbyCount;
+        public RoomInformation[] Rooms;
+        public int RoomCount;
 
         public WaitingRoomInformation() : base()
         {

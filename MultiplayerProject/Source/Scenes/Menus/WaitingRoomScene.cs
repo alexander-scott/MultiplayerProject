@@ -81,14 +81,14 @@ namespace MultiplayerProject.Source
             if (_waitingRoom != null)
             {
                 int startYPos = _lobbyStartYPos;
-                foreach (var lobby in _waitingRoom.Lobbies)
+                foreach (var lobby in _waitingRoom.Rooms)
                 {
                     LobbyUIItem uiItem = new LobbyUIItem
                     {
                         // Set Rect
                         Rect = new Rectangle(50, startYPos, 500, 50),
                         // Set Text
-                        Text = lobby.LobbyName + " : " + lobby.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_LOBBY + " Players"
+                        Text = lobby.RoomName + " : " + lobby.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players"
                     };
 
                     Vector2 size = _font.MeasureString(uiItem.Text);
@@ -135,7 +135,7 @@ namespace MultiplayerProject.Source
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
             // Is it possible to create a new room? Must me less rooms than max and this client can't currently be in a room
-            if (_lobbyUIItems.Count < Server.MAX_LOBBIES && string.IsNullOrEmpty(_joinedLobbyID))
+            if (_lobbyUIItems.Count < Server.MAX_ROOMS && string.IsNullOrEmpty(_joinedLobbyID))
             {
                 // If mouse has been clicked
                 if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
@@ -174,15 +174,15 @@ namespace MultiplayerProject.Source
                         if (string.IsNullOrEmpty(_joinedLobbyID))
                         {
                             // Valid click on UI lobby
-                            OnJoinLobby(_waitingRoom.Lobbies[i].LobbyID);
+                            OnJoinLobby(_waitingRoom.Rooms[i].RoomID);
                             _waitingForResponseFromServer = true;
                         }
                         else
                         {
-                            if (_waitingRoom.Lobbies[i].LobbyID == _joinedLobbyID)
+                            if (_waitingRoom.Rooms[i].RoomID == _joinedLobbyID)
                             {
                                 // ON LEAVE
-                                OnLeaveLobby(_waitingRoom.Lobbies[i].LobbyID);
+                                OnLeaveLobby(_waitingRoom.Rooms[i].RoomID);
                                 _waitingForResponseFromServer = true;
                             }
                         }
@@ -207,7 +207,7 @@ namespace MultiplayerProject.Source
                     }
                     else 
                     {
-                        if (_waitingRoom.Lobbies[i].LobbyID == _joinedLobbyID)
+                        if (_waitingRoom.Rooms[i].RoomID == _joinedLobbyID)
                         {
                             if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                             {

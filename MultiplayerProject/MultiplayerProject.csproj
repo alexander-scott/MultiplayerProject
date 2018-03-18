@@ -66,7 +66,7 @@
     <Compile Include="Source\Networking\NetworkConsts.cs" />
     <Compile Include="Source\Networking\Package.cs" />
     <Compile Include="Source\Networking\Server\IMessageable.cs" />
-    <Compile Include="Source\Networking\Server\Lobby.cs" />
+    <Compile Include="Source\Networking\Server\GameRoom.cs" />
     <Compile Include="Source\Networking\Server\WaitingRoom.cs" />
     <Compile Include="Source\Networking\Server\ServerConnection.cs" />
     <Compile Include="Source\Networking\Server\Server.cs" />
