@@ -5,35 +5,19 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
 {
-    class Player
+    public class Player : INetworkedObject
     {
-        // State of the player
         public bool Active;
-
-        // Amount of hit points that player has
         public int Health;
 
-        // Get the width of the player ship
-        public int Width
-        {
-            get { return PlayerAnimation.FrameWidth; }
-        }
+        public int Width { get { return PlayerAnimation.FrameWidth; } }
+        public int Height { get { return PlayerAnimation.FrameHeight; } }
 
-        // Get the height of the player ship
-        public int Height
-        {
-            get { return PlayerAnimation.FrameHeight; }
-        }
+        public Vector2 Position { get { return PlayerState.Position; } }
+        public float Rotation { get { return PlayerState.Rotation; } }
 
-        public Vector2 Position
-        {
-            get { return PlayerState.Position; }
-        }
-
-        public float Rotation
-        {
-            get { return PlayerState.Rotation; }
-        }
+        public string NetworkID { get; set; }
+        public bool IsLocal { get; set; }
 
         private struct ObjectState
         {

@@ -64,6 +64,7 @@
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\Networking\Client\Client.cs" />
     <Compile Include="Source\Networking\Client\ClientMessenger.cs" />
+    <Compile Include="Source\Networking\Client\INetworkedObject.cs" />
     <Compile Include="Source\Networking\NetworkConsts.cs" />
     <Compile Include="Source\Networking\Package.cs" />
     <Compile Include="Source\Networking\Server\GameInstance.cs" />

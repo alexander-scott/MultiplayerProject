@@ -8,7 +8,7 @@ namespace MultiplayerProject.Source
     public delegate void StringDelegate(string str);
     public delegate void IntDelegate(int i);
     public delegate void WaitingRoomDelegate(WaitingRoomInformation waitingRoom);
-    public delegate void GameRoomDelegate(RoomInformation gameRoom);
+    public delegate void GameRoomDelegate(GameInstanceInformation gameRoom);
 
     public enum ApplicationType
     {
@@ -171,6 +171,26 @@ namespace MultiplayerProject.Source
         public WaitingRoomInformation() : base()
         {
 
+        }
+    }
+
+    [Serializable]
+    public class GameInstanceInformation : BasePacket
+    {
+        public int PlayerCount { get; set; }
+        public string[] PlayerIDs { get; set; }
+        public string LocalPlayerID { get; set; }
+
+        public GameInstanceInformation(int playerCount, List<ServerConnection> players, string localPlayerID) : base()
+        {
+            PlayerCount = playerCount;
+            LocalPlayerID = localPlayerID;
+
+            PlayerIDs = new string[PlayerCount];
+            for (int i = 0; i < PlayerCount; i++)
+            {
+                PlayerIDs[i] = players[i].ID;
+            }
         }
     }
 }

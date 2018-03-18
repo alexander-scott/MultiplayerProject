@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
@@ -11,7 +12,7 @@ namespace MultiplayerProject.Source
         public int Width { get; set; }
         public int Height { get; set; }
 
-        private Player _player;
+        private List<Player> _players;
 
         private EnemyManager _enemyManager;
         private LaserManager _laserManager;
@@ -19,12 +20,26 @@ namespace MultiplayerProject.Source
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
 
-        public MainGame(int width, int height)
+        public MainGame(int width, int height, int playerCount, string[] playerIDs, string localPlayerID)
         {
             Width = width;
             Height = height;
+
+            _players = new List<Player>();
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                Player player = new Player(width, height);
+                player.NetworkID = playerIDs[i];
+
+                if (playerIDs[i] == localPlayerID)
+                    player.IsLocal = true;
+                else
+                    player.IsLocal = false;
+
+                _players.Add(player);
+            }
             
-            _player = new Player(width, height);
             _enemyManager = new EnemyManager(width, height);
             _laserManager = new LaserManager(width, height);
             _backgroundManager = new BackgroundManager(width, height);
@@ -35,7 +50,11 @@ namespace MultiplayerProject.Source
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            _player.Initialize(content);
+            for (int i = 0; i < _players.Count; i++)
+            {
+                _players[i].Initialize(content);
+            }
+
             _enemyManager.Initalise(content);
             _laserManager.Initalise(content);
             _explosionManager.Initalise(content);
@@ -44,7 +63,11 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            _player.Update(gameTime);
+            for (int i = 0; i < _players.Count; i++)
+            {
+                _players[i].Update(gameTime);
+            }
+
             _backgroundManager.Update(gameTime);
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
@@ -55,31 +78,33 @@ namespace MultiplayerProject.Source
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
-            // Thumbstick controls
-            //_player.State.Position.X += _currentinputInfo.CurrentGamePadState.ThumbSticks.Left.X * _playerMoveSpeed;
-            //_player.State.Position.Y -= _currentinputInfo.CurrentGamePadState.ThumbSticks.Left.Y * _playerMoveSpeed;
+            for (int i = 0; i < _players.Count; i++)
+            {
+                if (_players[i].IsLocal)
+                {
+                    // Keyboard/Dpad controls
+                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
+                    {
+                        _players[i].RotateLeft(gameTime);
+                    }
+                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
+                    {
+                        _players[i].RotateRight(gameTime);
+                    }
+                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
+                    {
+                        _players[i].MoveForward(gameTime);
+                    }
+                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
+                    {
+                        _players[i].MoveBackward(gameTime);
+                    }
 
-            // Keyboard/Dpad controls
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
-            {
-                _player.RotateLeft(gameTime);
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
-            {
-                _player.RotateRight(gameTime);
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
-            {
-                _player.MoveForward(gameTime);
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
-            {
-                _player.MoveBackward(gameTime);
-            }
-
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
-            {
-                _laserManager.FireLaser(gameTime, _player.Position, _player.Rotation);
+                    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
+                    {
+                        _laserManager.FireLaser(gameTime, _players[i].Position, _players[i].Rotation);
+                    }
+                }
             }
         }
 
@@ -95,7 +120,10 @@ namespace MultiplayerProject.Source
 
             //_collisionManager.Draw(_graphics.GraphicsDevice, spriteBatch, _enemyManager.Enemies, _laserManager.Lasers);
 
-            _player.Draw(spriteBatch);
+            for (int i = 0; i < _players.Count; i++)
+            {
+                _players[i].Draw(spriteBatch);
+            }
         }        
     }
 }

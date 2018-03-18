@@ -104,7 +104,7 @@ namespace MultiplayerProject.Source
 
                 case MessageType.GI_ServerSend_LoadNewGame:
                     {
-                        OnLoadNewGame(packetBytes.DeserializeFromBytes<RoomInformation>());
+                        OnLoadNewGame(packetBytes.DeserializeFromBytes<GameInstanceInformation>());
                         break;
                     }
             }
