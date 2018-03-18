@@ -16,7 +16,16 @@ namespace MultiplayerProject.Source
         public int BorderWidth;
     }
 
-    public class WaitingRoomScene :  IScene
+    public enum WaitingRoomState
+    {
+        NotInRoomAbleToCreate,
+        NotInRoomUnableToCreate,
+        InRoomWaitingForPlayers,
+        InRoomNotReady,
+        InRoomReady,
+    }
+
+    public class WaitingRoomScene : IScene
     {
         public static event EmptyDelegate OnNewGameRoomClicked;
         public static event StringDelegate OnJoinGameRoom;
@@ -28,6 +37,8 @@ namespace MultiplayerProject.Source
         private WaitingRoomInformation _waitingRoom;
 
         private string _joinedRoomID;
+        private WaitingRoomState _state;
+        private bool _readyToPlay;
 
         private SpriteFont _font;
         private GraphicsDevice _device;
@@ -37,11 +48,11 @@ namespace MultiplayerProject.Source
         private Vector2 _titlePosition;
         private const string _titleText = "WAITING ROOM";
 
-        // New room button
-        private Vector2 _newRoomButtonPosition;
-        private Rectangle _newRoomButtonRect;
-        private Color _newRoomButtonColor;
-        private const string _newRoomButtonText = "CREATE NEW ROOM";
+        // Bottom button
+        private Vector2 _buttonPosition;
+        private Rectangle _buttonRect;
+        private Color _buttonColour;
+        private string _buttonText = "CREATE NEW ROOM";
 
         // Rooms
         private List<GameRoomUIItem> _roomUIItems;
@@ -53,6 +64,9 @@ namespace MultiplayerProject.Source
             Height = height;
 
             _waitingForResponseFromServer = false;
+
+            _state = WaitingRoomState.NotInRoomAbleToCreate;
+            _readyToPlay = false;
 
             _roomUIItems = new List<GameRoomUIItem>();
 
@@ -78,6 +92,7 @@ namespace MultiplayerProject.Source
             _waitingRoom = waitingRoom;
             _roomUIItems.Clear();
 
+            RoomInformation joinedRoom = null;
             if (_waitingRoom != null)
             {
                 int startYPos = _roomStartYPos;
@@ -113,8 +128,50 @@ namespace MultiplayerProject.Source
 
                     _roomUIItems.Add(uiItem);
                     startYPos += 50;
+
+                    if (room.RoomID == _joinedRoomID)
+                    {
+                        joinedRoom = room;
+                    }
                 }
             }
+
+            if (joinedRoom != null)
+            {
+                if (joinedRoom.ConnectionCount == 1)
+                {
+                    _buttonText = "WAITING FOR MORE PLAYERS";
+                    _state = WaitingRoomState.InRoomWaitingForPlayers;
+                }
+                else
+                {
+                    if (!_readyToPlay)
+                    {
+                        _buttonText = "CLICK TO READY";
+                        _state = WaitingRoomState.InRoomNotReady;
+                    }
+                    else
+                    {
+                        _buttonText = "READY TO PLAY!";
+                        _state = WaitingRoomState.InRoomReady;
+                    }
+                }
+            }
+            else
+            {
+                if (_roomUIItems.Count < Server.MAX_ROOMS)
+                {
+                    _buttonText = "CREATE NEW ROOM";
+                    _state = WaitingRoomState.NotInRoomAbleToCreate;
+                }
+                else
+                {
+                    _buttonText = "UNABLE TO CREATE NEW ROOM";
+                    _state = WaitingRoomState.NotInRoomUnableToCreate;
+                }
+            }
+
+            ReformatButton();
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -125,107 +182,22 @@ namespace MultiplayerProject.Source
             _titlePosition = new Vector2(Width / 2, 0);
             _titlePosition.X -= (_font.MeasureString(_titleText).X / 2);
 
-            _newRoomButtonPosition = new Vector2(Width / 2, Height - (_font.MeasureString(_newRoomButtonText).Y));
-            _newRoomButtonPosition.X -= (_font.MeasureString(_newRoomButtonText).X / 2);
-            _newRoomButtonRect = new Rectangle((int)_newRoomButtonPosition.X, (int)_newRoomButtonPosition.Y, 
-                (int)_font.MeasureString(_newRoomButtonText).X, (int)_font.MeasureString(_newRoomButtonText).Y);
-            _newRoomButtonColor = Color.Blue;
+            ReformatButton();
         }
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
-            // Is it possible to create a new room? Must me less rooms than max and this client can't currently be in a room
-            if (_roomUIItems.Count < Server.MAX_ROOMS && string.IsNullOrEmpty(_joinedRoomID))
-            {
-                // If mouse has been clicked
-                if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
-                {
-                    if (_newRoomButtonRect.Contains(inputInfo.CurrentMouseState.Position))
-                    {
-                        // New room valid click
-                        OnNewGameRoomClicked();
-                    }
-                } 
-                else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
-                {
-                    if (_newRoomButtonRect.Contains(inputInfo.CurrentMouseState.Position))
-                    {
-                        _newRoomButtonColor = Color.LightGreen;
-                    }
-                    else
-                    {
-                        _newRoomButtonColor = Color.Blue;
-                    }
-                }
-            }
-            else
-            {
-                _newRoomButtonColor = Color.Red;
-            }
+            if (_waitingForResponseFromServer)
+                return;
 
-            // Check for click
-            if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released && !_waitingForResponseFromServer)
-            {
-                // Check all ui rooms if any have been clicked on
-                for (int i = 0; i < _roomUIItems.Count; i++)
-                {
-                    if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
-                    {
-                        if (string.IsNullOrEmpty(_joinedRoomID))
-                        {
-                            // Valid click on UI room
-                            OnJoinGameRoom(_waitingRoom.Rooms[i].RoomID);
-                            _waitingForResponseFromServer = true;
-                        }
-                        else
-                        {
-                            if (_waitingRoom.Rooms[i].RoomID == _joinedRoomID)
-                            {
-                                // ON LEAVE
-                                OnLeaveGameRoom(_waitingRoom.Rooms[i].RoomID);
-                                _waitingForResponseFromServer = true;
-                            }
-                        }
-                    }
-                }
-            } 
-            else if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Released)
-            {
-                // Check all ui rooms if any have the mouse over it
-                for (int i = 0; i < _roomUIItems.Count; i++)
-                {
-                    if (string.IsNullOrEmpty(_joinedRoomID))
-                    {
-                        if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
-                        {
-                            _roomUIItems[i].BorderColour = Color.LightGreen;
-                        }
-                        else
-                        {
-                            _roomUIItems[i].BorderColour = Color.Blue;
-                        }
-                    }
-                    else 
-                    {
-                        if (_waitingRoom.Rooms[i].RoomID == _joinedRoomID)
-                        {
-                            if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
-                            {
-                                _roomUIItems[i].BorderColour = Color.Orange;
-                            }
-                            else
-                            {
-                                _roomUIItems[i].BorderColour = Color.LightGreen;
-                            }
-                        }
-                    }
-                }
-            }
+            CheckBottomButtonClicked(inputInfo);
+
+            CheckRoomClicked(inputInfo);
         }
 
         public void Update(GameTime gameTime)
         {
-            
+
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -234,10 +206,10 @@ namespace MultiplayerProject.Source
             spriteBatch.DrawString(_font, _titleText, _titlePosition, Color.White);
 
             // Draw new room button
-            spriteBatch.DrawString(_font, _newRoomButtonText, _newRoomButtonPosition, Color.White);
-            Texture2D newRoomBtnTexture = new Texture2D(_device, _newRoomButtonRect.Width, _newRoomButtonRect.Height);
-            newRoomBtnTexture.CreateBorder(1, _newRoomButtonColor);
-            spriteBatch.Draw(newRoomBtnTexture, _newRoomButtonPosition, Color.White);
+            spriteBatch.DrawString(_font, _buttonText, _buttonPosition, Color.White);
+            Texture2D newRoomBtnTexture = new Texture2D(_device, _buttonRect.Width, _buttonRect.Height);
+            newRoomBtnTexture.CreateBorder(1, _buttonColour);
+            spriteBatch.Draw(newRoomBtnTexture, _buttonPosition, Color.White);
 
             if (_roomUIItems.Count != 0)
             {
@@ -251,6 +223,229 @@ namespace MultiplayerProject.Source
                     texture.CreateBorder(_roomUIItems[i].BorderWidth, _roomUIItems[i].BorderColour);
                     spriteBatch.Draw(texture, _roomUIItems[i].Position, Color.White);
                 }
+            }
+        }
+
+        private void ReformatButton()
+        {
+            _buttonPosition = new Vector2(Width / 2, Height - (_font.MeasureString(_buttonText).Y));
+            _buttonPosition.X -= (_font.MeasureString(_buttonText).X / 2);
+            _buttonRect = new Rectangle((int)_buttonPosition.X, (int)_buttonPosition.Y,
+                (int)_font.MeasureString(_buttonText).X, (int)_font.MeasureString(_buttonText).Y);
+            _buttonColour = Color.Blue;
+        }
+
+        private void CheckRoomClicked(InputInformation inputInfo)
+        {
+            switch (_state)
+            {
+                case WaitingRoomState.NotInRoomUnableToCreate:
+                case WaitingRoomState.NotInRoomAbleToCreate:
+                    {
+                        if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        {
+                            for (int i = 0; i < _roomUIItems.Count; i++)
+                            {
+                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                {
+                                    OnJoinGameRoom(_waitingRoom.Rooms[i].RoomID);
+                                    _waitingForResponseFromServer = true;
+                                }
+                            }
+                        }
+                        else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        {
+                            for (int i = 0; i < _roomUIItems.Count; i++)
+                            {
+                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                {
+                                    _roomUIItems[i].BorderColour = Color.LightGreen;
+                                }
+                                else
+                                {
+                                    _roomUIItems[i].BorderColour = Color.Blue;
+                                }
+                            }
+                        }
+                        break;
+                    }
+
+                case WaitingRoomState.InRoomWaitingForPlayers:
+                case WaitingRoomState.InRoomNotReady:
+                    {
+                        if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        {
+                            for (int i = 0; i < _roomUIItems.Count; i++)
+                            {
+                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                {
+                                    OnLeaveGameRoom(_waitingRoom.Rooms[i].RoomID);
+                                    _waitingForResponseFromServer = true;
+                                }
+                            }
+                        }
+                        else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        {
+                            for (int i = 0; i < _roomUIItems.Count; i++)
+                            {
+                                if (_waitingRoom.Rooms[i].RoomID == _joinedRoomID)
+                                {
+                                    if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                    {
+                                        _roomUIItems[i].BorderColour = Color.Orange;
+                                    }
+                                    else
+                                    {
+                                        _roomUIItems[i].BorderColour = Color.LightGreen;
+                                    }
+                                }
+                                else
+                                {
+                                    if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                    {
+                                        _roomUIItems[i].BorderColour = Color.LightGreen;
+                                    }
+                                    else
+                                    {
+                                        _roomUIItems[i].BorderColour = Color.Blue;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+
+                case WaitingRoomState.InRoomReady:
+                    {
+                        if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        {
+                            for (int i = 0; i < _roomUIItems.Count; i++)
+                            {
+                                if (_waitingRoom.Rooms[i].RoomID == _joinedRoomID)
+                                {
+                                    _roomUIItems[i].BorderColour = Color.LightGreen;
+                                }
+                                else
+                                {
+                                    if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                                    {
+                                        _roomUIItems[i].BorderColour = Color.Red;
+                                    }
+                                    else
+                                    {
+                                        _roomUIItems[i].BorderColour = Color.Blue;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+            }
+        }
+
+        private void CheckBottomButtonClicked(InputInformation inputInfo)
+        {
+            switch (_state)
+            {
+                case WaitingRoomState.NotInRoomAbleToCreate:
+                    {
+                        // Is it possible to create a new room? Must be less rooms than max and this client can't currently be in a room
+                        if (_roomUIItems.Count < Server.MAX_ROOMS && string.IsNullOrEmpty(_joinedRoomID))
+                        {
+                            // If mouse has been clicked
+                            if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                            {
+                                if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
+                                {
+                                    // New room valid click
+                                    OnNewGameRoomClicked();
+                                }
+                            }
+                            else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
+                            {
+                                if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
+                                {
+                                    _buttonColour = Color.LightGreen;
+                                }
+                                else
+                                {
+                                    _buttonColour = Color.Blue;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _buttonColour = Color.Red;
+                        }
+                        break;
+                    }
+
+                case WaitingRoomState.NotInRoomUnableToCreate:
+                    {
+                        _buttonColour = Color.Red;
+                        break;
+                    }
+
+                case WaitingRoomState.InRoomWaitingForPlayers:
+                    {
+                        _buttonColour = Color.Red;
+                        break;
+                    }
+
+                case WaitingRoomState.InRoomNotReady:
+                    {
+                        if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        {
+                            if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
+                            {
+                                // ON READY UP
+                            }
+                        }
+                        else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
+                        {
+                            if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
+                            {
+                                _buttonColour = Color.LightGreen;
+                            }
+                            else
+                            {
+                                _buttonColour = Color.Orange;
+                            }
+                        }
+                        else
+                        {
+                            _buttonColour = Color.Orange;
+                        }
+
+                        break;
+                    }
+
+                case WaitingRoomState.InRoomReady:
+                    {
+                        if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                        {
+                            if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
+                            {
+                                // ON UNREADY
+                            }
+                        }
+                        else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
+                        {
+                            if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
+                            {
+                                _buttonColour = Color.Orange;
+                            }
+                            else
+                            {
+                                _buttonColour = Color.LightGreen;
+                            }
+                        }
+                        else
+                        {
+                            _buttonColour = Color.LightGreen;
+                        }
+                        break;
+                    }
             }
         }
     }
