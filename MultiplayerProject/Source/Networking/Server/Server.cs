@@ -20,22 +20,22 @@ namespace MultiplayerProject
 
         private WaitingRoom _waitingRoom;
 
-        public Server(string ipAddress, int port)
+        public Server()
         {
             // Implement IMessageable
             ComponentType = MessageableComponent.BaseServer;
             ComponentClients = new List<ServerConnection>();
 
-            // Setup TCP Listener
-            IPAddress ip = IPAddress.Parse(ipAddress);
-            _tcpListener = new TcpListener(ip, port);
-
             // Create waiting room for connections
             _waitingRoom = new WaitingRoom(MAX_ROOMS);
         }
 
-        public void Start()
+        public void Start(string ipAddress, int port)
         {
+            // Setup TCP Listener
+            IPAddress ip = IPAddress.Parse(ipAddress);
+            _tcpListener = new TcpListener(ip, port);
+
             // Start listening for incomming connections/clients
             _listenForClientsThread = new Thread(new ThreadStart(ListenForClients));
             _listenForClientsThread.Start();

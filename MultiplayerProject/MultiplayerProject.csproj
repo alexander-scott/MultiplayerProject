@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Source\ClientApplication.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
     <Compile Include="Source\GameObjects\Enemy.cs" />
     <Compile Include="Source\GameObjects\Explosion.cs" />
@@ -75,10 +76,13 @@
     <Compile Include="Source\GameObjects\Player.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Source\Scenes\Client\Menus\DisconnectedFromServerScene.cs" />
     <Compile Include="Source\Scenes\IScene.cs" />
-    <Compile Include="Source\Scenes\Game\MainGame.cs" />
-    <Compile Include="Source\Scenes\Menus\MainMenu.cs" />
-    <Compile Include="Source\Scenes\Menus\WaitingRoomScene.cs" />
+    <Compile Include="Source\Scenes\Client\Game\MainGame.cs" />
+    <Compile Include="Source\Scenes\MainMenu.cs" />
+    <Compile Include="Source\Scenes\Client\Menus\WaitingRoomScene.cs" />
+    <Compile Include="Source\Scenes\Server\ServerScene.cs" />
+    <Compile Include="Source\ServerApplication.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

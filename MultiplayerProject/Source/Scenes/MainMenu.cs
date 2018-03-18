@@ -8,14 +8,11 @@ namespace MultiplayerProject.Source
 {
     public class MainMenu : IScene
     {
-        public static event SimpleDelegate OnServerStartRequested;
-        public static event SimpleDelegate OnClientStartRequested;
+        public static event StringDelegate OnServerStartRequested;
+        public static event StringDelegate OnClientStartRequested;
 
-        public int Width { get { return _width; } }
-        public int Height { get { return _height; } }
-
-        private int _width;
-        private int _height;
+        public int Width { get; set; }
+        public int Height { get; set; }
 
         private SpriteFont _font;
         private string _message;
@@ -23,8 +20,8 @@ namespace MultiplayerProject.Source
 
         public MainMenu(int width, int height)
         {
-            _width = width;
-            _height = height;
+            Width = width;
+            Height = height;
             _awaitingInput = true;
 
             _message = "Press S to be a server \nPress C to be a client";
@@ -35,22 +32,22 @@ namespace MultiplayerProject.Source
             spriteBatch.DrawString(_font, _message, new Vector2(161, 161), Color.Black);
         }
 
-        public void Initalise(ContentManager content)
+        public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
             _font = content.Load<SpriteFont>("Font");
         }
 
-        public void ProcessInput(GameTime gameTime, KeyboardState keyboardState, GamePadState gamePadState, MouseState mouseState)
+        public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
             if (!_awaitingInput)
                 return;
 
-            if (keyboardState.IsKeyDown(Keys.S))
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.S))
             {
                 OnServerStartRequested("str");
                 _awaitingInput = false;
             }
-            else if (keyboardState.IsKeyDown(Keys.C))
+            else if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.C))
             {
                 OnClientStartRequested("str");
                 _awaitingInput = false;

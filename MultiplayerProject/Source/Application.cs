@@ -14,11 +14,11 @@ namespace MultiplayerProject
 
         private InputInformation        _inputInformation;
 
-        private IScene                  _currentScene;
+        private MainMenu                _mainMenu;
         private ApplicationType         _appType;
 
-        private Client _client;
-        private Server _server;
+        private ServerApplication _server;
+        private ClientApplication _client;
 
         private const string hostname = "127.0.0.1";
         private const int port = 4444;
@@ -26,71 +26,35 @@ namespace MultiplayerProject
         public Application()
         {
             _graphics = new GraphicsDeviceManager(this);
-            IsMouseVisible = true;
             _appType = ApplicationType.None;
+
+            IsMouseVisible = true;
             Content.RootDirectory = "Content";
 
             MainMenu.OnServerStartRequested += OnServerStartRequested;
             MainMenu.OnClientStartRequested += OnClientStartRequested;
-
-            ClientMessenger.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
-        }
-
-        private void Client_OnDisconnectedFromServer()
-        {
-            _currentScene = new MainMenu(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-            _currentScene.Initalise(Content, _graphics.GraphicsDevice);
-
-            Console.WriteLine("Disconnected from server");
-
-            _client.Stop();
         }
 
         protected override void Initialize()
         {
-            _currentScene = new MainMenu(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _mainMenu = new MainMenu(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+
+            _server = new ServerApplication(_graphics.GraphicsDevice, Content);
+            _client = new ClientApplication(_graphics.GraphicsDevice, Content);
 
             base.Initialize(); 
         }
 
         private void OnClientStartRequested(string str)
         {
-            _client = new Client();
             _appType = ApplicationType.Client;
-
-            MainMenu menu = (MainMenu)_currentScene;
-
-            Console.WriteLine("Attempting to connect...");
-            if (_client.Connect(hostname, port))
-            {
-                Console.WriteLine("Connected...");
-                try
-                {
-                    _client.Run();
-                    _currentScene = new WaitingRoomScene(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-                    _currentScene.Initalise(Content, _graphics.GraphicsDevice);
-                }
-                catch (NotConnectedException e)
-                {
-                    menu.SetMessage("Client not Connected: " + e.Message);
-                }
-            }
-            else
-            {
-                menu.SetMessage("Failed to connect to: " + hostname + ":" + port);
-            }
+            _client.Initalise(hostname, port);
         }
 
         private void OnServerStartRequested(string str)
         {
-            MainMenu menu = (MainMenu)_currentScene;
-            menu.SetMessage("You are the server.");
-
             _appType = ApplicationType.Server;
-
-            _server = new Server(hostname, port);
-            _server.Start();
-            //_simpleServer.Stop();
+            _server.Initalise(hostname, port);
         }
 
         protected override void LoadContent()
@@ -98,7 +62,7 @@ namespace MultiplayerProject
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            _currentScene.Initalise(Content, _graphics.GraphicsDevice);
+            _mainMenu.Initalise(Content, _graphics.GraphicsDevice);
 
             base.LoadContent();
         }
@@ -107,8 +71,21 @@ namespace MultiplayerProject
         {
             ProcessInput(gameTime);
 
-            _currentScene.Update(gameTime);
+            switch(_appType)
+            {
+                case ApplicationType.None:
+                    _mainMenu.Update(gameTime);
+                    break;
 
+                case ApplicationType.Client:
+                    _client.Update(gameTime);
+                    break;
+
+                case ApplicationType.Server:
+                    _server.Update(gameTime);
+                    break;
+            }
+            
             base.Update(gameTime);
         }
 
@@ -128,12 +105,20 @@ namespace MultiplayerProject
             _inputInformation.CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
             _inputInformation.CurrentMouseState = Mouse.GetState();
 
-            if (_inputInformation.CurrentKeyboardState.IsKeyDown(Keys.Space) && _inputInformation.PreviousKeyboardState.IsKeyUp(Keys.Space))
+            switch (_appType)
             {
-                _client.SendTestPacket();
-            }
+                case ApplicationType.None:
+                    _mainMenu.ProcessInput(gameTime, _inputInformation);
+                    break;
 
-            _currentScene.ProcessInput(gameTime, _inputInformation);
+                case ApplicationType.Client:
+                    _client.ProcessInput(gameTime, _inputInformation);
+                    break;
+
+                case ApplicationType.Server:
+                    _server.ProcessInput(gameTime, _inputInformation);
+                    break;
+            } 
         }
 
         protected override void Draw(GameTime gameTime)
@@ -143,7 +128,20 @@ namespace MultiplayerProject
             // Start drawing
             _spriteBatch.Begin();
 
-            _currentScene.Draw(_spriteBatch);
+            switch (_appType)
+            {
+                case ApplicationType.None:
+                    _mainMenu.Draw(_spriteBatch);
+                    break;
+
+                case ApplicationType.Client:
+                    _client.Draw(_spriteBatch);
+                    break;
+
+                case ApplicationType.Server:
+                    _server.Draw(_spriteBatch);
+                    break;
+            }
 
             // Stop drawing
             _spriteBatch.End();
@@ -156,11 +154,11 @@ namespace MultiplayerProject
             switch (_appType)
             {
                 case ApplicationType.Client:
-                    _client.SendMessageToServer(new BasePacket(), MessageType.Client_Disconnect);
+                    _client.OnExiting();
                     break;
 
                 case ApplicationType.Server:
-                    _server.SendMessageToAllClients(new BasePacket(), MessageType.Server_Disconnect);
+                    _server.OnExiting();
                     break;
             }
 

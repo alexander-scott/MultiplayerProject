@@ -67,11 +67,6 @@ namespace MultiplayerProject
             }
         }
 
-        public void SendTestPacket()
-        {
-            SendMessageToServer(new BasePacket(), MessageType.TestPacket);
-        }
-
         public void Stop()
         {
             _thread.Abort();
