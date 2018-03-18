@@ -67,7 +67,8 @@ namespace MultiplayerProject.Source
         {
             switch (type)
             {
-                case MessageType.WR_ClientRequest_CreateRoom:
+                case MessageType.WR_ClientRequest_CreateLobby:
+                {
                     if (_activeLobbys.Count < Server.MAX_LOBBIES)
                     {
                         CreateNewLobby("TEST NEW LOBBY " + _activeLobbys.Count);
@@ -81,13 +82,15 @@ namespace MultiplayerProject.Source
                         client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_FailCreateLobby);
                     }
                     break;
-
-                case MessageType.WR_ClientRequest_JoinRoom:
-                    StringPacket packet = buffer.DeserializeFromBytes<StringPacket>();
-                    Lobby joinedLobby = _activeLobbys[packet.String];
+                }
+                    
+                case MessageType.WR_ClientRequest_JoinLobby:
+                {
+                    StringPacket joinPacket = buffer.DeserializeFromBytes<StringPacket>();
+                    Lobby joinedLobby = _activeLobbys[joinPacket.String];
                     if (joinedLobby.ComponentClients.Count < MAX_PEOPLE_PER_LOBBY)
                     {
-                        client.SendPacketToClient(new StringPacket(packet.String), MessageType.WR_ServerResponse_SuccessJoinLobby);
+                        client.SendPacketToClient(new StringPacket(joinPacket.String), MessageType.WR_ServerResponse_SuccessJoinLobby);
                         joinedLobby.AddClientToLobby(client);
                         foreach (var connectedClient in ComponentClients)
                         {
@@ -99,12 +102,27 @@ namespace MultiplayerProject.Source
                         client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_FailJoinLobby);
                     }
                     break;
+                }
+                    
+                case MessageType.WR_ClientRequest_LeaveLobby:
+                {
+                    StringPacket leavePacket = buffer.DeserializeFromBytes<StringPacket>();
+                    Lobby leaveLobby = _activeLobbys[leavePacket.String];
+                    client.SendPacketToClient(new StringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveLobby);
+                    leaveLobby.RemoveClient(client);
+                    foreach (var connectedClient in ComponentClients)
+                    {
+                        connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+                    }
+                    break;
+                }            
             }
         }
 
         public void RemoveClient(ServerConnection client)
         {
             ComponentClients.Remove(client);
+            client.RemoveServerComponent(this);
         }        
     }
 }

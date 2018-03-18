@@ -20,6 +20,7 @@ namespace MultiplayerProject.Source
     {
         public static event EmptyDelegate OnNewLobbyClicked;
         public static event StringDelegate OnJoinLobby;
+        public static event StringDelegate OnLeaveLobby;
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -30,6 +31,7 @@ namespace MultiplayerProject.Source
 
         private SpriteFont _font;
         private GraphicsDevice _device;
+        private bool _waitingForResponseFromServer;
 
         // Title
         private Vector2 _titlePosition;
@@ -50,15 +52,25 @@ namespace MultiplayerProject.Source
             Width = width;
             Height = height;
 
+            _waitingForResponseFromServer = false;
+
             _lobbyUIItems = new List<LobbyUIItem>();
 
             ClientMessageReciever.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
             ClientMessageReciever.OnLobbySuccessfullyJoined += ClientMessageReciever_OnLobbySuccessfullyJoined;
+            ClientMessageReciever.OnLobbySuccessfullyLeft += ClientMessageReciever_OnLobbySuccessfullyLeft;
+        }
+
+        private void ClientMessageReciever_OnLobbySuccessfullyLeft(string str)
+        {
+            _joinedLobbyID = "";
+            _waitingForResponseFromServer = false;
         }
 
         private void ClientMessageReciever_OnLobbySuccessfullyJoined(string str)
         {
             _joinedLobbyID = str;
+            _waitingForResponseFromServer = false;
         }
 
         private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation waitingRoom)
@@ -152,16 +164,28 @@ namespace MultiplayerProject.Source
             }
 
             // Check for click
-            if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+            if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released && !_waitingForResponseFromServer)
             {
                 // Check all ui lobbies if any have been clicked on
                 for (int i = 0; i < _lobbyUIItems.Count; i++)
                 {
                     if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                     {
-                        // Valid click on UI lobby
-                        OnJoinLobby(_waitingRoom.Lobbies[i].LobbyID);
-                        _joinedLobbyID = _waitingRoom.Lobbies[i].LobbyID;
+                        if (string.IsNullOrEmpty(_joinedLobbyID))
+                        {
+                            // Valid click on UI lobby
+                            OnJoinLobby(_waitingRoom.Lobbies[i].LobbyID);
+                            _waitingForResponseFromServer = true;
+                        }
+                        else
+                        {
+                            if (_waitingRoom.Lobbies[i].LobbyID == _joinedLobbyID)
+                            {
+                                // ON LEAVE
+                                OnLeaveLobby(_waitingRoom.Lobbies[i].LobbyID);
+                                _waitingForResponseFromServer = true;
+                            }
+                        }
                     }
                 }
             } 
@@ -170,7 +194,7 @@ namespace MultiplayerProject.Source
                 // Check all ui lobbies if any have the mouse over it
                 for (int i = 0; i < _lobbyUIItems.Count; i++)
                 {
-                    if (_waitingRoom.Lobbies[i].LobbyID != _joinedLobbyID) // Don't apply effect to the library we've already joined
+                    if (string.IsNullOrEmpty(_joinedLobbyID))
                     {
                         if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                         {
@@ -179,6 +203,20 @@ namespace MultiplayerProject.Source
                         else
                         {
                             _lobbyUIItems[i].BorderColour = Color.Blue;
+                        }
+                    }
+                    else 
+                    {
+                        if (_waitingRoom.Lobbies[i].LobbyID == _joinedLobbyID)
+                        {
+                            if (_lobbyUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
+                            {
+                                _lobbyUIItems[i].BorderColour = Color.Orange;
+                            }
+                            else
+                            {
+                                _lobbyUIItems[i].BorderColour = Color.LightGreen;
+                            }
                         }
                     }
                 }

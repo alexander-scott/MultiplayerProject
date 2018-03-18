@@ -41,11 +41,12 @@ namespace MultiplayerProject.Source
         WR_ServerSend_NewRoom,
         WR_ServerSend_DeleteRoom,
 
-        WR_ClientRequest_JoinRoom,
-        WR_ClientRequest_LeaveRoom,
-        WR_ClientRequest_CreateRoom,
+        WR_ClientRequest_JoinLobby,
+        WR_ClientRequest_LeaveLobby,
+        WR_ClientRequest_CreateLobby,
 
         WR_ServerResponse_SuccessJoinLobby,
+        WR_ServerResponse_SuccessLeaveLobby,
         WR_ServerResponse_FailJoinLobby,
         WR_ServerResponse_FailCreateLobby,
     }

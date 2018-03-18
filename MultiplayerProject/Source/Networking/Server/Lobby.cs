@@ -26,7 +26,6 @@ namespace MultiplayerProject.Source
         public void AddClientToLobby(ServerConnection client)
         {
             ComponentClients.Add(client);
-
             client.AddServerComponent(this);
         }
 
@@ -68,12 +67,13 @@ namespace MultiplayerProject.Source
 
         public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void RemoveClient(ServerConnection client)
         {
             ComponentClients.Remove(client);
+            client.RemoveServerComponent(this);
         }
     }
 }

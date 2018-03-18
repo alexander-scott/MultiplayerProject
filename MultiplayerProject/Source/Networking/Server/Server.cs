@@ -98,6 +98,7 @@ namespace MultiplayerProject
         public void RemoveClient(ServerConnection client)
         {
             ComponentClients.Remove(client);
+            client.RemoveServerComponent(this);
         }     
     }
 }

@@ -42,7 +42,6 @@ namespace MultiplayerProject
 
         public void RemoveServerComponent(IMessageable component)
         {
-            component.RemoveClient(this);
             _messageableComponents.Remove(component);
         }
 
