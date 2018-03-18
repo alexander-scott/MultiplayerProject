@@ -44,11 +44,15 @@ namespace MultiplayerProject.Source
         WR_ClientRequest_JoinRoom,
         WR_ClientRequest_LeaveRoom,
         WR_ClientRequest_CreateRoom,
+        WR_ClientRequest_Ready,
+        WR_ClientRequest_Unready,
 
         WR_ServerResponse_SuccessJoinRoom,
         WR_ServerResponse_SuccessLeaveRoom,
         WR_ServerResponse_FailJoinRoom,
         WR_ServerResponse_FailCreateRoom,
+        WR_ServerResponse_SuccessReady,
+        WR_ServerResponse_SuccessUnready,
     }
 
     public struct InputInformation

@@ -13,7 +13,7 @@ namespace MultiplayerProject.Source
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
 
-        private Dictionary<string,GameRoom> _activeRooms;
+        private List<GameRoom> _activeRooms;
         private int _maxRooms;
 
         public WaitingRoom(int maxLobbies)
@@ -21,7 +21,17 @@ namespace MultiplayerProject.Source
             ComponentType = MessageableComponent.WaitingRoom;
             ComponentClients = new List<ServerConnection>();
             _maxRooms = maxLobbies;
-            _activeRooms = new Dictionary<string, GameRoom>();
+            _activeRooms = new List<GameRoom>();
+
+            GameRoom.OnRoomStateChanged += GameRoom_OnRoomStateChanged;
+        }
+
+        private void GameRoom_OnRoomStateChanged()
+        {
+            foreach (var connectedClient in ComponentClients)
+            {
+                connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
+            }
         }
 
         public void AddClientToWaitingRoom(ServerConnection connection)
@@ -37,7 +47,7 @@ namespace MultiplayerProject.Source
             if (_activeRooms.Count < _maxRooms)
             {
                 GameRoom newRoom = new GameRoom(MAX_PEOPLE_PER_ROOM, roomName);
-                _activeRooms.Add(newRoom.ID, newRoom);
+                _activeRooms.Add(newRoom);
             }
             else
             {
@@ -54,13 +64,42 @@ namespace MultiplayerProject.Source
             };
 
             int count = 0;
-            foreach (KeyValuePair<string, GameRoom> entry in _activeRooms)
+            foreach(var room in _activeRooms)
             {
-                waitingRoomInfo.Rooms[count] = entry.Value.GetRoomInformation();
+                waitingRoomInfo.Rooms[count] = room.GetRoomInformation();
                 count++;
             }
 
             return waitingRoomInfo;
+        }
+
+        public GameRoom GetGameRoomClientIsIn(ServerConnection client)
+        {
+            for (int i = 0; i < _activeRooms.Count; i++)
+            {
+                for (int j = 0; j < _activeRooms[i].ComponentClients.Count; j++)
+                {
+                    if (_activeRooms[i].ComponentClients[j] == client)
+                    {
+                        return _activeRooms[i];
+                    }
+                }
+            }
+
+            throw new Exception("UNABLE TO FIND CLIENT");
+        }
+
+        public GameRoom GetGameRoomFromID(string id)
+        {
+            for (int i = 0; i < _activeRooms.Count; i++)
+            {
+                if (_activeRooms[i].ID == id)
+                {
+                    return _activeRooms[i];
+                }
+            }
+
+            throw new Exception("UNABLE TO FIND ROOM");
         }
 
         public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
@@ -72,10 +111,7 @@ namespace MultiplayerProject.Source
                     if (_activeRooms.Count < Server.MAX_ROOMS)
                     {
                         CreateNewRoom("TEST NEW ROOM " + _activeRooms.Count);
-                        foreach (var connectedClient in ComponentClients)
-                        {
-                            connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
-                        }
+                        GameRoom_OnRoomStateChanged();
                     }
                     else
                     {
@@ -87,35 +123,19 @@ namespace MultiplayerProject.Source
                 case MessageType.WR_ClientRequest_JoinRoom:
                 {
                     StringPacket joinPacket = buffer.DeserializeFromBytes<StringPacket>();
-                    GameRoom joinedRoom = _activeRooms[joinPacket.String];
+                    GameRoom joinedRoom = GetGameRoomFromID(joinPacket.String);
                     if (joinedRoom.ComponentClients.Count < MAX_PEOPLE_PER_ROOM)
                     {
                         client.SendPacketToClient(new StringPacket(joinPacket.String), MessageType.WR_ServerResponse_SuccessJoinRoom);
                         joinedRoom.AddClientToRoom(client);
-                        foreach (var connectedClient in ComponentClients)
-                        {
-                            connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
-                        }
+                        GameRoom_OnRoomStateChanged();
                     }
                     else
                     {
                         client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_FailJoinRoom);
                     }
                     break;
-                }
-                    
-                case MessageType.WR_ClientRequest_LeaveRoom:
-                {
-                    StringPacket leavePacket = buffer.DeserializeFromBytes<StringPacket>();
-                    GameRoom room = _activeRooms[leavePacket.String];
-                    client.SendPacketToClient(new StringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveRoom);
-                    room.RemoveClient(client);
-                    foreach (var connectedClient in ComponentClients)
-                    {
-                        connectedClient.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_FullInfo);
-                    }
-                    break;
-                }            
+                }              
             }
         }
 

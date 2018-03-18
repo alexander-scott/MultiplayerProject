@@ -24,12 +24,12 @@ namespace MultiplayerProject
         private BinaryReader _reader;
         private Thread _thread;
 
-        private ClientMessageReciever _reciever;
+        private ClientMessenger _reciever;
 
         public Client()
         {
             _tcpClient = new TcpClient();
-            _reciever = new ClientMessageReciever(this);
+            _reciever = new ClientMessenger(this);
         }
 
         public bool Connect(string hostname, int port)

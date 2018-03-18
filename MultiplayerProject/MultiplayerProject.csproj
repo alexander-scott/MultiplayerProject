@@ -62,7 +62,7 @@
     <Compile Include="Source\Managers\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\Networking\Client\Client.cs" />
-    <Compile Include="Source\Networking\Client\ClientMessageReciever.cs" />
+    <Compile Include="Source\Networking\Client\ClientMessenger.cs" />
     <Compile Include="Source\Networking\NetworkConsts.cs" />
     <Compile Include="Source\Networking\Package.cs" />
     <Compile Include="Source\Networking\Server\IMessageable.cs" />

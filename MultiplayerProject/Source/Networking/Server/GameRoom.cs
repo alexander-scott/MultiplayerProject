@@ -6,18 +6,23 @@ namespace MultiplayerProject.Source
 {
     public class GameRoom : IMessageable
     {
-        public string RoomName;
-        public string ID;
-
-        private int _maxConnections;
+        public static event EmptyDelegate OnRoomStateChanged;
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
 
+        public string RoomName;
+        public string ID;
+
+        private int _maxConnections;
+        private Dictionary<ServerConnection, bool> _clientReadyStatus;
+        
         public GameRoom(int maxConnections, string name)
         {
             _maxConnections = maxConnections;
             RoomName = name;
+
+            _clientReadyStatus = new Dictionary<ServerConnection, bool>();
 
             ID = Guid.NewGuid().ToString();
             ComponentClients = new List<ServerConnection>();
@@ -26,6 +31,7 @@ namespace MultiplayerProject.Source
         public void AddClientToRoom(ServerConnection client)
         {
             ComponentClients.Add(client);
+            _clientReadyStatus.Add(client, false);
             client.AddServerComponent(this);
         }
 
@@ -67,13 +73,59 @@ namespace MultiplayerProject.Source
 
         public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
         {
-            
+            switch (type)
+            {
+                case MessageType.WR_ClientRequest_LeaveRoom:
+                    {
+                        StringPacket leavePacket = buffer.DeserializeFromBytes<StringPacket>();
+                        client.SendPacketToClient(new StringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveRoom);
+                        RemoveClient(client);
+                        OnRoomStateChanged();
+                        break;
+                    }
+
+                case MessageType.WR_ClientRequest_Ready:
+                    {
+                        // Can this fail?
+                        client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_SuccessReady);
+                        _clientReadyStatus[client] = true;
+
+                        if (CheckAllClientsReady())
+                        {
+                            // START GAME
+                        }
+
+                        break;
+                    }
+
+                case MessageType.WR_ClientRequest_Unready:
+                    client.SendPacketToClient(new BasePacket(), MessageType.WR_ServerResponse_SuccessUnready);
+                    _clientReadyStatus[client] = false;
+                    break;
+            }
         }
 
         public void RemoveClient(ServerConnection client)
         {
             ComponentClients.Remove(client);
+            _clientReadyStatus.Remove(client);
             client.RemoveServerComponent(this);
+        }
+
+        private bool CheckAllClientsReady()
+        {
+            int numberOfClients = ComponentClients.Count;
+
+            int readyCount = 0;
+            for (int i = 0; i < numberOfClients; i++)
+            {
+                if (_clientReadyStatus[ComponentClients[i]])
+                {
+                    readyCount++;
+                }
+            }
+
+            return (readyCount == numberOfClients);
         }
     }
 }

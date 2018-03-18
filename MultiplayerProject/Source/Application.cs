@@ -33,7 +33,7 @@ namespace MultiplayerProject
             MainMenu.OnServerStartRequested += OnServerStartRequested;
             MainMenu.OnClientStartRequested += OnClientStartRequested;
 
-            ClientMessageReciever.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
+            ClientMessenger.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
         }
 
         private void Client_OnDisconnectedFromServer()

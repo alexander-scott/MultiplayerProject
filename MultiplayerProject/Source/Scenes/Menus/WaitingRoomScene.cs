@@ -30,6 +30,8 @@ namespace MultiplayerProject.Source
         public static event EmptyDelegate OnNewGameRoomClicked;
         public static event StringDelegate OnJoinGameRoom;
         public static event StringDelegate OnLeaveGameRoom;
+        public static event EmptyDelegate OnClientReady;
+        public static event EmptyDelegate OnClientUnready;
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -66,13 +68,30 @@ namespace MultiplayerProject.Source
             _waitingForResponseFromServer = false;
 
             _state = WaitingRoomState.NotInRoomAbleToCreate;
-            _readyToPlay = false;
 
             _roomUIItems = new List<GameRoomUIItem>();
 
-            ClientMessageReciever.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
-            ClientMessageReciever.OnRoomSuccessfullyJoined += ClientMessageReciever_OnRoomSuccessfullyJoined;
-            ClientMessageReciever.OnRoomSuccessfullyLeft += ClientMessageReciever_OnRoomSuccessfullyLeft;
+            ClientMessenger.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
+            ClientMessenger.OnRoomSuccessfullyJoined += ClientMessageReciever_OnRoomSuccessfullyJoined;
+            ClientMessenger.OnRoomSuccessfullyLeft += ClientMessageReciever_OnRoomSuccessfullyLeft;
+            ClientMessenger.OnRoomSuccessfullyReady += ClientMessenger_OnRoomSuccessfullyReady;
+            ClientMessenger.OnRoomSuccessfullyUnready += ClientMessenger_OnRoomSuccessfullyUnready;
+        }
+
+        private void ClientMessenger_OnRoomSuccessfullyUnready()
+        {
+            _readyToPlay = false;
+            _waitingForResponseFromServer = false;
+            _buttonText = "CLICK TO READY";
+            _state = WaitingRoomState.InRoomNotReady;
+        }
+
+        private void ClientMessenger_OnRoomSuccessfullyReady()
+        {
+            _readyToPlay = true;
+            _waitingForResponseFromServer = false;
+            _buttonText = "READY TO PLAY!";
+            _state = WaitingRoomState.InRoomReady;
         }
 
         private void ClientMessageReciever_OnRoomSuccessfullyLeft(string str)
@@ -399,6 +418,8 @@ namespace MultiplayerProject.Source
                             if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                             {
                                 // ON READY UP
+                                OnClientReady();
+                                _waitingForResponseFromServer = true;
                             }
                         }
                         else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
@@ -427,6 +448,8 @@ namespace MultiplayerProject.Source
                             if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                             {
                                 // ON UNREADY
+                                OnClientUnready();
+                                _waitingForResponseFromServer = true;
                             }
                         }
                         else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
