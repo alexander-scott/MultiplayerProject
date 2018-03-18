@@ -10,8 +10,8 @@ namespace MultiplayerProject.Source
     {
         public static event EmptyDelegate OnServerForcedDisconnect;
         public static event WaitingRoomDelegate OnWaitingRoomInformationRecieved;
-        public static event StringDelegate OnLobbySuccessfullyJoined;
-        public static event StringDelegate OnLobbySuccessfullyLeft;
+        public static event StringDelegate OnRoomSuccessfullyJoined;
+        public static event StringDelegate OnRoomSuccessfullyLeft;
 
         private Client _client;
 
@@ -19,22 +19,22 @@ namespace MultiplayerProject.Source
         {
             _client = client;
 
-            WaitingRoomScene.OnNewLobbyClicked += WaitingRoomScene_OnNewLobbyClicked;
-            WaitingRoomScene.OnJoinLobby += WaitingRoomScene_OnJoinLobby;
-            WaitingRoomScene.OnLeaveLobby += WaitingRoomScene_OnLeaveLobby;
+            WaitingRoomScene.OnNewGameRoomClicked += WaitingRoomScene_OnNewRoomClicked;
+            WaitingRoomScene.OnJoinGameRoom += WaitingRoomScene_OnJoinRoom;
+            WaitingRoomScene.OnLeaveGameRoom += WaitingRoomScene_OnLeaveRoom;
         }
 
-        private void WaitingRoomScene_OnLeaveLobby(string lobbyID)
+        private void WaitingRoomScene_OnLeaveRoom(string roomID)
         {
-            _client.SendMessageToServer(new StringPacket(lobbyID), MessageType.WR_ClientRequest_LeaveRoom);
+            _client.SendMessageToServer(new StringPacket(roomID), MessageType.WR_ClientRequest_LeaveRoom);
         }
 
-        private void WaitingRoomScene_OnJoinLobby(string lobbyID)
+        private void WaitingRoomScene_OnJoinRoom(string roomID)
         {
-            _client.SendMessageToServer(new StringPacket(lobbyID), MessageType.WR_ClientRequest_JoinRoom);
+            _client.SendMessageToServer(new StringPacket(roomID), MessageType.WR_ClientRequest_JoinRoom);
         }
 
-        private void WaitingRoomScene_OnNewLobbyClicked()
+        private void WaitingRoomScene_OnNewRoomClicked()
         {
             _client.SendMessageToServer(new BasePacket(), MessageType.WR_ClientRequest_CreateRoom);
         }
@@ -62,15 +62,15 @@ namespace MultiplayerProject.Source
 
                 case MessageType.WR_ServerResponse_SuccessJoinRoom:
                 {
-                    StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
-                    OnLobbySuccessfullyJoined(lobbyID.String);
+                    StringPacket roomID = packetBytes.DeserializeFromBytes<StringPacket>();
+                    OnRoomSuccessfullyJoined(roomID.String);
                     break;
                 }
 
                 case MessageType.WR_ServerResponse_SuccessLeaveRoom:
                 {
-                    StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
-                    OnLobbySuccessfullyLeft(lobbyID.String);
+                    StringPacket roomID = packetBytes.DeserializeFromBytes<StringPacket>();
+                    OnRoomSuccessfullyLeft(roomID.String);
                     break;
                 }
             }
