@@ -18,6 +18,8 @@ namespace MultiplayerProject.Source
         private int _maxConnections;
         private Dictionary<ServerConnection, bool> _clientReadyStatus;
 
+        private GameInstance _gameInstance;
+
         public GameRoom(int maxConnections, string name)
         {
             _maxConnections = maxConnections;
@@ -40,37 +42,6 @@ namespace MultiplayerProject.Source
         public RoomInformation GetRoomInformation()
         {
             return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount(), _isPlaying);
-        }
-
-        public void ProcessClientMessage(ServerConnection client)
-        {
-            try
-            {
-                while (true)
-                {
-                    string message;
-                    while ((message = client.Reader.ReadString()) != null)
-                    {
-                        byte[] bytes = Convert.FromBase64String(message);
-                        using (var stream = new MemoryStream(bytes))
-                        {
-                            while (stream.HasValidPackage(out int messageSize))
-                            {
-                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                RecieveClientMessage(client, type, buffer);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error occured: " + e.Message);
-            }
-            finally
-            {
-                client.RemoveServerComponent(this);
-            }
         }
 
         public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
@@ -97,10 +68,7 @@ namespace MultiplayerProject.Source
                         {
                             // TODO: Introduce a countdown here
 
-                            // START GAME
-                            _isPlaying = true;
-                            // LAUNCH NEW GAME INSTANCE WITH CLIENTS
-
+                            LaunchGameInstance();
                         }
 
                         break;
@@ -123,6 +91,21 @@ namespace MultiplayerProject.Source
             _clientReadyStatus.Remove(client);
             client.RemoveServerComponent(this);
             OnRoomStateChanged();
+        }
+
+        private void LaunchGameInstance()
+        {
+            _isPlaying = true;
+
+            _gameInstance = new GameInstance(ComponentClients);
+            _gameInstance.OnReturnToGameRoom += _gameInstance_OnReturnToGameRoom;
+        }
+
+        private void _gameInstance_OnReturnToGameRoom()
+        {
+            _gameInstance.OnReturnToGameRoom -= _gameInstance_OnReturnToGameRoom;
+
+            throw new NotImplementedException();
         }
 
         private int GetReadyCount()

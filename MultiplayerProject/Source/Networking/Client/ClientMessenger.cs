@@ -15,6 +15,8 @@ namespace MultiplayerProject.Source
         public static event EmptyDelegate OnRoomSuccessfullyReady;
         public static event EmptyDelegate OnRoomSuccessfullyUnready;
 
+        public static event GameRoomDelegate OnLoadNewGame;
+
         private Client _client;
 
         public ClientMessenger(Client client)
@@ -97,6 +99,12 @@ namespace MultiplayerProject.Source
                 case MessageType.GR_ServerResponse_SuccessUnready:
                     {
                         OnRoomSuccessfullyUnready();
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_LoadNewGame:
+                    {
+                        OnLoadNewGame(packetBytes.DeserializeFromBytes<RoomInformation>());
                         break;
                     }
             }

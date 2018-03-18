@@ -17,6 +17,8 @@ namespace MultiplayerProject.Source
         private GraphicsDevice _graphicsDevice;
         private ContentManager _contentManager;
 
+        private bool _sceneLoading;
+
         public ClientApplication(GraphicsDevice graphicsDevice, ContentManager contentManager)
         {
             _client = new Client();
@@ -24,6 +26,7 @@ namespace MultiplayerProject.Source
             _contentManager = contentManager;
 
             ClientMessenger.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
+            ClientMessenger.OnLoadNewGame += ClientMessenger_OnLoadNewGame;
         }
 
         public void Initalise(string hostname, int port)
@@ -36,8 +39,10 @@ namespace MultiplayerProject.Source
                 {
                     _client.Run();
 
+                    _sceneLoading = true;
                     _currentScene = new WaitingRoomScene(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height);
                     _currentScene.Initalise(_contentManager, _graphicsDevice);
+                    _sceneLoading = false;
                 }
                 catch (NotConnectedException e)
                 {
@@ -52,7 +57,7 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            if (_currentScene == null)
+            if (_currentScene == null || _sceneLoading)
                 return;
 
             _currentScene.Update(gameTime);
@@ -60,7 +65,7 @@ namespace MultiplayerProject.Source
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
-            if (_currentScene == null)
+            if (_currentScene == null || _sceneLoading)
                 return;
 
             _currentScene.ProcessInput(gameTime, inputInfo);
@@ -68,7 +73,7 @@ namespace MultiplayerProject.Source
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            if (_currentScene == null)
+            if (_currentScene == null || _sceneLoading)
                 return;
 
             _currentScene.Draw(spriteBatch);
@@ -81,12 +86,22 @@ namespace MultiplayerProject.Source
 
         private void Client_OnDisconnectedFromServer()
         {
+            _sceneLoading = true;
             _currentScene = new DisconnectedFromServerScene(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
+            _sceneLoading = false;
 
             Console.WriteLine("Disconnected from server");
 
             _client.Stop();
+        }
+
+        private void ClientMessenger_OnLoadNewGame(RoomInformation waitingRoom)
+        {
+            _sceneLoading = true;
+            _currentScene = new MainGame(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height);
+            _currentScene.Initalise(_contentManager, _graphicsDevice);
+            _sceneLoading = false;
         }
     }
 }

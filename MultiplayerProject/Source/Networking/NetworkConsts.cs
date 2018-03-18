@@ -1,9 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
@@ -11,6 +8,7 @@ namespace MultiplayerProject.Source
     public delegate void StringDelegate(string str);
     public delegate void IntDelegate(int i);
     public delegate void WaitingRoomDelegate(WaitingRoomInformation waitingRoom);
+    public delegate void GameRoomDelegate(RoomInformation gameRoom);
 
     public enum ApplicationType
     {
@@ -64,6 +62,9 @@ namespace MultiplayerProject.Source
 
         GR_ServerResponse_SuccessReady,
         GR_ServerResponse_SuccessUnready,
+
+        // Game instance
+        GI_ServerSend_LoadNewGame,
     }
 
     public struct InputInformation
