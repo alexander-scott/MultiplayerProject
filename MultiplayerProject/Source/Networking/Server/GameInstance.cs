@@ -30,19 +30,26 @@ namespace MultiplayerProject.Source
          */
     public class GameInstance : IMessageable
     {
+        private int framesSinceLastSend;
+        private int framesBetweenPackets = 6;
+
         public event EmptyDelegate OnReturnToGameRoom;
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
 
+        private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
+
         public GameInstance(List<ServerConnection> clients)
         {
             ComponentClients = clients;
+            _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
 
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 ComponentClients[i].AddServerComponent(this);
                 ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
+                _playerUpdates[ComponentClients[i].ID] = null;
             }
         }
 
@@ -53,6 +60,7 @@ namespace MultiplayerProject.Source
                 case MessageType.GI_ClientSend_PlayerUpdatePacket:
                     {
                         var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
+                        _playerUpdates[client.ID] = packet;
                         break;
                     }
             }
@@ -65,7 +73,33 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            
+            bool sendPacketThisFrame = false;
+
+            framesSinceLastSend++;
+
+            if (framesSinceLastSend >= framesBetweenPackets)
+            {
+                sendPacketThisFrame = true;
+                framesSinceLastSend = 0;
+            }
+
+            if (sendPacketThisFrame)
+            {
+                for (int i = 0; i < ComponentClients.Count; i++)
+                {
+                    if (_playerUpdates[ComponentClients[i].ID] != null)
+                    {
+                        _playerUpdates[ComponentClients[i].ID].PlayerID = ComponentClients[i].ID;
+                        for (int j = 0; j < ComponentClients.Count; j++)
+                        {
+                            if (ComponentClients[j].ID != ComponentClients[i].ID) // Do not send it to the client that sent it
+                            {
+                                ComponentClients[j].SendPacketToClient(_playerUpdates[ComponentClients[i].ID], MessageType.GI_ServerSend_UpdateRemotePlayer);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

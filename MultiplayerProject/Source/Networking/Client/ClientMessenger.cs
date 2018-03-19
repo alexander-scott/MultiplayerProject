@@ -17,6 +17,8 @@ namespace MultiplayerProject.Source
 
         public static event GameRoomDelegate OnLoadNewGame;
 
+        public static event PlayerUpdateDelegate OnRecievedRemotePlayerUpdate;
+
         private Client _client;
 
         public ClientMessenger(Client client)
@@ -105,6 +107,13 @@ namespace MultiplayerProject.Source
                 case MessageType.GI_ServerSend_LoadNewGame:
                     {
                         OnLoadNewGame(packetBytes.DeserializeFromBytes<GameInstanceInformation>());
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_UpdateRemotePlayer:
+                    { 
+                        var playerPacket = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
+                        OnRecievedRemotePlayerUpdate(playerPacket);
                         break;
                     }
             }

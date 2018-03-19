@@ -12,7 +12,7 @@ namespace MultiplayerProject.Source
         public int Width { get; set; }
         public int Height { get; set; }
 
-        private List<Player> _players;
+        private Dictionary<string,Player> _players;
         private Player _localPlayer;
         private Client _client;
 
@@ -30,7 +30,7 @@ namespace MultiplayerProject.Source
             Width = width;
             Height = height;
 
-            _players = new List<Player>();
+            _players = new Dictionary<string, Player>();
             _client = client; 
 
             for (int i = 0; i < playerCount; i++)
@@ -38,7 +38,7 @@ namespace MultiplayerProject.Source
                 Player player = new Player(width, height);
                 player.NetworkID = playerIDs[i];
 
-                if (playerIDs[i] == localPlayerID)
+                if (player.NetworkID == localPlayerID)
                 {
                     _localPlayer = player;
                     player.IsLocal = true;
@@ -46,7 +46,7 @@ namespace MultiplayerProject.Source
                 else
                     player.IsLocal = false;
 
-                _players.Add(player);
+                _players.Add(player.NetworkID, player);
             }
             
             _enemyManager = new EnemyManager(width, height);
@@ -55,13 +55,15 @@ namespace MultiplayerProject.Source
 
             _explosionManager = new ExplosionManager();
             _collisionManager = new CollisionManager();
+
+            ClientMessenger.OnRecievedRemotePlayerUpdate += ClientMessenger_OnRecievedRemotePlayerUpdate;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            for (int i = 0; i < _players.Count; i++)
+            foreach (KeyValuePair<string, Player> player in _players)
             {
-                _players[i].Initialize(content);
+                player.Value.Initialize(content);
             }
 
             _enemyManager.Initalise(content);
@@ -72,9 +74,9 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            for (int i = 0; i < _players.Count; i++)
+            foreach (KeyValuePair<string, Player> player in _players)
             {
-                _players[i].Update(gameTime);
+                player.Value.Update(gameTime);
             }
 
             _backgroundManager.Update(gameTime);
@@ -123,9 +125,9 @@ namespace MultiplayerProject.Source
 
             //_collisionManager.Draw(_graphics.GraphicsDevice, spriteBatch, _enemyManager.Enemies, _laserManager.Lasers);
 
-            for (int i = 0; i < _players.Count; i++)
+            foreach (KeyValuePair<string, Player> player in _players)
             {
-                _players[i].Draw(spriteBatch);
+                player.Value.Draw(spriteBatch);
             }
         }    
         
@@ -162,6 +164,28 @@ namespace MultiplayerProject.Source
             }
 
             return input;
+        }
+
+        private void ClientMessenger_OnRecievedRemotePlayerUpdate(PlayerUpdatePacket playerUpdate)
+        {
+            Player remotePlayer = _players[playerUpdate.PlayerID];
+            remotePlayer.SetObjectState(playerUpdate);
+            //if (playerUpdate.Input.LeftPressed)
+            //{
+            //    remotePlayer.RotateLeft(playerUpdate.TotalGameTime);
+            //}
+            //if (playerUpdate.Input.RightPressed)
+            //{
+            //    remotePlayer.RotateRight(playerUpdate.TotalGameTime);
+            //}
+            //if (playerUpdate.Input.DownPressed)
+            //{
+            //    remotePlayer.MoveBackward(playerUpdate.TotalGameTime);
+            //}
+            //if (playerUpdate.Input.UpPressed)
+            //{
+            //    remotePlayer.MoveForward(playerUpdate.TotalGameTime);
+            //}
         }
     }
 }

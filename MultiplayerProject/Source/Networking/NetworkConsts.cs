@@ -10,6 +10,7 @@ namespace MultiplayerProject.Source
     public delegate void IntDelegate(int i);
     public delegate void WaitingRoomDelegate(WaitingRoomInformation waitingRoom);
     public delegate void GameRoomDelegate(GameInstanceInformation gameRoom);
+    public delegate void PlayerUpdateDelegate(PlayerUpdatePacket playerUpdate);
 
     public enum ApplicationType
     {
@@ -66,6 +67,7 @@ namespace MultiplayerProject.Source
 
         // Game instance
         GI_ServerSend_LoadNewGame,
+        GI_ServerSend_UpdateRemotePlayer,
         
         GI_ClientSend_PlayerUpdatePacket,
     }
@@ -206,6 +208,7 @@ namespace MultiplayerProject.Source
         public float Speed { get; set; }
         public float Rotation { get; set; }
         public KeyboardMovementInput Input { get; set; }
+        public string PlayerID { get; set; }
 
         public PlayerUpdatePacket(float xPosition, float yPosition, float speed,
             float rotation) :base()

@@ -95,9 +95,22 @@ namespace MultiplayerProject.Source
             PlayerAnimation.Draw(spriteBatch);
         }
 
+        public void SetObjectState(PlayerUpdatePacket packet)
+        {
+            PlayerState.Position = new Vector2(packet.XPosition, packet.YPosition);
+            PlayerState.Rotation = packet.Rotation;
+            PlayerState.Speed = packet.Speed;
+            // VELOCITY????/
+        }
+
         public void RotateLeft(GameTime gameTime)
         {
             PlayerState.Rotation -= PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        }
+
+        public void RotateLeft(float gameTime)
+        {
+            PlayerState.Rotation -= PLAYER_ROTATION_SPEED * gameTime;
         }
 
         public void RotateRight(GameTime gameTime)
@@ -105,14 +118,29 @@ namespace MultiplayerProject.Source
             PlayerState.Rotation += PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
 
+        public void RotateRight(float gameTime)
+        {
+            PlayerState.Rotation += PLAYER_ROTATION_SPEED * gameTime;
+        }
+
         public void MoveForward(GameTime gameTime)
         {
             PlayerState.Speed += PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
 
+        public void MoveForward(float gameTime)
+        {
+            PlayerState.Speed += PLAYER_ACCELERATION_SPEED * gameTime;
+        }
+
         public void MoveBackward(GameTime gameTime)
         {
             PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        }
+
+        public void MoveBackward(float gameTime)
+        {
+            PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * gameTime;
         }
 
         public PlayerUpdatePacket BuildUpdatePacket()
