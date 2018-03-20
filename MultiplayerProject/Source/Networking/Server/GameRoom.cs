@@ -90,7 +90,6 @@ namespace MultiplayerProject.Source
         {
             ComponentClients.Remove(client);
             _clientReadyStatus.Remove(client);
-            client.RemoveServerComponent(this);
             OnRoomStateChanged();
         }
 

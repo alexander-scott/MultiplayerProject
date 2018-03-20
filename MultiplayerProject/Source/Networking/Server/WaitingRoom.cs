@@ -140,7 +140,6 @@ namespace MultiplayerProject.Source
         public void RemoveClient(ServerConnection client)
         {
             ComponentClients.Remove(client);
-            client.RemoveServerComponent(this);
         }
 
         public void Update(GameTime gameTime)

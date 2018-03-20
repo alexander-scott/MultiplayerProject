@@ -70,6 +70,10 @@ namespace MultiplayerProject
         public void Stop()
         {
             _thread.Abort();
+        }
+
+        private void CleanUp()
+        {
             _tcpClient.Close();
         }
 
@@ -107,7 +111,7 @@ namespace MultiplayerProject
             }
             finally
             {
-                Stop();
+                CleanUp();
             }
         }
     }

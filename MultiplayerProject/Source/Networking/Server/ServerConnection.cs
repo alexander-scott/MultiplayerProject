@@ -53,11 +53,15 @@ namespace MultiplayerProject
 
         public void StopAll()
         {
-            ClientSocket.Close();
             _thread.Abort();
-            foreach (var component in _messageableComponents)
+        }
+
+        private void CleanUp()
+        {
+            ClientSocket.Close();        
+            for (int i = 0; i < _messageableComponents.Count; i++)
             {
-                component.RemoveClient(this);
+                _messageableComponents[i].RemoveClient(this);
             }
             _messageableComponents.Clear();
         }
@@ -99,7 +103,7 @@ namespace MultiplayerProject
             }
             finally
             {
-                StopAll();
+                CleanUp();
             }
         }
     }
