@@ -14,13 +14,8 @@ namespace MultiplayerProject.Source
         private SpriteFont _font;
         private GraphicsDevice _device;
 
-        public int Width { get; set; }
-        public int Height { get; set; }
-
-        public DisconnectedFromServerScene(int width, int height)
+        public DisconnectedFromServerScene()
         {
-            Width = width;
-            Height = height;
         }
 
         public void Draw(SpriteBatch spriteBatch)

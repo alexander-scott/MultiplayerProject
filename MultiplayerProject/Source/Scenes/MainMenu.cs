@@ -11,17 +11,12 @@ namespace MultiplayerProject.Source
         public static event StringDelegate OnServerStartRequested;
         public static event StringDelegate OnClientStartRequested;
 
-        public int Width { get; set; }
-        public int Height { get; set; }
-
         private SpriteFont _font;
         private string _message;
         private bool _awaitingInput;
 
-        public MainMenu(int width, int height)
+        public MainMenu()
         {
-            Width = width;
-            Height = height;
             _awaitingInput = true;
 
             _message = "Press S to be a server \nPress C to be a client";

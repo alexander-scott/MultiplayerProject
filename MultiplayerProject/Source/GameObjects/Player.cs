@@ -32,19 +32,15 @@ namespace MultiplayerProject.Source
 
         private ObjectState PlayerState;
 
-        private int _height;
-        private int _width;
-
         const int PLAYER_STARTING_HEALTH = 100;
         const float PLAYER_ACCELERATION_SPEED = 12f;
         const float PLAYER_ROTATION_SPEED = 2f;
         const float PLAYER_MAX_SPEED = 15f;
         const float PLAYER_DECELERATION_AMOUNT = 0.95f;
 
-        public Player(int height, int width)
+        public Player()
         {
-            _height = height;
-            _width = width;
+
         }
 
         public void Initialize(ContentManager content)
@@ -84,8 +80,8 @@ namespace MultiplayerProject.Source
             PlayerAnimation.Rotation = PlayerState.Rotation;
 
             // Make sure that the player does not go out of bounds
-            PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, _height);
-            PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, _width);
+            PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, Application.WINDOW_HEIGHT);
+            PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, Application.WINDOW_WIDTH);
 
             PlayerAnimation.Update(gameTime);
         }
@@ -103,44 +99,27 @@ namespace MultiplayerProject.Source
             // VELOCITY????/
         }
 
-        public void RotateLeft(GameTime gameTime)
+        public void SetLocalObjectState(KeyboardMovementInput input, GameTime gameTime)
         {
-            PlayerState.Rotation -= PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        }
+            if (input.DownPressed)
+            {
+                PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
 
-        public void RotateLeft(float gameTime)
-        {
-            PlayerState.Rotation -= PLAYER_ROTATION_SPEED * gameTime;
-        }
+            if (input.UpPressed)
+            {
+                PlayerState.Speed += PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
 
-        public void RotateRight(GameTime gameTime)
-        {
-            PlayerState.Rotation += PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        }
+            if (input.LeftPressed)
+            {
+                PlayerState.Rotation -= PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
 
-        public void RotateRight(float gameTime)
-        {
-            PlayerState.Rotation += PLAYER_ROTATION_SPEED * gameTime;
-        }
-
-        public void MoveForward(GameTime gameTime)
-        {
-            PlayerState.Speed += PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        }
-
-        public void MoveForward(float gameTime)
-        {
-            PlayerState.Speed += PLAYER_ACCELERATION_SPEED * gameTime;
-        }
-
-        public void MoveBackward(GameTime gameTime)
-        {
-            PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        }
-
-        public void MoveBackward(float gameTime)
-        {
-            PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * gameTime;
+            if (input.RightPressed)
+            {
+                PlayerState.Rotation += PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
         }
 
         public PlayerUpdatePacket BuildUpdatePacket()

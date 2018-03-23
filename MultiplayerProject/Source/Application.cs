@@ -9,6 +9,9 @@ namespace MultiplayerProject
 {
     public class Application : Game
     {
+        public static int WINDOW_HEIGHT = 480;
+        public static int WINDOW_WIDTH = 800;
+
         private GraphicsDeviceManager   _graphics;
         private SpriteBatch             _spriteBatch;
 
@@ -28,6 +31,9 @@ namespace MultiplayerProject
             _graphics = new GraphicsDeviceManager(this);
             _appType = ApplicationType.None;
 
+            _graphics.PreferredBackBufferHeight = WINDOW_HEIGHT;
+            _graphics.PreferredBackBufferWidth = WINDOW_WIDTH;
+
             IsMouseVisible = true;
             Content.RootDirectory = "Content";
 
@@ -40,7 +46,7 @@ namespace MultiplayerProject
 
         protected override void Initialize()
         {
-            _mainMenu = new MainMenu(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            _mainMenu = new MainMenu();
 
             _server = new ServerApplication(_graphics.GraphicsDevice, Content);
             _client = new ClientApplication(_graphics.GraphicsDevice, Content);

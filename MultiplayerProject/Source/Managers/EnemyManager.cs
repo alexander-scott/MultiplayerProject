@@ -19,13 +19,8 @@ namespace MultiplayerProject.Source
 
         private Random _random;
 
-        private int _screenWidth;
-        private int _screenHeight;
-
-        public EnemyManager(int screenWidth, int screenHeight)
+        public EnemyManager()
         {
-            _screenWidth = screenWidth;
-            _screenHeight = screenHeight;
         }
 
         public void Initalise(ContentManager content)
@@ -85,8 +80,8 @@ namespace MultiplayerProject.Source
             enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
 
             // Randomly generate the position of the enemy
-            Vector2 position = new Vector2(_screenWidth + _enemyTexture.Width / 2,
-                _random.Next(100, _screenHeight - 100));
+            Vector2 position = new Vector2(Application.WINDOW_WIDTH + _enemyTexture.Width / 2,
+                _random.Next(100, Application.WINDOW_HEIGHT - 100));
 
             // Create an enemy
             Enemy enemy = new Enemy();

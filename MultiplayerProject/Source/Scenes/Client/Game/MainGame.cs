@@ -9,8 +9,7 @@ namespace MultiplayerProject.Source
 {
     public class MainGame : IScene
     {
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public bool CLIENT_SIDE_PREDICTION = true;
 
         private Dictionary<string,Player> _players;
         private Player _localPlayer;
@@ -25,17 +24,14 @@ namespace MultiplayerProject.Source
         private int framesSinceLastSend;
         private int framesBetweenPackets = 6;
 
-        public MainGame(int width, int height, int playerCount, string[] playerIDs, string localPlayerID, Client client)
+        public MainGame(int playerCount, string[] playerIDs, string localPlayerID, Client client)
         {
-            Width = width;
-            Height = height;
-
             _players = new Dictionary<string, Player>();
             _client = client; 
 
             for (int i = 0; i < playerCount; i++)
             {
-                Player player = new Player(width, height);
+                Player player = new Player();
                 player.NetworkID = playerIDs[i];
 
                 if (player.NetworkID == localPlayerID)
@@ -49,9 +45,9 @@ namespace MultiplayerProject.Source
                 _players.Add(player.NetworkID, player);
             }
             
-            _enemyManager = new EnemyManager(width, height);
-            _laserManager = new LaserManager(width, height);
-            _backgroundManager = new BackgroundManager(width, height);
+            _enemyManager = new EnemyManager();
+            _laserManager = new LaserManager();
+            _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
             _collisionManager = new CollisionManager();
@@ -138,22 +134,18 @@ namespace MultiplayerProject.Source
             // Keyboard/Dpad controls
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
             {
-                _localPlayer.RotateLeft(gameTime);
                 input.LeftPressed = true;
             }
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
             {
-                _localPlayer.RotateRight(gameTime);
                 input.RightPressed = true;
             }
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
             {
-                _localPlayer.MoveForward(gameTime);
                 input.UpPressed = true;
             }
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
             {
-                _localPlayer.MoveBackward(gameTime);
                 input.DownPressed = true;
             }
 
@@ -163,6 +155,11 @@ namespace MultiplayerProject.Source
                 input.FirePressed = true;
             }
 
+            if (CLIENT_SIDE_PREDICTION)
+            {
+                _localPlayer.SetLocalObjectState(input, gameTime);
+            }
+
             return input;
         }
 
@@ -170,6 +167,7 @@ namespace MultiplayerProject.Source
         {
             Player remotePlayer = _players[playerUpdate.PlayerID];
             remotePlayer.SetObjectState(playerUpdate);
+           
             //if (playerUpdate.Input.LeftPressed)
             //{
             //    remotePlayer.RotateLeft(playerUpdate.TotalGameTime);

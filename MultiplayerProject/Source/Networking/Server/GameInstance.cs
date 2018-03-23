@@ -32,7 +32,7 @@ namespace MultiplayerProject.Source
     public class GameInstance : IMessageable
     {
         private int framesSinceLastSend;
-        private int framesBetweenPackets = 6;
+        private int framesBetweenPackets = 20;
 
         public event EmptyDelegate OnReturnToGameRoom;
 
@@ -40,17 +40,21 @@ namespace MultiplayerProject.Source
         public List<ServerConnection> ComponentClients { get; set; }
 
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
+        private Dictionary<string, Player> _players;
 
         public GameInstance(List<ServerConnection> clients)
         {
             ComponentClients = clients;
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
+            _players = new Dictionary<string, Player>();
 
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 ComponentClients[i].AddServerComponent(this);
                 ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
                 _playerUpdates[ComponentClients[i].ID] = null;
+
+                _players[ComponentClients[i].ID] = new Player();
             }
         }
 
@@ -87,21 +91,6 @@ namespace MultiplayerProject.Source
 
             if (sendPacketThisFrame)
             {
-                //for (int i = 0; i < ComponentClients.Count; i++)
-                //{
-                //    if (_playerUpdates[ComponentClients[i].ID] != null)
-                //    {
-                //        for (int j = 0; j < ComponentClients.Count; j++)
-                //        {
-                //            if (_playerUpdates[ComponentClients[i].ID].PlayerID == null)
-                //            {
-                //                float f = 0;
-                //            }
-                //            ComponentClients[j].SendPacketToClient(_playerUpdates[ComponentClients[i].ID], MessageType.GI_ServerSend_UpdateRemotePlayer);
-                //        }
-                //    }
-                //}
-
                 for (int i = 0; i < ComponentClients.Count; i++)
                 {
                     foreach (PlayerUpdatePacket playerUpdate in _playerUpdates.Values.ToList())

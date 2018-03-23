@@ -33,9 +33,6 @@ namespace MultiplayerProject.Source
         public static event EmptyDelegate OnClientReady;
         public static event EmptyDelegate OnClientUnready;
 
-        public int Width { get; set; }
-        public int Height { get; set; }
-
         private WaitingRoomInformation _waitingRoom;
 
         private string _joinedRoomID;
@@ -60,11 +57,8 @@ namespace MultiplayerProject.Source
         private List<GameRoomUIItem> _roomUIItems;
         private const int _roomStartYPos = 50;
 
-        public WaitingRoomScene(int width, int height)
+        public WaitingRoomScene()
         {
-            Width = width;
-            Height = height;
-
             _waitingForResponseFromServer = false;
 
             _state = WaitingRoomState.NotInRoomAbleToCreate;
@@ -196,7 +190,7 @@ namespace MultiplayerProject.Source
             _font = content.Load<SpriteFont>("Font");
             _device = graphicsDevice;
 
-            _titlePosition = new Vector2(Width / 2, 0);
+            _titlePosition = new Vector2(Application.WINDOW_WIDTH / 2, 0);
             _titlePosition.X -= (_font.MeasureString(_titleText).X / 2);
 
             ReformatButton();
@@ -245,7 +239,7 @@ namespace MultiplayerProject.Source
 
         private void ReformatButton()
         {
-            _buttonPosition = new Vector2(Width / 2, Height - (_font.MeasureString(_buttonText).Y));
+            _buttonPosition = new Vector2(Application.WINDOW_WIDTH / 2, Application.WINDOW_HEIGHT - (_font.MeasureString(_buttonText).Y));
             _buttonPosition.X -= (_font.MeasureString(_buttonText).X / 2);
             _buttonRect = new Rectangle((int)_buttonPosition.X, (int)_buttonPosition.Y,
                 (int)_font.MeasureString(_buttonText).X, (int)_font.MeasureString(_buttonText).Y);

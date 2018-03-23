@@ -22,17 +22,12 @@ namespace MultiplayerProject.Source
         private TimeSpan _laserSpawnTime;
         private TimeSpan _previousLaserSpawnTime;
 
-        private int _screenWidth;
-        private int _screenHeight;
+        private const float SECONDS_IN_MINUTE = 60f;
+        private const float RATE_OF_FIRE = 200f;
+        private const float LASER_SPAWN_DISTANCE = 70f;
 
-        const float SECONDS_IN_MINUTE = 60f;
-        const float RATE_OF_FIRE = 200f;
-        const float LASER_SPAWN_DISTANCE = 70f;
-
-        public LaserManager(int screenWidth, int screenHeight)
+        public LaserManager()
         {
-            _screenWidth = screenWidth;
-            _screenHeight = screenHeight;
         }
 
         public void Initalise(ContentManager content)
@@ -54,7 +49,7 @@ namespace MultiplayerProject.Source
             {
                 _laserBeams[i].Update(gameTime);
                 // Remove the beam when its deactivated or is at the end of the screen.
-                if (!_laserBeams[i].Active || _laserBeams[i].Position.X > _screenWidth)
+                if (!_laserBeams[i].Active || _laserBeams[i].Position.X > Application.WINDOW_WIDTH)
                 {
                     _laserBeams.Remove(_laserBeams[i]);
                 }

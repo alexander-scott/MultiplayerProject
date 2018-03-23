@@ -42,7 +42,7 @@ namespace MultiplayerProject.Source
                     _client.Run();
 
                     _sceneLoading = true;
-                    _currentScene = new WaitingRoomScene(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height);
+                    _currentScene = new WaitingRoomScene();
                     _currentScene.Initalise(_contentManager, _graphicsDevice);
                     _sceneLoading = false;
                 }
@@ -98,8 +98,7 @@ namespace MultiplayerProject.Source
         private void ClientMessenger_OnLoadNewGame(GameInstanceInformation gameInstance)
         {
             _sceneLoading = true;
-            _currentScene = new MainGame(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height, 
-                gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.LocalPlayerID, _client);
+            _currentScene = new MainGame(gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.LocalPlayerID, _client);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
             _sceneLoading = false;
         }
