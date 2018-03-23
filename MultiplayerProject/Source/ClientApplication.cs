@@ -11,6 +11,8 @@ namespace MultiplayerProject.Source
 {
     public class ClientApplication
     {
+        public static event EmptyDelegate OnRequestToReturnToMainMenu;
+
         private IScene _currentScene;
 
         private Client _client;
@@ -82,18 +84,15 @@ namespace MultiplayerProject.Source
         public void OnExiting()
         {
             _client.SendMessageToServer(new BasePacket(), MessageType.Client_Disconnect);
+            _client.Stop();
         }
 
         private void Client_OnDisconnectedFromServer()
         {
-            _sceneLoading = true;
-            _currentScene = new DisconnectedFromServerScene(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height);
-            _currentScene.Initalise(_contentManager, _graphicsDevice);
-            _sceneLoading = false;
+            OnRequestToReturnToMainMenu();
 
             Console.WriteLine("Disconnected from server");
-
-            _client.Stop();
+            _client.Stop(); 
         }
 
         private void ClientMessenger_OnLoadNewGame(GameInstanceInformation gameInstance)

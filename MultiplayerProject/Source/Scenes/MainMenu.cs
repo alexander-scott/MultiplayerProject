@@ -63,5 +63,10 @@ namespace MultiplayerProject.Source
         {
             _message = message;
         }
+
+        public void Reset()
+        {
+            _awaitingInput = true;
+        }
     }
 }

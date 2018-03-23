@@ -69,7 +69,8 @@ namespace MultiplayerProject
 
         public void Stop()
         {
-            _thread.Abort();
+            if (_thread.IsAlive)
+                _thread.Abort();
         }
 
         private void CleanUp()

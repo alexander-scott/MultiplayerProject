@@ -50,8 +50,13 @@ namespace MultiplayerProject
                 ComponentClients[i].StopAll();
             }
 
+            if (_listenForClientsThread.IsAlive)
+                _listenForClientsThread.Abort();
+        }
+
+        private void CleanUp()
+        {
             _tcpListener.Stop();
-            _listenForClientsThread.Abort();
         }
 
         public void SendMessageToAllClients(BasePacket packet, MessageType packetType)
@@ -68,20 +73,31 @@ namespace MultiplayerProject
 
             Console.WriteLine("Listening...");
 
-            while (true)
+            try
             {
-                Socket socket = _tcpListener.AcceptSocket();
-                Console.WriteLine("New Connection Made");
+                while (true)
+                {
+                    Socket socket = _tcpListener.AcceptSocket();
+                    Console.WriteLine("New Connection Made");
 
-                // Create a new client instance
-                ServerConnection client = new ServerConnection(socket);
-                ComponentClients.Add(client);
+                    // Create a new client instance
+                    ServerConnection client = new ServerConnection(socket);
+                    ComponentClients.Add(client);
 
-                client.StartListeningForMessages();
-                client.AddServerComponent(this);
+                    client.StartListeningForMessages();
+                    client.AddServerComponent(this);
 
-                // Add this client to the waiting room
-                _waitingRoom.AddClientToWaitingRoom(client);
+                    // Add this client to the waiting room
+                    _waitingRoom.AddClientToWaitingRoom(client);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error occured: " + e.Message);
+            }
+            finally
+            {
+                CleanUp();
             }
         }
 

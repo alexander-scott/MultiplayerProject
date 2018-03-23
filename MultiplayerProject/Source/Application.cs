@@ -17,8 +17,8 @@ namespace MultiplayerProject
         private MainMenu                _mainMenu;
         private ApplicationType         _appType;
 
-        private ServerApplication _server;
-        private ClientApplication _client;
+        private ServerApplication       _server;
+        private ClientApplication       _client;
 
         private const string hostname = "127.0.0.1";
         private const int port = 4444;
@@ -33,6 +33,9 @@ namespace MultiplayerProject
 
             MainMenu.OnServerStartRequested += OnServerStartRequested;
             MainMenu.OnClientStartRequested += OnClientStartRequested;
+
+            ClientApplication.OnRequestToReturnToMainMenu += ReturnToMainMenu;
+            ServerApplication.OnRequestToReturnToMainMenu += ReturnToMainMenu;
         }
 
         protected override void Initialize()
@@ -164,6 +167,12 @@ namespace MultiplayerProject
             }
 
             base.OnExiting(sender, args);
+        }
+
+        private void ReturnToMainMenu()
+        {
+            _appType = ApplicationType.None;
+            _mainMenu.Reset();
         }
     }
 }

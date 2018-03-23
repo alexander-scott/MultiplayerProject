@@ -1,16 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
     public class ServerApplication
     {
+        public static event EmptyDelegate OnRequestToReturnToMainMenu;
+
         private IScene _currentScene;
 
         private Server _server;
@@ -61,6 +58,7 @@ namespace MultiplayerProject.Source
         public void OnExiting()
         {
             _server.SendMessageToAllClients(new BasePacket(), MessageType.Server_Disconnect);
+            _server.Stop();
         }
     }
 }
