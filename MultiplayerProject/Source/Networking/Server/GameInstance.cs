@@ -29,13 +29,18 @@ namespace MultiplayerProject.Source
         messaging service. However this would make the server unauthoratitive.
 
 
-        TODO: Figure out why only the second connected player's inputs are going through and not the firsts.
+
+        SERVER RECONCILLIATION:
+        Client or MainGame will keep a list of update packets it has sent to the server. Each update packet has an ID
+        or sequence number. When it recieves an update back from the server, it checks the last sequence number the
+        server was able to process. Then the client will edit the list, removing all entries up to last sequence number
+        that the server processed. The client will then iterate over the list of update packets it has saved up, performing
+        the list of inputs again, except this time it starts from the processed packet the server sent back.
          
          */
     public class GameInstance : IMessageable
     {
         private int framesSinceLastSend;
-        private int framesBetweenPackets = 20;
 
         public event EmptyDelegate OnReturnToGameRoom;
 
@@ -87,7 +92,7 @@ namespace MultiplayerProject.Source
 
             framesSinceLastSend++;
 
-            if (framesSinceLastSend >= framesBetweenPackets)
+            if (framesSinceLastSend >= Application.SERVER_UPDATE_RATE)
             {
                 sendPacketThisFrame = true;
                 framesSinceLastSend = 0;
@@ -97,7 +102,6 @@ namespace MultiplayerProject.Source
             {
                 if (_playerUpdates[player.Key] != null)
                 {
-                    // INPUTS ARE RECIEVED FROM ALL PLAYERS
                     player.Value.SetObjectStateRemote(_playerUpdates[player.Key].Input, gameTime);
                 }
 

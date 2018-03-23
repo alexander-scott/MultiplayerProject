@@ -9,8 +9,6 @@ namespace MultiplayerProject.Source
 {
     public class MainGame : IScene
     {
-        public bool CLIENT_SIDE_PREDICTION = false;
-
         private Dictionary<string,Player> _players;
         private Player _localPlayer;
         private Client _client;
@@ -158,7 +156,7 @@ namespace MultiplayerProject.Source
                 input.FirePressed = true;
             }
 
-            if (CLIENT_SIDE_PREDICTION)
+            if (Application.CLIENT_SIDE_PREDICTION)
             {
                 _localPlayer.SetObjectStateLocal(input, gameTime);
             }

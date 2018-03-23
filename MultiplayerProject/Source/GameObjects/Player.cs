@@ -75,8 +75,8 @@ namespace MultiplayerProject.Source
             PlayerState.Speed *= PLAYER_DECELERATION_AMOUNT;
 
             // Make sure that the player does not go out of bounds
-            PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, Application.WINDOW_HEIGHT);
-            PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, Application.WINDOW_WIDTH);
+            PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, Application.WINDOW_WIDTH);
+            PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, Application.WINDOW_HEIGHT);
 
             if (PlayerAnimation != null)
             {

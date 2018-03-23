@@ -12,6 +12,10 @@ namespace MultiplayerProject
         public static int WINDOW_HEIGHT = 480;
         public static int WINDOW_WIDTH = 800;
 
+        public static bool CLIENT_SIDE_PREDICTION = true;
+
+        public static int SERVER_UPDATE_RATE = 10; // Number of frames between packets
+
         private GraphicsDeviceManager   _graphics;
         private SpriteBatch             _spriteBatch;
 
