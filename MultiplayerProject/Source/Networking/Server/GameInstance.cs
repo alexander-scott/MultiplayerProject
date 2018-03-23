@@ -27,6 +27,9 @@ namespace MultiplayerProject.Source
         latency and lag
     - Alternatively the clients could do the prediction and smoothing and the server could simply just act as a 
         messaging service. However this would make the server unauthoratitive.
+
+
+        TODO: Figure out why only the second connected player's inputs are going through and not the firsts.
          
          */
     public class GameInstance : IMessageable
@@ -54,7 +57,8 @@ namespace MultiplayerProject.Source
                 ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
                 _playerUpdates[ComponentClients[i].ID] = null;
 
-                _players[ComponentClients[i].ID] = new Player();
+                Player player = new Player();
+                 _players[ComponentClients[i].ID] = player;
             }
         }
 
@@ -89,16 +93,27 @@ namespace MultiplayerProject.Source
                 framesSinceLastSend = 0;
             }
 
+            foreach (KeyValuePair<string, Player> player in _players)
+            {
+                if (_playerUpdates[player.Key] != null)
+                {
+                    // INPUTS ARE RECIEVED FROM ALL PLAYERS
+                    player.Value.SetObjectStateRemote(_playerUpdates[player.Key].Input, gameTime);
+                }
+
+                player.Value.Update(gameTime);
+            }
+
             if (sendPacketThisFrame)
             {
                 for (int i = 0; i < ComponentClients.Count; i++)
                 {
-                    foreach (PlayerUpdatePacket playerUpdate in _playerUpdates.Values.ToList())
+                    foreach (KeyValuePair<string, Player> player in _players)
                     {
-                        if (playerUpdate != null)
-                        {
-                            ComponentClients[i].SendPacketToClient(playerUpdate, MessageType.GI_ServerSend_UpdateRemotePlayer);
-                        } 
+                        PlayerUpdatePacket updatePacket = player.Value.BuildUpdatePacket();
+                        updatePacket.PlayerID = player.Key;
+
+                        ComponentClients[i].SendPacketToClient(updatePacket, MessageType.GI_ServerSend_UpdateRemotePlayer);
                     }
                 }
             }

@@ -40,7 +40,15 @@ namespace MultiplayerProject.Source
 
         public Player()
         {
+            PlayerState.Position = Vector2.Zero;
+            PlayerState.Velocity = Vector2.Zero;
+            PlayerState.Rotation = 0;
 
+            // Set the player to be active
+            Active = true;
+
+            // Set the player health
+            Health = PLAYER_STARTING_HEALTH;
         }
 
         public void Initialize(ContentManager content)
@@ -51,16 +59,6 @@ namespace MultiplayerProject.Source
             playerAnimation.Initialize(playerTexture, Vector2.Zero, 0, 115, 69, 8, 30, Color.White, 1f, true);
 
             PlayerAnimation = playerAnimation;
-
-            PlayerState.Position = Vector2.Zero;
-            PlayerState.Velocity = Vector2.Zero;
-            PlayerState.Rotation = 0;
-
-            // Set the player to be active
-            Active = true;
-
-            // Set the player health
-            Health = PLAYER_STARTING_HEALTH;
         }
 
         public void Update(GameTime gameTime)
@@ -76,14 +74,17 @@ namespace MultiplayerProject.Source
             PlayerState.Position += direction * PlayerState.Speed;
             PlayerState.Speed *= PLAYER_DECELERATION_AMOUNT;
 
-            PlayerAnimation.Position = PlayerState.Position;
-            PlayerAnimation.Rotation = PlayerState.Rotation;
-
             // Make sure that the player does not go out of bounds
             PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, Application.WINDOW_HEIGHT);
             PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, Application.WINDOW_WIDTH);
 
-            PlayerAnimation.Update(gameTime);
+            if (PlayerAnimation != null)
+            {
+                PlayerAnimation.Position = PlayerState.Position;
+                PlayerAnimation.Rotation = PlayerState.Rotation;
+
+                PlayerAnimation.Update(gameTime);
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -99,7 +100,30 @@ namespace MultiplayerProject.Source
             // VELOCITY????/
         }
 
-        public void SetLocalObjectState(KeyboardMovementInput input, GameTime gameTime)
+        public void SetObjectStateLocal(KeyboardMovementInput input, GameTime gameTime)
+        {
+            if (input.DownPressed)
+            {
+                PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+
+            if (input.UpPressed)
+            {
+                PlayerState.Speed += PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+
+            if (input.LeftPressed)
+            {
+                PlayerState.Rotation -= PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+
+            if (input.RightPressed)
+            {
+                PlayerState.Rotation += PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+        }
+
+        public void SetObjectStateRemote(KeyboardMovementInput input, GameTime gameTime)
         {
             if (input.DownPressed)
             {

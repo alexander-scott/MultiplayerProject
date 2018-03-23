@@ -9,7 +9,7 @@ namespace MultiplayerProject.Source
 {
     public class MainGame : IScene
     {
-        public bool CLIENT_SIDE_PREDICTION = true;
+        public bool CLIENT_SIDE_PREDICTION = false;
 
         private Dictionary<string,Player> _players;
         private Player _localPlayer;
@@ -23,6 +23,8 @@ namespace MultiplayerProject.Source
 
         private int framesSinceLastSend;
         private int framesBetweenPackets = 6;
+
+        private int _packetNumber = 0;
 
         public MainGame(int playerCount, string[] playerIDs, string localPlayerID, Client client)
         {
@@ -104,6 +106,7 @@ namespace MultiplayerProject.Source
                 PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
                 packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
                 packet.Input = condensedInput;
+                packet.PacketNumber = _packetNumber++;
 
                 _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
             }
@@ -157,7 +160,7 @@ namespace MultiplayerProject.Source
 
             if (CLIENT_SIDE_PREDICTION)
             {
-                _localPlayer.SetLocalObjectState(input, gameTime);
+                _localPlayer.SetObjectStateLocal(input, gameTime);
             }
 
             return input;
@@ -167,23 +170,6 @@ namespace MultiplayerProject.Source
         {
             Player remotePlayer = _players[playerUpdate.PlayerID];
             remotePlayer.SetObjectState(playerUpdate);
-           
-            //if (playerUpdate.Input.LeftPressed)
-            //{
-            //    remotePlayer.RotateLeft(playerUpdate.TotalGameTime);
-            //}
-            //if (playerUpdate.Input.RightPressed)
-            //{
-            //    remotePlayer.RotateRight(playerUpdate.TotalGameTime);
-            //}
-            //if (playerUpdate.Input.DownPressed)
-            //{
-            //    remotePlayer.MoveBackward(playerUpdate.TotalGameTime);
-            //}
-            //if (playerUpdate.Input.UpPressed)
-            //{
-            //    remotePlayer.MoveForward(playerUpdate.TotalGameTime);
-            //}
         }
     }
 }
