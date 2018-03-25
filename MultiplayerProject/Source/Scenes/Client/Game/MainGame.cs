@@ -22,7 +22,7 @@ namespace MultiplayerProject.Source
         private int framesSinceLastSend;
 
         private int _packetNumber = -1;
-        private List<PlayerUpdatePacket> _updatePacketsSent;
+        private Queue<PlayerUpdatePacket> _updatePackets;
 
         public MainGame(int playerCount, string[] playerIDs, string localPlayerID, Client client)
         {
@@ -45,7 +45,7 @@ namespace MultiplayerProject.Source
                 _players.Add(player.NetworkID, player);
             }
 
-            _updatePacketsSent = new List<PlayerUpdatePacket>();
+            _updatePackets = new Queue<PlayerUpdatePacket>();
 
             _enemyManager = new EnemyManager();
             _laserManager = new LaserManager();
@@ -105,7 +105,7 @@ namespace MultiplayerProject.Source
             packet.Input = condensedInput;
             packet.SequenceNumber = _packetNumber++;
 
-            _updatePacketsSent.Add(packet);
+            _updatePackets.Enqueue(packet);
 
             // SEND UPDATE PACKET TO SERVER
             if (sendPacketThisFrame)
@@ -172,8 +172,7 @@ namespace MultiplayerProject.Source
         {
             if (serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0)
             {
-                PlayerUpdatePacket localUpdate = _updatePacketsSent[serverUpdate.SequenceNumber];
-                //_updatePacketsSent.RemoveRange(0, serverUpdate.SequenceNumber);
+                PlayerUpdatePacket localUpdate = GetUpdateAtSequenceNumber(serverUpdate.SequenceNumber);
             }
             else
             {
@@ -181,6 +180,18 @@ namespace MultiplayerProject.Source
                 // APPLY INTERPOLATION HERE
                 remotePlayer.SetObjectState(serverUpdate);
             }
+        }
+
+        private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)
+        {
+            PlayerUpdatePacket localUpdate = _updatePackets.Dequeue();
+
+            while (localUpdate.SequenceNumber != sequenceNumber)
+            {
+                localUpdate = _updatePackets.Dequeue();
+            }
+
+            return localUpdate;
         }
     }
 }
