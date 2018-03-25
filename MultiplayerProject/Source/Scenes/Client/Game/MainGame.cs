@@ -20,9 +20,9 @@ namespace MultiplayerProject.Source
         private BackgroundManager _backgroundManager;
 
         private int framesSinceLastSend;
-        private int framesBetweenPackets = 6;
 
         private int _packetNumber = 0;
+        private List<PlayerUpdatePacket> _updatePacketsSent;
 
         public MainGame(int playerCount, string[] playerIDs, string localPlayerID, Client client)
         {
@@ -44,7 +44,9 @@ namespace MultiplayerProject.Source
 
                 _players.Add(player.NetworkID, player);
             }
-            
+
+            _updatePacketsSent = new List<PlayerUpdatePacket>();
+
             _enemyManager = new EnemyManager();
             _laserManager = new LaserManager();
             _backgroundManager = new BackgroundManager();
@@ -90,7 +92,7 @@ namespace MultiplayerProject.Source
 
             framesSinceLastSend++;
 
-            if (framesSinceLastSend >= framesBetweenPackets)
+            if (framesSinceLastSend >= Application.CLIENT_UPDATE_RATE)
             {
                 sendPacketThisFrame = true;
                 framesSinceLastSend = 0;
@@ -98,14 +100,16 @@ namespace MultiplayerProject.Source
 
             KeyboardMovementInput condensedInput = ProcessInputForLocalPlayer(gameTime, inputInfo);
 
+            PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
+            packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
+            packet.Input = condensedInput;
+            packet.PacketNumber = _packetNumber++;
+
+            _updatePacketsSent.Add(packet);
+
             // SEND UPDATE PACKET TO SERVER
             if (sendPacketThisFrame)
             {
-                PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
-                packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
-                packet.Input = condensedInput;
-                packet.PacketNumber = _packetNumber++;
-
                 _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
             }
         }
