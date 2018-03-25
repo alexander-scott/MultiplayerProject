@@ -101,26 +101,26 @@ namespace MultiplayerProject.Source
             // VELOCITY????/
         }
 
-        public void SetObjectStateLocal(KeyboardMovementInput input, GameTime gameTime)
+        public void SetObjectStateLocal(KeyboardMovementInput input, float deltaTime)
         {
             if (input.DownPressed)
             {
-                PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * deltaTime;
             }
 
             if (input.UpPressed)
             {
-                PlayerState.Speed += PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                PlayerState.Speed += PLAYER_ACCELERATION_SPEED * deltaTime;
             }
 
             if (input.LeftPressed)
             {
-                PlayerState.Rotation -= PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                PlayerState.Rotation -= PLAYER_ROTATION_SPEED * deltaTime;
             }
 
             if (input.RightPressed)
             {
-                PlayerState.Rotation += PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                PlayerState.Rotation += PLAYER_ROTATION_SPEED * deltaTime;
             }
         }
 
@@ -149,7 +149,10 @@ namespace MultiplayerProject.Source
 
         public PlayerUpdatePacket BuildUpdatePacket()
         {
-            return new PlayerUpdatePacket(PlayerState.Position.X, PlayerState.Position.Y, PlayerState.Speed, PlayerState.Rotation);
+            Vector2 pos = new Vector2((float)Math.Round((decimal)PlayerState.Position.X, 1), (float)Math.Round((decimal)PlayerState.Position.Y, 1));
+            float speed = (float)Math.Round((decimal)PlayerState.Speed, 1);
+            float rot = (float)Math.Round((decimal)PlayerState.Rotation, 1);
+            return new PlayerUpdatePacket(pos.X, pos.Y, speed, rot);
         }
     }
 }

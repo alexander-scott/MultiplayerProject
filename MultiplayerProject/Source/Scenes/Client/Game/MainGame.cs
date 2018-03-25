@@ -162,7 +162,7 @@ namespace MultiplayerProject.Source
 
             if (Application.CLIENT_SIDE_PREDICTION)
             {
-                _localPlayer.SetObjectStateLocal(input, gameTime);
+                _localPlayer.SetObjectStateLocal(input, (float)gameTime.ElapsedGameTime.TotalSeconds);
             }
 
             return input;
@@ -173,6 +173,41 @@ namespace MultiplayerProject.Source
             if (serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0)
             {
                 PlayerUpdatePacket localUpdate = GetUpdateAtSequenceNumber(serverUpdate.SequenceNumber);
+
+                if (localUpdate.XPosition != serverUpdate.XPosition
+                    || localUpdate.YPosition != serverUpdate.YPosition
+                    || localUpdate.Rotation != serverUpdate.Rotation
+                    || localUpdate.Speed != serverUpdate.Speed)
+                {
+                    Console.WriteLine("data mismatch");
+
+                    // Create a new queue with 'serverUpdate' as the first update
+                    var newQueue = new Queue<PlayerUpdatePacket>();
+                    var updateList = new List<PlayerUpdatePacket>();
+
+                    PlayerUpdatePacket removedPacket = _updatePackets.Dequeue(); // Remove the first one which we are replacing with the serverUpdate
+
+                    serverUpdate.TotalGameTime = removedPacket.TotalGameTime;
+                    newQueue.Enqueue(serverUpdate);
+                    updateList.Add(serverUpdate);
+
+                    while (_updatePackets.Count > 0)
+                    {
+                        PlayerUpdatePacket packet = _updatePackets.Dequeue();
+                        newQueue.Enqueue(packet);
+                        updateList.Add(packet);
+                    }
+
+                    _updatePackets = newQueue; // Set the new queue
+
+                    _localPlayer.SetObjectState(updateList[0]);
+
+                    // Now we must perform the previous inputs again
+                    for (int i = 1; i < updateList.Count; i++)
+                    {
+                        _localPlayer.SetObjectStateLocal(updateList[i].Input, updateList[i].TotalGameTime);
+                    }
+                }
             }
             else
             {
@@ -184,11 +219,19 @@ namespace MultiplayerProject.Source
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)
         {
-            PlayerUpdatePacket localUpdate = _updatePackets.Dequeue();
+            PlayerUpdatePacket localUpdate;
 
-            while (localUpdate.SequenceNumber != sequenceNumber)
+            while (true)
             {
-                localUpdate = _updatePackets.Dequeue();
+                localUpdate = _updatePackets.Peek();
+                if (localUpdate.SequenceNumber != sequenceNumber)
+                {
+                    _updatePackets.Dequeue();
+                }
+                else
+                {
+                    break;
+                }
             }
 
             return localUpdate;
