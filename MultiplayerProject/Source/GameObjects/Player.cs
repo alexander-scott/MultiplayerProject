@@ -67,6 +67,8 @@ namespace MultiplayerProject.Source
             // Limit the max speed
             if (PlayerState.Speed > PLAYER_MAX_SPEED)
                 PlayerState.Speed = PLAYER_MAX_SPEED;
+            else if (PlayerState.Speed < -PLAYER_MAX_SPEED)
+                PlayerState.Speed = -PLAYER_MAX_SPEED;
 
             Vector2 direction = new Vector2((float)Math.Cos(PlayerState.Rotation),
                         (float)Math.Sin(PlayerState.Rotation));

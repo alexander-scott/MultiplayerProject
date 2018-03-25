@@ -100,13 +100,18 @@ namespace MultiplayerProject.Source
 
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                if (_playerUpdates[player.Key] != null)
+                if (_playerUpdates[player.Key] != null && player.Value.LastSequenceNumberProcessed != _playerUpdates[player.Key].SequenceNumber)
                 {
                     player.Value.SetObjectStateRemote(_playerUpdates[player.Key].Input, gameTime);
                     player.Value.LastSequenceNumberProcessed = _playerUpdates[player.Key].SequenceNumber;
-                }
 
-                player.Value.Update(gameTime);
+                    if (_playerUpdates[player.Key].Input.DownPressed || _playerUpdates[player.Key].Input.UpPressed ||
+                        _playerUpdates[player.Key].Input.LeftPressed || _playerUpdates[player.Key].Input.RightPressed)
+                        Console.WriteLine("SERVER RECIEVED # " + _playerUpdates[player.Key] .SequenceNumber + " - POS:(" + _playerUpdates[player.Key].XPosition + "," + _playerUpdates[player.Key].YPosition + "), " +
+                            "ROT:" + _playerUpdates[player.Key].Rotation + ", SPEED:" + _playerUpdates[player.Key].Speed);
+
+                    player.Value.Update(gameTime);
+                }
             }
 
             if (sendPacketThisFrame)

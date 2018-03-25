@@ -111,6 +111,9 @@ namespace MultiplayerProject.Source
             if (sendPacketThisFrame)
             {
                 _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
+
+                if (packet.Input.DownPressed || packet.Input.UpPressed || packet.Input.LeftPressed || packet.Input.RightPressed)
+                    Console.WriteLine("UPDATE TO SERVER # " + packet.SequenceNumber + " - POS:(" + packet.XPosition + "," + packet.YPosition + "), ROT:" + packet.Rotation + ", SPEED:" + packet.Speed);
             }
         }
 
@@ -163,6 +166,7 @@ namespace MultiplayerProject.Source
             if (Application.CLIENT_SIDE_PREDICTION)
             {
                 _localPlayer.SetObjectStateLocal(input, (float)gameTime.ElapsedGameTime.TotalSeconds);
+                _localPlayer.Update(gameTime);
             }
 
             return input;
@@ -179,8 +183,6 @@ namespace MultiplayerProject.Source
                     || localUpdate.Rotation != serverUpdate.Rotation
                     || localUpdate.Speed != serverUpdate.Speed)
                 {
-                    Console.WriteLine("data mismatch");
-
                     // Create a new queue with 'serverUpdate' as the first update
                     var newQueue = new Queue<PlayerUpdatePacket>();
                     var updateList = new List<PlayerUpdatePacket>();

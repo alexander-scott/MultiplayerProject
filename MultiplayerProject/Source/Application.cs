@@ -15,7 +15,7 @@ namespace MultiplayerProject
         public static bool CLIENT_SIDE_PREDICTION = true;
 
         public static int SERVER_UPDATE_RATE = 60 / 5; // Number of frames between packets
-        public static int CLIENT_UPDATE_RATE = 60 / 15;
+        public static int CLIENT_UPDATE_RATE = 60 / 20;
 
         private GraphicsDeviceManager   _graphics;
         private SpriteBatch             _spriteBatch;
