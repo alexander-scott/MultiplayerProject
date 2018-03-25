@@ -209,7 +209,7 @@ namespace MultiplayerProject.Source
         public float Rotation { get; set; }
         public KeyboardMovementInput Input { get; set; }
         public string PlayerID { get; set; }
-        public int PacketNumber { get; set; }
+        public int SequenceNumber { get; set; }
 
         public PlayerUpdatePacket(float xPosition, float yPosition, float speed,
             float rotation) :base()

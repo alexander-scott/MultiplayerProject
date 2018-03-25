@@ -103,6 +103,7 @@ namespace MultiplayerProject.Source
                 if (_playerUpdates[player.Key] != null)
                 {
                     player.Value.SetObjectStateRemote(_playerUpdates[player.Key].Input, gameTime);
+                    player.Value.LastSequenceNumberProcessed = _playerUpdates[player.Key].SequenceNumber;
                 }
 
                 player.Value.Update(gameTime);
@@ -116,6 +117,7 @@ namespace MultiplayerProject.Source
                     {
                         PlayerUpdatePacket updatePacket = player.Value.BuildUpdatePacket();
                         updatePacket.PlayerID = player.Key;
+                        updatePacket.SequenceNumber = player.Value.LastSequenceNumberProcessed;
 
                         ComponentClients[i].SendPacketToClient(updatePacket, MessageType.GI_ServerSend_UpdateRemotePlayer);
                     }

@@ -18,6 +18,7 @@ namespace MultiplayerProject.Source
 
         public string NetworkID { get; set; }
         public bool IsLocal { get; set; }
+        public int LastSequenceNumberProcessed { get; set; }
 
         private struct ObjectState
         {

@@ -21,7 +21,7 @@ namespace MultiplayerProject.Source
 
         private int framesSinceLastSend;
 
-        private int _packetNumber = 0;
+        private int _packetNumber = -1;
         private List<PlayerUpdatePacket> _updatePacketsSent;
 
         public MainGame(int playerCount, string[] playerIDs, string localPlayerID, Client client)
@@ -103,7 +103,7 @@ namespace MultiplayerProject.Source
             PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
             packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
             packet.Input = condensedInput;
-            packet.PacketNumber = _packetNumber++;
+            packet.SequenceNumber = _packetNumber++;
 
             _updatePacketsSent.Add(packet);
 
@@ -168,10 +168,19 @@ namespace MultiplayerProject.Source
             return input;
         }
 
-        private void ClientMessenger_OnRecievedRemotePlayerUpdate(PlayerUpdatePacket playerUpdate)
+        private void ClientMessenger_OnRecievedRemotePlayerUpdate(PlayerUpdatePacket serverUpdate)
         {
-            Player remotePlayer = _players[playerUpdate.PlayerID];
-            remotePlayer.SetObjectState(playerUpdate);
+            if (serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0)
+            {
+                PlayerUpdatePacket localUpdate = _updatePacketsSent[serverUpdate.SequenceNumber];
+                //_updatePacketsSent.RemoveRange(0, serverUpdate.SequenceNumber);
+            }
+            else
+            {
+                Player remotePlayer = _players[serverUpdate.PlayerID];
+                // APPLY INTERPOLATION HERE
+                remotePlayer.SetObjectState(serverUpdate);
+            }
         }
     }
 }
