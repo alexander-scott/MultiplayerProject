@@ -103,7 +103,7 @@ namespace MultiplayerProject.Source
             {
                 if (_playerUpdates[player.Key] != null)
                 {              
-                    player.Value.SetObjectState(_playerUpdates[player.Key].Input, (float)gameTime.ElapsedGameTime.TotalSeconds);
+                    player.Value.ApplyInputToPlayer(_playerUpdates[player.Key].Input, (float)gameTime.ElapsedGameTime.TotalSeconds);
                     player.Value.LastSequenceNumberProcessed = _playerUpdates[player.Key].SequenceNumber;
 
                     player.Value.Update((float)gameTime.ElapsedGameTime.TotalSeconds);

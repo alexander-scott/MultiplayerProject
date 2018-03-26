@@ -17,7 +17,6 @@ namespace MultiplayerProject.Source
         public float Rotation { get { return PlayerState.Rotation; } }
 
         public string NetworkID { get; set; }
-        public bool IsLocal { get; set; }
         public int LastSequenceNumberProcessed { get; set; }
 
         private struct ObjectState
@@ -62,7 +61,7 @@ namespace MultiplayerProject.Source
             PlayerAnimation = playerAnimation;
         }
 
-        public void Update(GameTime gameTime)
+        public void UpdateAnimation(GameTime gameTime)
         {
             if (PlayerAnimation != null)
             {
@@ -98,7 +97,7 @@ namespace MultiplayerProject.Source
             PlayerAnimation.Draw(spriteBatch);
         }
 
-        public void SetObjectState(PlayerUpdatePacket packet)
+        public void SetPlayerState(PlayerUpdatePacket packet)
         {
             PlayerState.Position = new Vector2(packet.XPosition, packet.YPosition);
             PlayerState.Rotation = packet.Rotation;
@@ -106,7 +105,7 @@ namespace MultiplayerProject.Source
             // VELOCITY????/
         }
 
-        public void SetObjectState(KeyboardMovementInput input, float deltaTime)
+        public void ApplyInputToPlayer(KeyboardMovementInput input, float deltaTime)
         {
             if (input.DownPressed)
             {

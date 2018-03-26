@@ -24,7 +24,7 @@ namespace MultiplayerProject.Source
         private int _packetNumber = -1;
         private Queue<PlayerUpdatePacket> _updatePackets;
 
-        public MainGame(int playerCount, string[] playerIDs, string localPlayerID, Client client)
+        public MainGame(int playerCount, string[] playerIDs, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
             _client = client; 
@@ -34,13 +34,10 @@ namespace MultiplayerProject.Source
                 Player player = new Player();
                 player.NetworkID = playerIDs[i];
 
-                if (player.NetworkID == localPlayerID)
+                if (player.NetworkID == localClientID)
                 {
                     _localPlayer = player;
-                    player.IsLocal = true;
                 } 
-                else
-                    player.IsLocal = false;
 
                 _players.Add(player.NetworkID, player);
             }
@@ -54,7 +51,7 @@ namespace MultiplayerProject.Source
             _explosionManager = new ExplosionManager();
             _collisionManager = new CollisionManager();
 
-            ClientMessenger.OnRecievedRemotePlayerUpdate += ClientMessenger_OnRecievedRemotePlayerUpdate;
+            ClientMessenger.OnRecievedPlayerUpdatePacket += OnRecievedPlayerUpdatePacket;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -75,7 +72,7 @@ namespace MultiplayerProject.Source
             foreach (KeyValuePair<string, Player> player in _players)
             {
                 if (player.Value != _localPlayer) // Do not update the local player as we are already doing that in the input process
-                    player.Value.Update(gameTime);
+                    player.Value.UpdateAnimation(gameTime);
             }
 
             _backgroundManager.Update(gameTime);
@@ -166,15 +163,15 @@ namespace MultiplayerProject.Source
 
             if (Application.APPLY_CLIENT_SIDE_PREDICTION)
             {
-                _localPlayer.SetObjectState(input, (float)gameTime.ElapsedGameTime.TotalSeconds);
+                _localPlayer.ApplyInputToPlayer(input, (float)gameTime.ElapsedGameTime.TotalSeconds);
                 _localPlayer.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             }
-            _localPlayer.Update(gameTime);
+            _localPlayer.UpdateAnimation(gameTime);
 
             return input;
         }
 
-        private void ClientMessenger_OnRecievedRemotePlayerUpdate(PlayerUpdatePacket serverUpdate)
+        private void OnRecievedPlayerUpdatePacket(PlayerUpdatePacket serverUpdate)
         {
             if (Application.APPLY_CLIENT_SIDE_RECONCILLIATION &&
                 serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0
@@ -209,7 +206,7 @@ namespace MultiplayerProject.Source
                     if (updateList.Count == 0)
                         return;
 
-                    _localPlayer.SetObjectState(updateList[0]);
+                    _localPlayer.SetPlayerState(updateList[0]);
                     _localPlayer.Update(updateList[0].TotalGameTime);
 
                     if (updateList.Count == 1)
@@ -218,7 +215,7 @@ namespace MultiplayerProject.Source
                     // Now we must perform the previous inputs again
                     for (int i = 1; i < updateList.Count; i++)
                     {
-                        _localPlayer.SetObjectState(updateList[i].Input, updateList[i].TotalGameTime);
+                        _localPlayer.ApplyInputToPlayer(updateList[i].Input, updateList[i].TotalGameTime);
                         _localPlayer.Update(updateList[i].TotalGameTime);
                     }
                 }
@@ -226,8 +223,7 @@ namespace MultiplayerProject.Source
             else
             {
                 Player remotePlayer = _players[serverUpdate.PlayerID];
-                // APPLY INTERPOLATION HERE
-                remotePlayer.SetObjectState(serverUpdate);
+                remotePlayer.SetPlayerState(serverUpdate);
             }
         }
 

@@ -9,6 +9,5 @@ namespace MultiplayerProject.Source
     public interface INetworkedObject
     {
         string NetworkID { get; set; }
-        bool IsLocal { get; set; }
     }
 }
