@@ -74,7 +74,8 @@ namespace MultiplayerProject.Source
         {
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                player.Value.Update(gameTime);
+                if (player.Value != _localPlayer) // Do not update the local player as we are already doing that in the input process
+                    player.Value.Update(gameTime);
             }
 
             _backgroundManager.Update(gameTime);
@@ -98,22 +99,22 @@ namespace MultiplayerProject.Source
                 framesSinceLastSend = 0;
             }
 
+            // Process and fetch input from local player
             KeyboardMovementInput condensedInput = ProcessInputForLocalPlayer(gameTime, inputInfo);
 
+            // Build an update packet from the input and player values
             PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
-            packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
+            packet.TotalGameTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             packet.Input = condensedInput;
             packet.SequenceNumber = _packetNumber++;
 
+            // Add it to the queue
             _updatePackets.Enqueue(packet);
 
-            // SEND UPDATE PACKET TO SERVER
             if (sendPacketThisFrame)
             {
+                // Send the packet to the server
                 _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
-
-                if (packet.Input.DownPressed || packet.Input.UpPressed || packet.Input.LeftPressed || packet.Input.RightPressed)
-                    Console.WriteLine("UPDATE TO SERVER # " + packet.SequenceNumber + " - POS:(" + packet.XPosition + "," + packet.YPosition + "), ROT:" + packet.Rotation + ", SPEED:" + packet.Speed);
             }
         }
 
@@ -163,18 +164,21 @@ namespace MultiplayerProject.Source
                 input.FirePressed = true;
             }
 
-            if (Application.CLIENT_SIDE_PREDICTION)
+            if (Application.APPLY_CLIENT_SIDE_PREDICTION)
             {
-                _localPlayer.SetObjectStateLocal(input, (float)gameTime.ElapsedGameTime.TotalSeconds);
-                _localPlayer.Update(gameTime);
+                _localPlayer.SetObjectState(input, (float)gameTime.ElapsedGameTime.TotalSeconds);
+                _localPlayer.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             }
+            _localPlayer.Update(gameTime);
 
             return input;
         }
 
         private void ClientMessenger_OnRecievedRemotePlayerUpdate(PlayerUpdatePacket serverUpdate)
         {
-            if (serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0)
+            if (Application.APPLY_CLIENT_SIDE_RECONCILLIATION &&
+                serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0
+                && _updatePackets.Count > 0)
             {
                 PlayerUpdatePacket localUpdate = GetUpdateAtSequenceNumber(serverUpdate.SequenceNumber);
 
@@ -202,12 +206,20 @@ namespace MultiplayerProject.Source
 
                     _updatePackets = newQueue; // Set the new queue
 
+                    if (updateList.Count == 0)
+                        return;
+
                     _localPlayer.SetObjectState(updateList[0]);
+                    _localPlayer.Update(updateList[0].TotalGameTime);
+
+                    if (updateList.Count == 1)
+                        return;
 
                     // Now we must perform the previous inputs again
                     for (int i = 1; i < updateList.Count; i++)
                     {
-                        _localPlayer.SetObjectStateLocal(updateList[i].Input, updateList[i].TotalGameTime);
+                        _localPlayer.SetObjectState(updateList[i].Input, updateList[i].TotalGameTime);
+                        _localPlayer.Update(updateList[i].TotalGameTime);
                     }
                 }
             }

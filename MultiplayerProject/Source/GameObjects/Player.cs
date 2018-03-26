@@ -64,6 +64,17 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
+            if (PlayerAnimation != null)
+            {
+                PlayerAnimation.Position = PlayerState.Position;
+                PlayerAnimation.Rotation = PlayerState.Rotation;
+
+                PlayerAnimation.Update(gameTime);
+            }
+        }
+
+        public void Update(float deltaTime)
+        {
             // Limit the max speed
             if (PlayerState.Speed > PLAYER_MAX_SPEED)
                 PlayerState.Speed = PLAYER_MAX_SPEED;
@@ -80,14 +91,6 @@ namespace MultiplayerProject.Source
             // Make sure that the player does not go out of bounds
             PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, Application.WINDOW_WIDTH);
             PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, Application.WINDOW_HEIGHT);
-
-            if (PlayerAnimation != null)
-            {
-                PlayerAnimation.Position = PlayerState.Position;
-                PlayerAnimation.Rotation = PlayerState.Rotation;
-
-                PlayerAnimation.Update(gameTime);
-            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -103,7 +106,7 @@ namespace MultiplayerProject.Source
             // VELOCITY????/
         }
 
-        public void SetObjectStateLocal(KeyboardMovementInput input, float deltaTime)
+        public void SetObjectState(KeyboardMovementInput input, float deltaTime)
         {
             if (input.DownPressed)
             {
@@ -123,29 +126,6 @@ namespace MultiplayerProject.Source
             if (input.RightPressed)
             {
                 PlayerState.Rotation += PLAYER_ROTATION_SPEED * deltaTime;
-            }
-        }
-
-        public void SetObjectStateRemote(KeyboardMovementInput input, GameTime gameTime)
-        {
-            if (input.DownPressed)
-            {
-                PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            }
-
-            if (input.UpPressed)
-            {
-                PlayerState.Speed += PLAYER_ACCELERATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            }
-
-            if (input.LeftPressed)
-            {
-                PlayerState.Rotation -= PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            }
-
-            if (input.RightPressed)
-            {
-                PlayerState.Rotation += PLAYER_ROTATION_SPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
             }
         }
 

@@ -63,7 +63,7 @@ namespace MultiplayerProject.Source
                 _playerUpdates[ComponentClients[i].ID] = null;
 
                 Player player = new Player();
-                 _players[ComponentClients[i].ID] = player;
+                 _players[ComponentClients[i].ID] = player;             
             }
         }
 
@@ -98,29 +98,27 @@ namespace MultiplayerProject.Source
                 framesSinceLastSend = 0;
             }
 
+            // Apply the inputs recieved from the clients to the simulation running on the server
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                if (_playerUpdates[player.Key] != null && player.Value.LastSequenceNumberProcessed != _playerUpdates[player.Key].SequenceNumber)
-                {
-                    player.Value.SetObjectStateRemote(_playerUpdates[player.Key].Input, gameTime);
+                if (_playerUpdates[player.Key] != null)
+                {              
+                    player.Value.SetObjectState(_playerUpdates[player.Key].Input, (float)gameTime.ElapsedGameTime.TotalSeconds);
                     player.Value.LastSequenceNumberProcessed = _playerUpdates[player.Key].SequenceNumber;
 
-                    if (_playerUpdates[player.Key].Input.DownPressed || _playerUpdates[player.Key].Input.UpPressed ||
-                        _playerUpdates[player.Key].Input.LeftPressed || _playerUpdates[player.Key].Input.RightPressed)
-                        Console.WriteLine("SERVER RECIEVED # " + _playerUpdates[player.Key] .SequenceNumber + " - POS:(" + _playerUpdates[player.Key].XPosition + "," + _playerUpdates[player.Key].YPosition + "), " +
-                            "ROT:" + _playerUpdates[player.Key].Rotation + ", SPEED:" + _playerUpdates[player.Key].Speed);
-
-                    player.Value.Update(gameTime);
+                    player.Value.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
                 }
             }
 
             if (sendPacketThisFrame)
             {
+                // Send a copy of the simulation on the server to all clients
                 for (int i = 0; i < ComponentClients.Count; i++)
                 {
                     foreach (KeyValuePair<string, Player> player in _players)
                     {
-                        PlayerUpdatePacket updatePacket = player.Value.BuildUpdatePacket();
+                        PlayerUpdatePacket updatePacket;
+                        updatePacket = player.Value.BuildUpdatePacket(); // Here we are using the servers values which makes it authorative over the clients
                         updatePacket.PlayerID = player.Key;
                         updatePacket.SequenceNumber = player.Value.LastSequenceNumberProcessed;
 
