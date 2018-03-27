@@ -10,7 +10,9 @@ namespace MultiplayerProject.Source
     public class MainGame : IScene
     {
         private Dictionary<string,Player> _players;
-        private Player _localPlayer;
+        private List<RemotePlayer> _remotePlayers;
+        private LocalPlayer _localPlayer;
+
         private Client _client;
 
         private EnemyManager _enemyManager;
@@ -27,17 +29,27 @@ namespace MultiplayerProject.Source
         public MainGame(int playerCount, string[] playerIDs, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
+            _remotePlayers = new List<RemotePlayer>();
+
             _client = client; 
 
             for (int i = 0; i < playerCount; i++)
             {
-                Player player = new Player();
-                player.NetworkID = playerIDs[i];
-
-                if (player.NetworkID == localClientID)
+                Player player; 
+                if (playerIDs[i] == localClientID)
                 {
-                    _localPlayer = player;
+                    var locPlay = new LocalPlayer();
+                    _localPlayer = locPlay;
+                    player = locPlay;
                 } 
+                else
+                {
+                    var remPlay = new RemotePlayer();
+                    _remotePlayers.Add(remPlay);
+                    player = remPlay;
+                }
+
+                player.NetworkID = playerIDs[i];
 
                 _players.Add(player.NetworkID, player);
             }
@@ -69,10 +81,10 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            foreach (KeyValuePair<string, Player> player in _players)
+            for (int i = 0; i < _remotePlayers.Count; i++)
             {
-                if (player.Value != _localPlayer) // Do not update the local player as we are already doing that in the input process
-                    player.Value.UpdateAnimation(gameTime);
+                _remotePlayers[i].UpdateRemote(Application.CLIENT_UPDATE_RATE, (float)gameTime.ElapsedGameTime.TotalSeconds);
+                _remotePlayers[i].UpdateAnimation(gameTime);
             }
 
             _backgroundManager.Update(gameTime);
@@ -173,7 +185,7 @@ namespace MultiplayerProject.Source
 
         private void OnRecievedPlayerUpdatePacket(PlayerUpdatePacket serverUpdate)
         {
-            if (Application.APPLY_CLIENT_SIDE_RECONCILLIATION &&
+            if (Application.APPLY_SERVER_RECONCILLIATION &&
                 serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0
                 && _updatePackets.Count > 0)
             {
@@ -222,8 +234,9 @@ namespace MultiplayerProject.Source
             }
             else
             {
-                Player remotePlayer = _players[serverUpdate.PlayerID];
-                remotePlayer.SetPlayerState(serverUpdate);
+                RemotePlayer remotePlayer = _players[serverUpdate.PlayerID] as RemotePlayer;
+                remotePlayer.SetUpdatePacket(serverUpdate);
+                //remotePlayer.SetPlayerState(serverUpdate);
             }
         }
 

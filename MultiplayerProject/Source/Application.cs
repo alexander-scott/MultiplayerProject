@@ -9,14 +9,25 @@ namespace MultiplayerProject
 {
     public class Application : Game
     {
+        #region Vars
+
         public static int WINDOW_HEIGHT = 480;
         public static int WINDOW_WIDTH = 800;
 
         public static bool APPLY_CLIENT_SIDE_PREDICTION = true;
-        public static bool APPLY_CLIENT_SIDE_RECONCILLIATION = true;
+        public static bool APPLY_SERVER_RECONCILLIATION = true;
+        public static bool APPLY_ENTITY_INTERPOLATION = true;
 
         public static int SERVER_UPDATE_RATE = 60 / 5; // Number of frames between packets
         public static int CLIENT_UPDATE_RATE = 60 / 30;
+
+        public static int PLAYER_STARTING_HEALTH = 100;
+        public static float PLAYER_ACCELERATION_SPEED = 12f;
+        public static float PLAYER_ROTATION_SPEED = 2f;
+        public static float PLAYER_MAX_SPEED = 15f;
+        public static float PLAYER_DECELERATION_AMOUNT = 0.95f;
+
+        #endregion
 
         private GraphicsDeviceManager   _graphics;
         private SpriteBatch             _spriteBatch;

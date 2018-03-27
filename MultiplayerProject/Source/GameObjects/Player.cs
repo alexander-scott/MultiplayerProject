@@ -18,8 +18,9 @@ namespace MultiplayerProject.Source
 
         public string NetworkID { get; set; }
         public int LastSequenceNumberProcessed { get; set; }
+        public KeyboardMovementInput LastKeyboardMovementInput { get; set; }
 
-        private struct ObjectState
+        public struct ObjectState
         {
             public Vector2 Position;
             public Vector2 Velocity;
@@ -30,13 +31,11 @@ namespace MultiplayerProject.Source
         // Animation representing the player
         private Animation PlayerAnimation;
 
-        private ObjectState PlayerState;
-
-        const int PLAYER_STARTING_HEALTH = 100;
-        const float PLAYER_ACCELERATION_SPEED = 12f;
-        const float PLAYER_ROTATION_SPEED = 2f;
-        const float PLAYER_MAX_SPEED = 15f;
-        const float PLAYER_DECELERATION_AMOUNT = 0.95f;
+        // This is the player state that is drawn onto the screen. It is gradually
+        // interpolated from the previousState toward the simultationState, in
+        // order to smooth out any sudden jumps caused by discontinuities when
+        // a network packet suddenly modifies the simultationState.
+        protected ObjectState PlayerState;
 
         public Player()
         {
@@ -48,7 +47,7 @@ namespace MultiplayerProject.Source
             Active = true;
 
             // Set the player health
-            Health = PLAYER_STARTING_HEALTH;
+            Health = Application.PLAYER_STARTING_HEALTH;
         }
 
         public void Initialize(ContentManager content)
@@ -75,21 +74,41 @@ namespace MultiplayerProject.Source
         public void Update(float deltaTime)
         {
             // Limit the max speed
-            if (PlayerState.Speed > PLAYER_MAX_SPEED)
-                PlayerState.Speed = PLAYER_MAX_SPEED;
-            else if (PlayerState.Speed < -PLAYER_MAX_SPEED)
-                PlayerState.Speed = -PLAYER_MAX_SPEED;
+            if (PlayerState.Speed > Application.PLAYER_MAX_SPEED)
+                PlayerState.Speed = Application.PLAYER_MAX_SPEED;
+            else if (PlayerState.Speed < -Application.PLAYER_MAX_SPEED)
+                PlayerState.Speed = -Application.PLAYER_MAX_SPEED;
 
             Vector2 direction = new Vector2((float)Math.Cos(PlayerState.Rotation),
                         (float)Math.Sin(PlayerState.Rotation));
             direction.Normalize();
 
             PlayerState.Position += direction * PlayerState.Speed;
-            PlayerState.Speed *= PLAYER_DECELERATION_AMOUNT;
+            PlayerState.Speed *= Application.PLAYER_DECELERATION_AMOUNT;
 
             // Make sure that the player does not go out of bounds
             PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, Application.WINDOW_WIDTH);
             PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, Application.WINDOW_HEIGHT);
+        }
+
+        public void Update(ref ObjectState state, float deltaTime)
+        {
+            // Limit the max speed
+            if (state.Speed > Application.PLAYER_MAX_SPEED)
+                state.Speed = Application.PLAYER_MAX_SPEED;
+            else if (state.Speed < -Application.PLAYER_MAX_SPEED)
+                state.Speed = -Application.PLAYER_MAX_SPEED;
+
+            Vector2 direction = new Vector2((float)Math.Cos(state.Rotation),
+                        (float)Math.Sin(state.Rotation));
+            direction.Normalize();
+
+            state.Position += direction * state.Speed;
+            state.Speed *= Application.PLAYER_DECELERATION_AMOUNT;
+
+            // Make sure that the player does not go out of bounds
+            state.Position.X = MathHelper.Clamp(state.Position.X, 0, Application.WINDOW_WIDTH);
+            state.Position.Y = MathHelper.Clamp(state.Position.Y, 0, Application.WINDOW_HEIGHT);
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -109,22 +128,45 @@ namespace MultiplayerProject.Source
         {
             if (input.DownPressed)
             {
-                PlayerState.Speed -= PLAYER_ACCELERATION_SPEED * deltaTime;
+                PlayerState.Speed -= Application.PLAYER_ACCELERATION_SPEED * deltaTime;
             }
 
             if (input.UpPressed)
             {
-                PlayerState.Speed += PLAYER_ACCELERATION_SPEED * deltaTime;
+                PlayerState.Speed += Application.PLAYER_ACCELERATION_SPEED * deltaTime;
             }
 
             if (input.LeftPressed)
             {
-                PlayerState.Rotation -= PLAYER_ROTATION_SPEED * deltaTime;
+                PlayerState.Rotation -= Application.PLAYER_ROTATION_SPEED * deltaTime;
             }
 
             if (input.RightPressed)
             {
-                PlayerState.Rotation += PLAYER_ROTATION_SPEED * deltaTime;
+                PlayerState.Rotation += Application.PLAYER_ROTATION_SPEED * deltaTime;
+            }
+        }
+
+        public void ApplyInputToPlayer(ref ObjectState state, KeyboardMovementInput input, float deltaTime)
+        {
+            if (input.DownPressed)
+            {
+                state.Speed -= Application.PLAYER_ACCELERATION_SPEED * deltaTime;
+            }
+
+            if (input.UpPressed)
+            {
+                state.Speed += Application.PLAYER_ACCELERATION_SPEED * deltaTime;
+            }
+
+            if (input.LeftPressed)
+            {
+                state.Rotation -= Application.PLAYER_ROTATION_SPEED * deltaTime;
+            }
+
+            if (input.RightPressed)
+            {
+                state.Rotation += Application.PLAYER_ROTATION_SPEED * deltaTime;
             }
         }
 

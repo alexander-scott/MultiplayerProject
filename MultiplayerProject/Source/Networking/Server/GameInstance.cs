@@ -105,6 +105,7 @@ namespace MultiplayerProject.Source
                 {              
                     player.Value.ApplyInputToPlayer(_playerUpdates[player.Key].Input, (float)gameTime.ElapsedGameTime.TotalSeconds);
                     player.Value.LastSequenceNumberProcessed = _playerUpdates[player.Key].SequenceNumber;
+                    player.Value.LastKeyboardMovementInput = _playerUpdates[player.Key].Input;
 
                     player.Value.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
                 }
@@ -121,6 +122,7 @@ namespace MultiplayerProject.Source
                         updatePacket = player.Value.BuildUpdatePacket(); // Here we are using the servers values which makes it authorative over the clients
                         updatePacket.PlayerID = player.Key;
                         updatePacket.SequenceNumber = player.Value.LastSequenceNumberProcessed;
+                        updatePacket.Input = player.Value.LastKeyboardMovementInput;
 
                         ComponentClients[i].SendPacketToClient(updatePacket, MessageType.GI_ServerSend_UpdateRemotePlayer);
                     }
