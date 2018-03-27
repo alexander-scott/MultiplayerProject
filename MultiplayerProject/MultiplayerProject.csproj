@@ -67,6 +67,7 @@
     <Compile Include="Source\Networking\Client\INetworkedObject.cs" />
     <Compile Include="Source\Networking\Client\LocalPlayer.cs" />
     <Compile Include="Source\Networking\Client\RemotePlayer.cs" />
+    <Compile Include="Source\Networking\Client\RollingAverage.cs" />
     <Compile Include="Source\Networking\NetworkConsts.cs" />
     <Compile Include="Source\Networking\Package.cs" />
     <Compile Include="Source\Networking\Server\GameInstance.cs" />
