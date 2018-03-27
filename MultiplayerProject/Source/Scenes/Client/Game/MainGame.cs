@@ -96,7 +96,7 @@ namespace MultiplayerProject.Source
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
 
-            _collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
+            //_collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
         }
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
@@ -173,8 +173,15 @@ namespace MultiplayerProject.Source
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                _laserManager.FireLaser(gameTime, _localPlayer.Position, _localPlayer.Rotation);
-                input.FirePressed = true;
+                if (_laserManager.FireLaser(gameTime, _localPlayer.Position, _localPlayer.Rotation))
+                {
+                    input.FirePressed = true;
+                    var dataPacket = _localPlayer.BuildUpdatePacket();
+                    PlayerFiredPacket packet = new PlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
+                    
+                    // Send the packet to the server
+                    _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerFiredPacket);
+                }
             }
 
             if (Application.APPLY_CLIENT_SIDE_PREDICTION)

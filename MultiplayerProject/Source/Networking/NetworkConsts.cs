@@ -70,6 +70,7 @@ namespace MultiplayerProject.Source
         GI_ServerSend_UpdateRemotePlayer,
         
         GI_ClientSend_PlayerUpdatePacket,
+        GI_ClientSend_PlayerFiredPacket,
     }
 
     public struct InputInformation
@@ -255,6 +256,25 @@ namespace MultiplayerProject.Source
             R = r;
             G = g;
             B = b;
+        }
+    }
+
+    [Serializable]
+    public class PlayerFiredPacket : BasePacket
+    {
+        public float XPosition { get; set; }
+        public float YPosition { get; set; }
+        public float Speed { get; set; }
+        public float Rotation { get; set; }
+        public string PlayerID { get; set; }
+
+        public PlayerFiredPacket(float xPosition, float yPosition, float speed,
+            float rotation) : base()
+        {
+            XPosition = xPosition;
+            YPosition = yPosition;
+            Speed = speed;
+            Rotation = rotation;
         }
     }
 }

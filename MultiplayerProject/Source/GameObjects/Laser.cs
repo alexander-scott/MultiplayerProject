@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
 {
-    class Laser
+    public class Laser : INetworkedObject
     {
         // animation the represents the laser animation.
         public Animation LaserAnimation;
@@ -28,6 +28,8 @@ namespace MultiplayerProject.Source
         {
             get { return LaserAnimation.FrameHeight; }
         }
+
+        public string NetworkID { get; set; }
 
         // the speed the laser travels
         private float _laserMoveSpeed = 30f;

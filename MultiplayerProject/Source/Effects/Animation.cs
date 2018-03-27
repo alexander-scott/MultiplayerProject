@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
 {
-    class Animation
+    public class Animation
     {
         // Width of a given frame
         public int FrameWidth;

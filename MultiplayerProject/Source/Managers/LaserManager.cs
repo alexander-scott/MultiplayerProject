@@ -6,13 +6,8 @@ using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
-    class LaserManager
+    public class LaserManager : INetworkedObject
     {
-        public List<Laser> Lasers
-        {
-            get { return _laserBeams; }
-        }
-
         private List<Laser> _laserBeams;
 
         // texture to hold the laser.
@@ -26,18 +21,19 @@ namespace MultiplayerProject.Source
         private const float RATE_OF_FIRE = 200f;
         private const float LASER_SPAWN_DISTANCE = 70f;
 
-        public LaserManager()
-        {
-        }
+        public string NetworkID { get; set; }
 
-        public void Initalise(ContentManager content)
+        public LaserManager()
         {
             // Init our laser
             _laserBeams = new List<Laser>();
 
             _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
             _previousLaserSpawnTime = TimeSpan.Zero;
+        }
 
+        public void Initalise(ContentManager content)
+        {
             // Load the texture to serve as the laser
             _laserTexture = content.Load<Texture2D>("laser");
         }
@@ -65,7 +61,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void FireLaser(GameTime gameTime, Vector2 position, float rotation)
+        public bool FireLaser(GameTime gameTime, Vector2 position, float rotation)
         {
             // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
@@ -73,7 +69,11 @@ namespace MultiplayerProject.Source
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
                 // Add the laer to our list.
                 AddLaser(position, rotation);
+
+                return true;
             }
+
+            return false;
         }
 
         public void AddLaser(Vector2 position, float rotation)

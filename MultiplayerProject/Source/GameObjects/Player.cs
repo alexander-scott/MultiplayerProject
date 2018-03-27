@@ -22,7 +22,7 @@ namespace MultiplayerProject.Source
 
         public struct ObjectState
         {
-            public Vector2 Position;
+            public Vector2 Position; // VECTOR2 NOT SERIALISABLE
             public Vector2 Velocity;
             public float Rotation;
             public float Speed;

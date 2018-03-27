@@ -5,6 +5,18 @@ using Microsoft.Xna.Framework;
 
 namespace MultiplayerProject.Source
 {
+    /*
+     HOW SYNCING LASER FIRING IS GOING TO WORK:
+     - On the client side, when fire is pressed, a local laser is fired immediately from the player ship. A network fire packet is sent to server and then sent to clients.
+     - No laser collision checks take place on the client side.
+
+     - On the server side, each 'Player' has a LaserManager instance. 
+     - When the server recieves the fire packet from the client, it updates it by the deltaTime between sending and recieving the packet, to sync it perfectly to the client
+     - All Player LaserManager's and their Laser's are updated every frame
+     - On the server side there is also a CollisionManager instance, checking for collisions between any any laser and any player.
+     - If there is a collision, send a player killed message back to all clients, triggering a death explosion on the client. Mark the player as dead on the server too.
+         
+         */
     public class GameInstance : IMessageable
     {
         private int framesSinceLastSend;
@@ -16,6 +28,8 @@ namespace MultiplayerProject.Source
 
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
         private Dictionary<string, Player> _players;
+
+        private LaserManager _laserManager;
 
         public GameInstance(List<ServerConnection> clients)
         {
@@ -34,6 +48,8 @@ namespace MultiplayerProject.Source
                 Player player = new Player();
                  _players[ComponentClients[i].ID] = player;             
             }
+
+            _laserManager = new LaserManager();
         }
 
         public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
@@ -45,6 +61,12 @@ namespace MultiplayerProject.Source
                         var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
                         packet.PlayerID = client.ID;
                         _playerUpdates[client.ID] = packet;
+                        break;
+                    }
+
+                case MessageType.GI_ClientSend_PlayerFiredPacket:
+                    {
+
                         break;
                     }
             }
