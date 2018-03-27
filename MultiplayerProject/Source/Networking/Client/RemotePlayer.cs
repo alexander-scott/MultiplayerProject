@@ -60,17 +60,20 @@ namespace MultiplayerProject.Source
 
             if (Application.APPLY_ENTITY_INTERPOLATION && _updatePacket != null)
             {
-                // Predict how the remote tank will move by updating
-                // our local copy of its simultation state.
-                ApplyInputToPlayer(ref simulationState, _updatePacket.Input, deltaTime);
-                Update(ref simulationState, deltaTime);
-
-                // If both smoothing and prediction are active,
-                // also apply prediction to the previous state.
-                if (_currentSmoothing > 0)
+                if (_updatePacket.Input != null)
                 {
-                    ApplyInputToPlayer(ref previousState, _updatePacket.Input, deltaTime);
-                    Update(ref previousState, deltaTime);
+                    // Predict how the remote tank will move by updating
+                    // our local copy of its simultation state.
+                    ApplyInputToPlayer(ref simulationState, _updatePacket.Input, deltaTime);
+                    Update(ref simulationState, deltaTime);
+
+                    // If both smoothing and prediction are active,
+                    // also apply prediction to the previous state.
+                    if (_currentSmoothing > 0)
+                    {
+                        ApplyInputToPlayer(ref previousState, _updatePacket.Input, deltaTime);
+                        Update(ref previousState, deltaTime);
+                    }
                 }
             }
 
@@ -78,7 +81,7 @@ namespace MultiplayerProject.Source
             {
                 // Interpolate the display state gradually from the
                 // previous state to the current simultation state.
-                ApplySmoothing();
+                
             }
             else
             {

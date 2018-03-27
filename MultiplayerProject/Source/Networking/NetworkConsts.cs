@@ -184,17 +184,20 @@ namespace MultiplayerProject.Source
     {
         public int PlayerCount { get; set; }
         public string[] PlayerIDs { get; set; }
+        public PlayerColour[] PlayerColours { get; set; }
         public string LocalPlayerID { get; set; }
 
-        public GameInstanceInformation(int playerCount, List<ServerConnection> players, string localPlayerID) : base()
+        public GameInstanceInformation(int playerCount, List<ServerConnection> players, List<Color> playerColours, string localPlayerID) : base()
         {
             PlayerCount = playerCount;
             LocalPlayerID = localPlayerID;
 
             PlayerIDs = new string[PlayerCount];
+            PlayerColours = new PlayerColour[PlayerCount];
             for (int i = 0; i < PlayerCount; i++)
             {
                 PlayerIDs[i] = players[i].ID;
+                PlayerColours[i] = new PlayerColour(playerColours[i].R, playerColours[i].G, playerColours[i].B);
             }
         }
     }
@@ -237,6 +240,21 @@ namespace MultiplayerProject.Source
             UpPressed = false;
             DownPressed = false;
             FirePressed = false;
+        }
+    }
+
+    [Serializable]
+    public class PlayerColour
+    {
+        public int R;
+        public int G;
+        public int B;
+
+        public PlayerColour(int r, int g, int b)
+        {
+            R = r;
+            G = g;
+            B = b;
         }
     }
 }

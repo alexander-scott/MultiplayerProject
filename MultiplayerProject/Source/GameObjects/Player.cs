@@ -50,12 +50,12 @@ namespace MultiplayerProject.Source
             Health = Application.PLAYER_STARTING_HEALTH;
         }
 
-        public void Initialize(ContentManager content)
+        public void Initialize(ContentManager content, PlayerColour colour)
         {
             // Load the player resources
             Animation playerAnimation = new Animation();
             Texture2D playerTexture = content.Load<Texture2D>("shipAnimation");
-            playerAnimation.Initialize(playerTexture, Vector2.Zero, 0, 115, 69, 8, 30, Color.White, 1f, true);
+            playerAnimation.Initialize(playerTexture, Vector2.Zero, 0, 115, 69, 8, 30, new Color(colour.R, colour.G, colour.B), 1f, true);
 
             PlayerAnimation = playerAnimation;
         }
@@ -73,22 +73,7 @@ namespace MultiplayerProject.Source
 
         public void Update(float deltaTime)
         {
-            // Limit the max speed
-            if (PlayerState.Speed > Application.PLAYER_MAX_SPEED)
-                PlayerState.Speed = Application.PLAYER_MAX_SPEED;
-            else if (PlayerState.Speed < -Application.PLAYER_MAX_SPEED)
-                PlayerState.Speed = -Application.PLAYER_MAX_SPEED;
-
-            Vector2 direction = new Vector2((float)Math.Cos(PlayerState.Rotation),
-                        (float)Math.Sin(PlayerState.Rotation));
-            direction.Normalize();
-
-            PlayerState.Position += direction * PlayerState.Speed;
-            PlayerState.Speed *= Application.PLAYER_DECELERATION_AMOUNT;
-
-            // Make sure that the player does not go out of bounds
-            PlayerState.Position.X = MathHelper.Clamp(PlayerState.Position.X, 0, Application.WINDOW_WIDTH);
-            PlayerState.Position.Y = MathHelper.Clamp(PlayerState.Position.Y, 0, Application.WINDOW_HEIGHT);
+            Update(ref PlayerState, deltaTime);
         }
 
         public void Update(ref ObjectState state, float deltaTime)
@@ -126,25 +111,7 @@ namespace MultiplayerProject.Source
 
         public void ApplyInputToPlayer(KeyboardMovementInput input, float deltaTime)
         {
-            if (input.DownPressed)
-            {
-                PlayerState.Speed -= Application.PLAYER_ACCELERATION_SPEED * deltaTime;
-            }
-
-            if (input.UpPressed)
-            {
-                PlayerState.Speed += Application.PLAYER_ACCELERATION_SPEED * deltaTime;
-            }
-
-            if (input.LeftPressed)
-            {
-                PlayerState.Rotation -= Application.PLAYER_ROTATION_SPEED * deltaTime;
-            }
-
-            if (input.RightPressed)
-            {
-                PlayerState.Rotation += Application.PLAYER_ROTATION_SPEED * deltaTime;
-            }
+            ApplyInputToPlayer(ref PlayerState, input, deltaTime);
         }
 
         public void ApplyInputToPlayer(ref ObjectState state, KeyboardMovementInput input, float deltaTime)

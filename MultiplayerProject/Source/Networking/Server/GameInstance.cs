@@ -5,39 +5,6 @@ using Microsoft.Xna.Framework;
 
 namespace MultiplayerProject.Source
 {
-    /*
-     HOW THIS WILL BE ACHIEVED STEP 1:
-     - Create a list of player objects in the main game. One of these player is a local player. 
-        Rest are remote players with ID that aren't affected by local inputs.
-     - Local inputs move local player instantly.
-     Every 6 frames (adjustable interval) local player will send an update packet to this server. This packet will contain:
-     - gameTime.TotalGameTime.TotalSeconds
-     - player.Position
-     - player.Velocity
-     - player.Rotation
-     - currentKeyboardInput
-
-    HOW THIS WILL BE ACHIEVED STEP 2:
-    - At a select interval the server will send the update packet of remote players to the other players
-    - When the local client recieves the update packet it will set the respective players position/rotation to
-        contents of the packet.
-
-    HOW THIS WILL BE ACHIEVED STEP 3:
-    - The server will apply prediction and smoothing to the player packets it recieves in an effort to reduce
-        latency and lag
-    - Alternatively the clients could do the prediction and smoothing and the server could simply just act as a 
-        messaging service. However this would make the server unauthoratitive.
-
-
-
-        SERVER RECONCILLIATION:
-        Client or MainGame will keep a list of update packets it has sent to the server. Each update packet has an ID
-        or sequence number. When it recieves an update back from the server, it checks the last sequence number the
-        server was able to process. Then the client will edit the list, removing all entries up to last sequence number
-        that the server processed. The client will then iterate over the list of update packets it has saved up, performing
-        the list of inputs again, except this time it starts from the processed packet the server sent back.
-         
-         */
     public class GameInstance : IMessageable
     {
         private int framesSinceLastSend;
@@ -56,10 +23,12 @@ namespace MultiplayerProject.Source
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _players = new Dictionary<string, Player>();
 
+            var playerColours = GenerateRandomColours(clients.Count);
+
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 ComponentClients[i].AddServerComponent(this);
-                ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
+                ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
                 _playerUpdates[ComponentClients[i].ID] = null;
 
                 Player player = new Player();
@@ -128,6 +97,36 @@ namespace MultiplayerProject.Source
                     }
                 }
             }
+        }
+
+        private List<Color> GenerateRandomColours(int playerCount)
+        {
+            var returnList = new List<Color>();
+            for (int i = 0; i < playerCount && i < WaitingRoom.MAX_PEOPLE_PER_ROOM; i++)
+            {
+                switch(i)
+                {
+                    case 0:
+                        returnList.Add(Color.White);
+                        break;
+                    case 1:
+                        returnList.Add(Color.Red);
+                        break;
+                    case 2:
+                        returnList.Add(Color.Blue);
+                        break;
+                    case 3:
+                        returnList.Add(Color.Green);
+                        break;
+                    case 4:
+                        returnList.Add(Color.Aqua);
+                        break;
+                    case 5:
+                        returnList.Add(Color.Pink);
+                        break;
+                }
+            }
+            return returnList;
         }
     }
 }

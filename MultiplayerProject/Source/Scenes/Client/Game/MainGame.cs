@@ -12,6 +12,7 @@ namespace MultiplayerProject.Source
         private Dictionary<string,Player> _players;
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
+        private PlayerColour[] _playerColours;
 
         private Client _client;
 
@@ -26,11 +27,12 @@ namespace MultiplayerProject.Source
         private int _packetNumber = -1;
         private Queue<PlayerUpdatePacket> _updatePackets;
 
-        public MainGame(int playerCount, string[] playerIDs, string localClientID, Client client)
+        public MainGame(int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
             _remotePlayers = new List<RemotePlayer>();
 
+            _playerColours = playerColours;
             _client = client; 
 
             for (int i = 0; i < playerCount; i++)
@@ -68,9 +70,11 @@ namespace MultiplayerProject.Source
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
+            int index = 0;
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                player.Value.Initialize(content);
+                player.Value.Initialize(content, _playerColours[index]);
+                index++;
             }
 
             _enemyManager.Initalise(content);
@@ -236,7 +240,6 @@ namespace MultiplayerProject.Source
             {
                 RemotePlayer remotePlayer = _players[serverUpdate.PlayerID] as RemotePlayer;
                 remotePlayer.SetUpdatePacket(serverUpdate);
-                //remotePlayer.SetPlayerState(serverUpdate);
             }
         }
 

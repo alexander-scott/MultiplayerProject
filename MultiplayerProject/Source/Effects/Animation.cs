@@ -121,7 +121,7 @@ namespace MultiplayerProject.Source
             if (Active)
             {
                 Vector2 origin = new Vector2(FrameWidth / 2, FrameHeight / 2);
-                spriteBatch.Draw(_spriteStrip, Position, _sourceRect, Color.White, Rotation, origin, 1, SpriteEffects.None, 0);
+                spriteBatch.Draw(_spriteStrip, Position, _sourceRect, _color, Rotation, origin, 1, SpriteEffects.None, 0);
             }
         }
     }

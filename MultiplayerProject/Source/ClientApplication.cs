@@ -83,12 +83,14 @@ namespace MultiplayerProject.Source
 
         public void OnExiting()
         {
+            // Tell the server we are disconnecting
             _client.SendMessageToServer(new BasePacket(), MessageType.Client_Disconnect);
             _client.Stop();
         }
 
         private void Client_OnDisconnectedFromServer()
         {
+            // The server has disconnected for some reason so we shall return to the main menu
             OnRequestToReturnToMainMenu();
 
             Console.WriteLine("Disconnected from server");
@@ -98,7 +100,7 @@ namespace MultiplayerProject.Source
         private void ClientMessenger_OnLoadNewGame(GameInstanceInformation gameInstance)
         {
             _sceneLoading = true;
-            _currentScene = new MainGame(gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.LocalPlayerID, _client);
+            _currentScene = new MainGame(gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
             _sceneLoading = false;
         }
