@@ -18,11 +18,23 @@ namespace MultiplayerProject.Source
         public int Width { get { return EnemyAnimation.FrameWidth; } }
         public int Height { get { return EnemyAnimation.FrameHeight; } }
 
+        public string EnemyID { get; set; }
+
         const float ENEMY_MOVE_SPEED = 6f;
 
         const int ENEMY_STARTING_HEALTH = 10;
         const int ENEMY_DAMAGE = 10;
         const int ENEMY_DEATH_SCORE_INCREASE = 100;
+
+        public Enemy()
+        {
+            EnemyID = Guid.NewGuid().ToString();
+        }
+
+        public Enemy(string ID)
+        {
+            EnemyID = ID;
+        }
 
         public void Initialize(Animation animation, Vector2 position)
         {    

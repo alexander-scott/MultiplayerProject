@@ -66,6 +66,7 @@ namespace MultiplayerProject.Source
 
             ClientMessenger.OnRecievedPlayerUpdatePacket += OnRecievedPlayerUpdatePacket;
             ClientMessenger.OnRecievedPlayerFiredPacket += ClientMessenger_OnRecievedPlayerFiredPacket;
+            ClientMessenger.OnEnemySpawnedPacket += ClientMessenger_OnEnemySpawnedPacket;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -253,6 +254,11 @@ namespace MultiplayerProject.Source
             {
                 _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID, _playerColours[playerUpdate.PlayerID]);
             }
+        }
+
+        private void ClientMessenger_OnEnemySpawnedPacket(EnemySpawnedPacket enemySpawn)
+        {
+            
         }
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)

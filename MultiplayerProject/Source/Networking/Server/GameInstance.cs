@@ -136,7 +136,16 @@ namespace MultiplayerProject.Source
             if (gameTime.TotalGameTime - _previousEnemySpawnTime > _enemySpawnTime)
             {
                 _previousEnemySpawnTime = gameTime.TotalGameTime;
-                _enemyManager.AddEnemy();
+
+                var enemy = _enemyManager.AddEnemy();
+
+                for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients
+                {
+                    EnemySpawnedPacket packet = new EnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID);
+                    packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
+
+                    ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemySpawn);
+                }
             }
 
             _enemyManager.Update(gameTime);

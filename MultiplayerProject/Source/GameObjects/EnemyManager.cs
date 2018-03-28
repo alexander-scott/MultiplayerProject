@@ -55,7 +55,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void AddEnemy()
+        public Enemy AddEnemy()
         {
             // Create the animation object
             Animation enemyAnimation = new Animation();
@@ -75,6 +75,8 @@ namespace MultiplayerProject.Source
 
             // Add the enemy to the active enemies list
             _enemies.Add(enemy);
+
+            return enemy;
         }
     }
 }

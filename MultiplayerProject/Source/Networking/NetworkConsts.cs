@@ -12,6 +12,7 @@ namespace MultiplayerProject.Source
     public delegate void GameRoomDelegate(GameInstanceInformation gameRoom);
     public delegate void PlayerUpdateDelegate(PlayerUpdatePacket playerUpdate);
     public delegate void PlayerFiredDelegate(PlayerFiredPacket playerUpdate);
+    public delegate void EnemySpawnedDelegate(EnemySpawnedPacket enemySpawn);
 
     public enum ApplicationType
     {
@@ -74,6 +75,7 @@ namespace MultiplayerProject.Source
         GI_ClientSend_PlayerFiredPacket,
 
         GI_ServerSend_RemotePlayerFiredPacket,
+        GI_ServerSend_EnemySpawn,
     }
 
     public struct InputInformation
@@ -280,6 +282,22 @@ namespace MultiplayerProject.Source
             YPosition = yPosition;
             Speed = speed;
             Rotation = rotation;
+        }
+    }
+
+    [Serializable]
+    public class EnemySpawnedPacket : BasePacket
+    {
+        public float TotalGameTime { get; set; }
+        public float XPosition { get; set; }
+        public float YPosition { get; set; }
+        public string EnemyID { get; set; }
+
+        public EnemySpawnedPacket(float xPos, float yPos, string enemyID) :base()
+        {
+            XPosition = xPos;
+            YPosition = yPos;
+            EnemyID = enemyID;
         }
     }
 }
