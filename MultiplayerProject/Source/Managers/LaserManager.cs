@@ -45,7 +45,7 @@ namespace MultiplayerProject.Source
             {
                 _laserBeams[i].Update(gameTime);
                 // Remove the beam when its deactivated or is at the end of the screen.
-                if (!_laserBeams[i].Active || _laserBeams[i].Position.X > Application.WINDOW_WIDTH)
+                if (!_laserBeams[i].Active)
                 {
                     _laserBeams.Remove(_laserBeams[i]);
                 }
@@ -61,7 +61,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public bool FireLaser(GameTime gameTime, Vector2 position, float rotation)
+        public bool FireLaserClient(GameTime gameTime, Vector2 position, float rotation)
         {
             // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
@@ -76,7 +76,24 @@ namespace MultiplayerProject.Source
             return false;
         }
 
-        public void AddLaser(Vector2 position, float rotation)
+        public bool FireLaserServer(double totalGameSeconds, float deltaTime, Vector2 position, float rotation)
+        {
+            // Govern the rate of fire for our lasers
+            if (totalGameSeconds - _previousLaserSpawnTime.TotalSeconds > _laserSpawnTime.TotalSeconds)
+            {
+                _previousLaserSpawnTime = TimeSpan.FromSeconds(totalGameSeconds);
+
+                // Add the laser to our list.
+                var laser = AddLaser(position, rotation);
+                laser.Update(deltaTime); // Update it so it's in the correct position on the server as it is on the client
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public Laser AddLaser(Vector2 position, float rotation)
         {
             Animation laserAnimation = new Animation();
             // Initlize the laser animation
@@ -103,6 +120,8 @@ namespace MultiplayerProject.Source
             // Init the laser
             laser.Initialize(laserAnimation, laserPostion, rotation);
             _laserBeams.Add(laser);
+
+            return laser;
         }
     }
 }

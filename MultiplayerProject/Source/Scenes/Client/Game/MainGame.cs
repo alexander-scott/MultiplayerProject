@@ -66,6 +66,7 @@ namespace MultiplayerProject.Source
             _collisionManager = new CollisionManager();
 
             ClientMessenger.OnRecievedPlayerUpdatePacket += OnRecievedPlayerUpdatePacket;
+            ClientMessenger.OnRecievedPlayerFiredPacket += ClientMessenger_OnRecievedPlayerFiredPacket;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -117,7 +118,7 @@ namespace MultiplayerProject.Source
 
             // Build an update packet from the input and player values
             PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
-            packet.TotalGameTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            packet.DeltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             packet.Input = condensedInput;
             packet.SequenceNumber = _packetNumber++;
 
@@ -173,11 +174,12 @@ namespace MultiplayerProject.Source
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                if (_laserManager.FireLaser(gameTime, _localPlayer.Position, _localPlayer.Rotation))
+                if (_laserManager.FireLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation))
                 {
                     input.FirePressed = true;
                     var dataPacket = _localPlayer.BuildUpdatePacket();
                     PlayerFiredPacket packet = new PlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
+                    packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds; // TOTAL GAME TIME NOT ELAPSED TIME!
                     
                     // Send the packet to the server
                     _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerFiredPacket);
@@ -213,7 +215,7 @@ namespace MultiplayerProject.Source
 
                     PlayerUpdatePacket removedPacket = _updatePackets.Dequeue(); // Remove the first one which we are replacing with the serverUpdate
 
-                    serverUpdate.TotalGameTime = removedPacket.TotalGameTime;
+                    serverUpdate.DeltaTime = removedPacket.DeltaTime;
                     newQueue.Enqueue(serverUpdate);
                     updateList.Add(serverUpdate);
 
@@ -230,7 +232,7 @@ namespace MultiplayerProject.Source
                         return;
 
                     _localPlayer.SetPlayerState(updateList[0]);
-                    _localPlayer.Update(updateList[0].TotalGameTime);
+                    _localPlayer.Update(updateList[0].DeltaTime);
 
                     if (updateList.Count == 1)
                         return;
@@ -238,8 +240,8 @@ namespace MultiplayerProject.Source
                     // Now we must perform the previous inputs again
                     for (int i = 1; i < updateList.Count; i++)
                     {
-                        _localPlayer.ApplyInputToPlayer(updateList[i].Input, updateList[i].TotalGameTime);
-                        _localPlayer.Update(updateList[i].TotalGameTime);
+                        _localPlayer.ApplyInputToPlayer(updateList[i].Input, updateList[i].DeltaTime);
+                        _localPlayer.Update(updateList[i].DeltaTime);
                     }
                 }
             }
@@ -247,6 +249,14 @@ namespace MultiplayerProject.Source
             {
                 RemotePlayer remotePlayer = _players[serverUpdate.PlayerID] as RemotePlayer;
                 remotePlayer.SetUpdatePacket(serverUpdate);
+            }
+        }
+
+        private void ClientMessenger_OnRecievedPlayerFiredPacket(PlayerFiredPacket playerUpdate)
+        {
+            if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
+            {
+
             }
         }
 

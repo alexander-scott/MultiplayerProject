@@ -27,14 +27,15 @@ namespace MultiplayerProject.Source
         public List<ServerConnection> ComponentClients { get; set; }
 
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
+        private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, Player> _players;
-
-        private LaserManager _laserManager;
 
         public GameInstance(List<ServerConnection> clients)
         {
             ComponentClients = clients;
+
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
+            _playerLasers = new Dictionary<string, LaserManager>();
             _players = new Dictionary<string, Player>();
 
             var playerColours = GenerateRandomColours(clients.Count);
@@ -44,12 +45,11 @@ namespace MultiplayerProject.Source
                 ComponentClients[i].AddServerComponent(this);
                 ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
                 _playerUpdates[ComponentClients[i].ID] = null;
+                _playerLasers[ComponentClients[i].ID] = new LaserManager();
 
                 Player player = new Player();
                  _players[ComponentClients[i].ID] = player;             
             }
-
-            _laserManager = new LaserManager();
         }
 
         public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
@@ -66,7 +66,18 @@ namespace MultiplayerProject.Source
 
                 case MessageType.GI_ClientSend_PlayerFiredPacket:
                     {
+                        var packet = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
+                        packet.PlayerID = client.ID;
 
+                        var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
+
+                        if (_playerLasers[client.ID].FireLaserServer(packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation))
+                        {
+                            for (int i = 0; i < ComponentClients.Count; i++)
+                            {
+                                ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFiredPacket);
+                            }
+                        }
                         break;
                     }
             }
@@ -99,6 +110,11 @@ namespace MultiplayerProject.Source
                     player.Value.LastKeyboardMovementInput = _playerUpdates[player.Key].Input;
 
                     player.Value.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+                }
+
+                if (_playerLasers[player.Key] != null)
+                {
+                    _playerLasers[player.Key].Update(gameTime);
                 }
             }
 
