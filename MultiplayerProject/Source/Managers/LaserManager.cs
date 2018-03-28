@@ -9,6 +9,7 @@ namespace MultiplayerProject.Source
     public class LaserManager : INetworkedObject
     {
         private List<Laser> _laserBeams;
+        private Dictionary<string, List<Laser>> _playerLasers;
 
         // texture to hold the laser.
         private Texture2D _laserTexture;
@@ -27,6 +28,7 @@ namespace MultiplayerProject.Source
         {
             // Init our laser
             _laserBeams = new List<Laser>();
+            _playerLasers = new Dictionary<string, List<Laser>>();
 
             _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
             _previousLaserSpawnTime = TimeSpan.Zero;
@@ -61,7 +63,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public bool FireLaserClient(GameTime gameTime, Vector2 position, float rotation)
+        public bool FireLocalLaserClient(GameTime gameTime, Vector2 position, float rotation)
         {
             // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
@@ -74,6 +76,18 @@ namespace MultiplayerProject.Source
             }
 
             return false;
+        }
+
+        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID)
+        {
+            var laser = AddLaser(position, rotation);
+
+            if (!_playerLasers.ContainsKey(playerID))
+            {
+                _playerLasers.Add(playerID, new List<Laser>());
+            }
+
+            _playerLasers[playerID].Add(laser);
         }
 
         public bool FireLaserServer(double totalGameSeconds, float deltaTime, Vector2 position, float rotation)

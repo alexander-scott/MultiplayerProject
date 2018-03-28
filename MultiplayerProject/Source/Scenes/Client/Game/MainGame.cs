@@ -174,7 +174,7 @@ namespace MultiplayerProject.Source
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                if (_laserManager.FireLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation))
+                if (_laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation))
                 {
                     input.FirePressed = true;
                     var dataPacket = _localPlayer.BuildUpdatePacket();
@@ -256,7 +256,7 @@ namespace MultiplayerProject.Source
         {
             if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
             {
-
+                _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID);
             }
         }
 
