@@ -52,7 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Source\ClientApplication.cs" />
-    <Compile Include="Source\Collisions\Collision.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
     <Compile Include="Source\GameObjects\Enemy.cs" />
     <Compile Include="Source\GameObjects\Explosion.cs" />

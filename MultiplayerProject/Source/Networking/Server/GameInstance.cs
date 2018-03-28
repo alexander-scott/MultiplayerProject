@@ -75,7 +75,7 @@ namespace MultiplayerProject.Source
 
                         var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
 
-                        var laser = _playerLasers[client.ID].FireLaserServer(packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation, packet.LaserID);
+                        var laser = _playerLasers[client.ID].FireLaserServer(packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation, packet.LaserID, packet.PlayerID);
                         if (laser != null)
                         {
                             for (int i = 0; i < ComponentClients.Count; i++)

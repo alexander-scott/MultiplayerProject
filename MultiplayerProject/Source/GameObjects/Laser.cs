@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
 {
-    public class Laser : INetworkedObject
+    public class Laser
     {
         // animation the represents the laser animation.
         public Animation LaserAnimation;
@@ -29,8 +29,7 @@ namespace MultiplayerProject.Source
             get { return LaserAnimation.FrameHeight; }
         }
 
-        public string NetworkID { get; set; }
-
+        public string PlayerFiredID { get; set; }
         public string LaserID { get; set; }
 
         // the speed the laser travels
@@ -42,11 +41,13 @@ namespace MultiplayerProject.Source
         public Laser()
         {
             LaserID = Guid.NewGuid().ToString();
+            PlayerFiredID = "";
         }
 
-        public Laser(string ID)
+        public Laser(string ID, string playerFiredID)
         {
             LaserID = ID;
+            PlayerFiredID = playerFiredID;
         }
 
         public void Initialize(Animation animation, Vector2 position, float rotation)

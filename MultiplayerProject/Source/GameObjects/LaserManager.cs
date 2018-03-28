@@ -70,17 +70,17 @@ namespace MultiplayerProject.Source
             {
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
                 // Add the laer to our list.
-                return AddLaser(position, rotation, "", colour);
+                return AddLaser(position, rotation, "", "", colour);
             }
 
             return null;
         }
 
-        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID, DateTime originalTimeFired, string ID, PlayerColour colour)
+        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID, DateTime originalTimeFired, string laserID, PlayerColour colour)
         {
             var timeDifference = (originalTimeFired - DateTime.UtcNow).TotalSeconds;
 
-            var laser = AddLaser(position, rotation, ID, colour);
+            var laser = AddLaser(position, rotation, laserID, playerID, colour);
             laser.Update((float)timeDifference); // Update it to match the true position
 
             if (!_playerLasers.ContainsKey(playerID))
@@ -91,7 +91,7 @@ namespace MultiplayerProject.Source
             _playerLasers[playerID].Add(laser);
         }
 
-        public Laser FireLaserServer(double totalGameSeconds, float deltaTime, Vector2 position, float rotation, string ID)
+        public Laser FireLaserServer(double totalGameSeconds, float deltaTime, Vector2 position, float rotation, string laserID, string playerFiredID)
         {
             // Govern the rate of fire for our lasers
             if (totalGameSeconds - _previousLaserSpawnTime.TotalSeconds > _laserSpawnTime.TotalSeconds)
@@ -99,7 +99,7 @@ namespace MultiplayerProject.Source
                 _previousLaserSpawnTime = TimeSpan.FromSeconds(totalGameSeconds);
 
                 // Add the laser to our list.
-                var laser = AddLaser(position, rotation, ID, new PlayerColour(255, 255, 255));
+                var laser = AddLaser(position, rotation, laserID, playerFiredID, new PlayerColour(255, 255, 255));
                 laser.Update(deltaTime); // Update it so it's in the correct position on the server as it is on the client
 
                 return laser;
@@ -108,7 +108,7 @@ namespace MultiplayerProject.Source
             return null;
         }
 
-        public Laser AddLaser(Vector2 position, float rotation, string ID, PlayerColour colour)
+        public Laser AddLaser(Vector2 position, float rotation, string laserID, string playerFiredID, PlayerColour colour)
         {
             Animation laserAnimation = new Animation();
             // Initlize the laser animation
@@ -124,10 +124,10 @@ namespace MultiplayerProject.Source
                 true);
 
             Laser laser;
-            if (string.IsNullOrEmpty(ID))
+            if (string.IsNullOrEmpty(laserID))
                 laser = new Laser();
             else
-                laser = new Laser(ID);
+                laser = new Laser(laserID, playerFiredID);
 
             Vector2 direction = new Vector2((float)Math.Cos(rotation),
                                      (float)Math.Sin(rotation));
