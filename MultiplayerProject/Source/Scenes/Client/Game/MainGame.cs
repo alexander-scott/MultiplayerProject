@@ -12,7 +12,7 @@ namespace MultiplayerProject.Source
         private Dictionary<string,Player> _players;
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
-        private PlayerColour[] _playerColours;
+        private Dictionary<string, PlayerColour> _playerColours;
 
         private Client _client;
 
@@ -30,9 +30,9 @@ namespace MultiplayerProject.Source
         public MainGame(int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
+            _playerColours = new Dictionary<string, PlayerColour>();
             _remotePlayers = new List<RemotePlayer>();
 
-            _playerColours = playerColours;
             _client = client; 
 
             for (int i = 0; i < playerCount; i++)
@@ -52,6 +52,7 @@ namespace MultiplayerProject.Source
                 }
 
                 player.NetworkID = playerIDs[i];
+                _playerColours.Add(playerIDs[i], playerColours[i]);
 
                 _players.Add(player.NetworkID, player);
             }
@@ -71,11 +72,9 @@ namespace MultiplayerProject.Source
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            int index = 0;
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                player.Value.Initialize(content, _playerColours[index]);
-                index++;
+                player.Value.Initialize(content, _playerColours[player.Key]);
             }
 
             _enemyManager.Initalise(content);
@@ -174,7 +173,7 @@ namespace MultiplayerProject.Source
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                var laser = _laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation);
+                var laser = _laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation, _playerColours[_localPlayer.NetworkID]);
                 if (laser != null)
                 {
                     input.FirePressed = true;
@@ -258,7 +257,7 @@ namespace MultiplayerProject.Source
         {
             if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
             {
-                _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID);
+                _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID, _playerColours[playerUpdate.PlayerID]);
             }
         }
 
