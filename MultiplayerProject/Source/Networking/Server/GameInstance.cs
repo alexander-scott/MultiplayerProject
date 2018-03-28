@@ -5,6 +5,18 @@ using Microsoft.Xna.Framework;
 
 namespace MultiplayerProject.Source
 {
+    /*
+     HOW SYNCING LASER FIRING IS GOING TO WORK:
+     - On the client side, when fire is pressed, a local laser is fired immediately from the player ship. A network fire packet is sent to server and then sent to clients.
+     - No laser collision checks take place on the client side.
+
+     - On the server side, each 'Player' has a LaserManager instance. 
+     - When the server recieves the fire packet from the client, it updates it by the deltaTime between sending and recieving the packet, to sync it perfectly to the client
+     - All Player LaserManager's and their Laser's are updated every frame
+     - On the server side there is also a CollisionManager instance, checking for collisions between any any laser and any player.
+     - If there is a collision, send a player killed message back to all clients, triggering a death explosion on the client. Mark the player as dead on the server too.
+         
+         */
     public class GameInstance : IMessageable
     {
         private int framesSinceLastSend;
@@ -15,13 +27,20 @@ namespace MultiplayerProject.Source
         public List<ServerConnection> ComponentClients { get; set; }
 
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
+        private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, Player> _players;
+
+        private CollisionManager _collisionManager;
 
         public GameInstance(List<ServerConnection> clients)
         {
             ComponentClients = clients;
+
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
+            _playerLasers = new Dictionary<string, LaserManager>();
             _players = new Dictionary<string, Player>();
+
+            _collisionManager = new CollisionManager();
 
             var playerColours = GenerateRandomColours(clients.Count);
 
@@ -30,8 +49,10 @@ namespace MultiplayerProject.Source
                 ComponentClients[i].AddServerComponent(this);
                 ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
                 _playerUpdates[ComponentClients[i].ID] = null;
+                _playerLasers[ComponentClients[i].ID] = new LaserManager();
 
                 Player player = new Player();
+                player.NetworkID = ComponentClients[i].ID;
                  _players[ComponentClients[i].ID] = player;             
             }
         }
@@ -45,6 +66,24 @@ namespace MultiplayerProject.Source
                         var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
                         packet.PlayerID = client.ID;
                         _playerUpdates[client.ID] = packet;
+                        break;
+                    }
+
+                case MessageType.GI_ClientSend_PlayerFiredPacket:
+                    {
+                        var packet = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
+                        packet.PlayerID = client.ID;
+
+                        var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
+
+                        var laser = _playerLasers[client.ID].FireLaserServer(packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation, packet.LaserID, packet.PlayerID);
+                        if (laser != null)
+                        {
+                            for (int i = 0; i < ComponentClients.Count; i++)
+                            {
+                                ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFiredPacket);
+                            }
+                        }
                         break;
                     }
             }
@@ -78,7 +117,14 @@ namespace MultiplayerProject.Source
 
                     player.Value.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
                 }
+
+                if (_playerLasers[player.Key] != null)
+                {
+                    _playerLasers[player.Key].Update(gameTime);
+                }
             }
+
+            _collisionManager.CheckCollision(_players.Values.ToList(), new List<Enemy>(), GetActiveLasers());
 
             if (sendPacketThisFrame)
             {
@@ -127,6 +173,18 @@ namespace MultiplayerProject.Source
                 }
             }
             return returnList;
+        }
+
+        private List<Laser> GetActiveLasers()
+        {
+            List<Laser> lasers = new List<Laser>();
+
+            foreach (KeyValuePair<string, LaserManager> laserManager in _playerLasers)
+            { 
+                lasers.AddRange(laserManager.Value.Lasers);
+            }
+
+            return lasers;
         }
     }
 }

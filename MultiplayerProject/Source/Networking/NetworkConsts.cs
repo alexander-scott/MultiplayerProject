@@ -11,6 +11,7 @@ namespace MultiplayerProject.Source
     public delegate void WaitingRoomDelegate(WaitingRoomInformation waitingRoom);
     public delegate void GameRoomDelegate(GameInstanceInformation gameRoom);
     public delegate void PlayerUpdateDelegate(PlayerUpdatePacket playerUpdate);
+    public delegate void PlayerFiredDelegate(PlayerFiredPacket playerUpdate);
 
     public enum ApplicationType
     {
@@ -70,6 +71,9 @@ namespace MultiplayerProject.Source
         GI_ServerSend_UpdateRemotePlayer,
         
         GI_ClientSend_PlayerUpdatePacket,
+        GI_ClientSend_PlayerFiredPacket,
+
+        GI_ServerSend_RemotePlayerFiredPacket,
     }
 
     public struct InputInformation
@@ -205,7 +209,7 @@ namespace MultiplayerProject.Source
     [Serializable]
     public class PlayerUpdatePacket : BasePacket
     {
-        public float TotalGameTime { get; set; }
+        public float DeltaTime { get; set; }
         public float XPosition { get; set; }
         public float YPosition { get; set; }
         public float Speed { get; set; }
@@ -255,6 +259,27 @@ namespace MultiplayerProject.Source
             R = r;
             G = g;
             B = b;
+        }
+    }
+
+    [Serializable]
+    public class PlayerFiredPacket : BasePacket
+    {
+        public float TotalGameTime { get; set; }
+        public float XPosition { get; set; }
+        public float YPosition { get; set; }
+        public float Speed { get; set; }
+        public float Rotation { get; set; }
+        public string PlayerID { get; set; }
+        public string LaserID { get; set; }
+
+        public PlayerFiredPacket(float xPosition, float yPosition, float speed,
+            float rotation) : base()
+        {
+            XPosition = xPosition;
+            YPosition = yPosition;
+            Speed = speed;
+            Rotation = rotation;
         }
     }
 }

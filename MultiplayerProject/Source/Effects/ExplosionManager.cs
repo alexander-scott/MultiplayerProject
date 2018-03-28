@@ -57,9 +57,9 @@ namespace MultiplayerProject.Source
         public void Draw(SpriteBatch spriteBatch)
         {
             // draw explosions
-            foreach (var e in _explosions)
+            for(int i = 0; i < _explosions.Count; i++)
             {
-                e.Draw(spriteBatch);
+                _explosions[i].Draw(spriteBatch);
             }
         }
     }

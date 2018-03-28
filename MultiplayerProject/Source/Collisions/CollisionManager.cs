@@ -1,11 +1,36 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
     class CollisionManager
     {
+        public enum CollisionType
+        {
+            LaserToPlayer,
+            LaserToEnemy
+        }
+
+        public struct Collision
+        {
+            public CollisionType CollisionType { get; set; }
+            public string LaserID { get; set; }
+            public string AttackingPlayerID { get; set; }
+            public string DefeatedPlayerID { get; set; } // Null if enemy was shot
+            public string DefeatedEnemyID { get; set; } // Null if player was shot
+
+            public Collision(CollisionType collisionType, string laserID, string attackingPlayerID, string defeatedPlayerID, string defeatedEnemyID)
+            {
+                CollisionType = collisionType;
+                LaserID = laserID;
+                AttackingPlayerID = attackingPlayerID;
+                DefeatedPlayerID = defeatedPlayerID;
+                DefeatedEnemyID = defeatedEnemyID;
+            }
+        }
+
         public void CheckCollision(List<Enemy> enemies, List<Laser> lasers, ExplosionManager explosionManager)
         {
             Rectangle rectangle2;
@@ -54,6 +79,61 @@ namespace MultiplayerProject.Source
                     }
                 });
             });
+        }
+
+        public List<Collision> CheckCollision(List<Player> players, List<Enemy> enemies, List<Laser> lasers)
+        {
+            List<Collision> collisions = new List<Collision>();
+            bool laserStillActive;
+
+            for (int iLaser = 0; iLaser < lasers.Count; iLaser++) // Loop through every active laser
+            {
+                Rectangle laserRectangle = new Rectangle(
+                    (int)lasers[iLaser].Position.X,
+                    (int)lasers[iLaser].Position.Y,
+                    lasers[iLaser].Width,
+                    lasers[iLaser].Height);
+                laserStillActive = true;
+
+                for (int iPlayer = 0; iPlayer < players.Count; iPlayer++) // Loop through every active player
+                {
+                    Rectangle playerRectangle = new Rectangle(
+                    (int)players[iPlayer].Position.X,
+                    (int)players[iPlayer].Position.Y,
+                    players[iPlayer].Width,
+                    players[iPlayer].Height);
+
+                    if (lasers[iLaser].PlayerFiredID != players[iPlayer].NetworkID // Make sure we don't check for collisions which the player that fired it
+                        && laserRectangle.Intersects(playerRectangle)) 
+                    {
+                        collisions.Add(new Collision(CollisionType.LaserToPlayer, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, players[iPlayer].NetworkID, ""));
+                        Console.WriteLine("SUCCESSFULL LASER/PLAYER INTERSECTION");
+                        laserStillActive = false;
+                        continue; // If collided don't check if collided with enemy as the laser has been destroyed
+                    }
+
+                }
+
+                if (laserStillActive)
+                {
+                    for (int iEnemy = 0; iEnemy < enemies.Count; iEnemy++) // Loop through every enemy
+                    {
+                        Rectangle enemyRectangle = new Rectangle(
+                        (int)enemies[iEnemy].Position.X,
+                        (int)enemies[iEnemy].Position.Y,
+                        enemies[iEnemy].Width,
+                        enemies[iEnemy].Height);
+
+                        if (laserRectangle.Intersects(enemyRectangle))
+                        {
+                            //collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", enemies[iEnemy].));
+                        }
+                    }
+                }
+            }
+
+
+            return collisions;
         }
 
         public void Draw(GraphicsDevice device, SpriteBatch spriteBatch, List<Enemy> enemies, List<Laser> lasers)

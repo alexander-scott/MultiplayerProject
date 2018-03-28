@@ -12,13 +12,12 @@ namespace MultiplayerProject.Source
         private Dictionary<string,Player> _players;
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
-        private PlayerColour[] _playerColours;
+        private Dictionary<string, PlayerColour> _playerColours;
 
         private Client _client;
 
         private EnemyManager _enemyManager;
         private LaserManager _laserManager;
-        private CollisionManager _collisionManager;
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
 
@@ -30,9 +29,9 @@ namespace MultiplayerProject.Source
         public MainGame(int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
+            _playerColours = new Dictionary<string, PlayerColour>();
             _remotePlayers = new List<RemotePlayer>();
 
-            _playerColours = playerColours;
             _client = client; 
 
             for (int i = 0; i < playerCount; i++)
@@ -52,6 +51,7 @@ namespace MultiplayerProject.Source
                 }
 
                 player.NetworkID = playerIDs[i];
+                _playerColours.Add(playerIDs[i], playerColours[i]);
 
                 _players.Add(player.NetworkID, player);
             }
@@ -63,18 +63,16 @@ namespace MultiplayerProject.Source
             _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
-            _collisionManager = new CollisionManager();
 
             ClientMessenger.OnRecievedPlayerUpdatePacket += OnRecievedPlayerUpdatePacket;
+            ClientMessenger.OnRecievedPlayerFiredPacket += ClientMessenger_OnRecievedPlayerFiredPacket;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            int index = 0;
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                player.Value.Initialize(content, _playerColours[index]);
-                index++;
+                player.Value.Initialize(content, _playerColours[player.Key]);
             }
 
             _enemyManager.Initalise(content);
@@ -95,8 +93,6 @@ namespace MultiplayerProject.Source
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
-
-            _collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
         }
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
@@ -117,7 +113,7 @@ namespace MultiplayerProject.Source
 
             // Build an update packet from the input and player values
             PlayerUpdatePacket packet = _localPlayer.BuildUpdatePacket();
-            packet.TotalGameTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            packet.DeltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             packet.Input = condensedInput;
             packet.SequenceNumber = _packetNumber++;
 
@@ -140,8 +136,6 @@ namespace MultiplayerProject.Source
             _laserManager.Draw(spriteBatch);
 
             _explosionManager.Draw(spriteBatch);
-
-            //_collisionManager.Draw(_graphics.GraphicsDevice, spriteBatch, _enemyManager.Enemies, _laserManager.Lasers);
 
             foreach (KeyValuePair<string, Player> player in _players)
             {
@@ -173,8 +167,18 @@ namespace MultiplayerProject.Source
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                _laserManager.FireLaser(gameTime, _localPlayer.Position, _localPlayer.Rotation);
-                input.FirePressed = true;
+                var laser = _laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation, _playerColours[_localPlayer.NetworkID]);
+                if (laser != null)
+                {
+                    input.FirePressed = true;
+                    var dataPacket = _localPlayer.BuildUpdatePacket();
+                    PlayerFiredPacket packet = new PlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
+                    packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds; // TOTAL GAME TIME NOT ELAPSED TIME!
+                    packet.LaserID = laser.LaserID;
+                    
+                    // Send the packet to the server
+                    _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerFiredPacket);
+                }
             }
 
             if (Application.APPLY_CLIENT_SIDE_PREDICTION)
@@ -206,7 +210,7 @@ namespace MultiplayerProject.Source
 
                     PlayerUpdatePacket removedPacket = _updatePackets.Dequeue(); // Remove the first one which we are replacing with the serverUpdate
 
-                    serverUpdate.TotalGameTime = removedPacket.TotalGameTime;
+                    serverUpdate.DeltaTime = removedPacket.DeltaTime;
                     newQueue.Enqueue(serverUpdate);
                     updateList.Add(serverUpdate);
 
@@ -223,7 +227,7 @@ namespace MultiplayerProject.Source
                         return;
 
                     _localPlayer.SetPlayerState(updateList[0]);
-                    _localPlayer.Update(updateList[0].TotalGameTime);
+                    _localPlayer.Update(updateList[0].DeltaTime);
 
                     if (updateList.Count == 1)
                         return;
@@ -231,8 +235,8 @@ namespace MultiplayerProject.Source
                     // Now we must perform the previous inputs again
                     for (int i = 1; i < updateList.Count; i++)
                     {
-                        _localPlayer.ApplyInputToPlayer(updateList[i].Input, updateList[i].TotalGameTime);
-                        _localPlayer.Update(updateList[i].TotalGameTime);
+                        _localPlayer.ApplyInputToPlayer(updateList[i].Input, updateList[i].DeltaTime);
+                        _localPlayer.Update(updateList[i].DeltaTime);
                     }
                 }
             }
@@ -240,6 +244,14 @@ namespace MultiplayerProject.Source
             {
                 RemotePlayer remotePlayer = _players[serverUpdate.PlayerID] as RemotePlayer;
                 remotePlayer.SetUpdatePacket(serverUpdate);
+            }
+        }
+
+        private void ClientMessenger_OnRecievedPlayerFiredPacket(PlayerFiredPacket playerUpdate)
+        {
+            if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
+            {
+                _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID, _playerColours[playerUpdate.PlayerID]);
             }
         }
 

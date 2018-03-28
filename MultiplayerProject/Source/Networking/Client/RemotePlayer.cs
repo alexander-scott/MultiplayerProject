@@ -38,7 +38,9 @@ namespace MultiplayerProject.Source
             }
             else
             {
+#pragma warning disable CS0162
                 _currentSmoothing = 0;
+#pragma warning restore CS0162
             }
 
             // TODO: APPLY PREDICTION
