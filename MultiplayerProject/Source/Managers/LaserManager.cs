@@ -20,7 +20,7 @@ namespace MultiplayerProject.Source
 
         private const float SECONDS_IN_MINUTE = 60f;
         private const float RATE_OF_FIRE = 200f;
-        private const float LASER_SPAWN_DISTANCE = 70f;
+        private const float LASER_SPAWN_DISTANCE = 50f;
 
         public string NetworkID { get; set; }
 
@@ -78,9 +78,12 @@ namespace MultiplayerProject.Source
             return false;
         }
 
-        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID)
+        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID, DateTime originalTimeFired)
         {
+            var timeDifference = (originalTimeFired - DateTime.UtcNow).TotalSeconds;
+
             var laser = AddLaser(position, rotation);
+            laser.Update((float)timeDifference); // Update it to match the true position
 
             if (!_playerLasers.ContainsKey(playerID))
             {
