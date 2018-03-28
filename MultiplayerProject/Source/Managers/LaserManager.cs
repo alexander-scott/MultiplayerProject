@@ -20,7 +20,7 @@ namespace MultiplayerProject.Source
 
         private const float SECONDS_IN_MINUTE = 60f;
         private const float RATE_OF_FIRE = 200f;
-        private const float LASER_SPAWN_DISTANCE = 50f;
+        private const float LASER_SPAWN_DISTANCE = 40f;
 
         public string NetworkID { get; set; }
 
@@ -63,26 +63,24 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public bool FireLocalLaserClient(GameTime gameTime, Vector2 position, float rotation)
+        public Laser FireLocalLaserClient(GameTime gameTime, Vector2 position, float rotation)
         {
             // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
             {
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
                 // Add the laer to our list.
-                AddLaser(position, rotation);
-
-                return true;
+                return AddLaser(position, rotation, "");
             }
 
-            return false;
+            return null;
         }
 
-        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID, DateTime originalTimeFired)
+        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID, DateTime originalTimeFired, string ID)
         {
             var timeDifference = (originalTimeFired - DateTime.UtcNow).TotalSeconds;
 
-            var laser = AddLaser(position, rotation);
+            var laser = AddLaser(position, rotation, ID);
             laser.Update((float)timeDifference); // Update it to match the true position
 
             if (!_playerLasers.ContainsKey(playerID))
@@ -93,7 +91,7 @@ namespace MultiplayerProject.Source
             _playerLasers[playerID].Add(laser);
         }
 
-        public bool FireLaserServer(double totalGameSeconds, float deltaTime, Vector2 position, float rotation)
+        public Laser FireLaserServer(double totalGameSeconds, float deltaTime, Vector2 position, float rotation, string ID)
         {
             // Govern the rate of fire for our lasers
             if (totalGameSeconds - _previousLaserSpawnTime.TotalSeconds > _laserSpawnTime.TotalSeconds)
@@ -101,16 +99,16 @@ namespace MultiplayerProject.Source
                 _previousLaserSpawnTime = TimeSpan.FromSeconds(totalGameSeconds);
 
                 // Add the laser to our list.
-                var laser = AddLaser(position, rotation);
+                var laser = AddLaser(position, rotation, ID);
                 laser.Update(deltaTime); // Update it so it's in the correct position on the server as it is on the client
 
-                return true;
+                return laser;
             }
 
-            return false;
+            return null;
         }
 
-        public Laser AddLaser(Vector2 position, float rotation)
+        public Laser AddLaser(Vector2 position, float rotation, string ID)
         {
             Animation laserAnimation = new Animation();
             // Initlize the laser animation
@@ -125,7 +123,12 @@ namespace MultiplayerProject.Source
                 1f,
                 true);
 
-            Laser laser = new Laser();
+            Laser laser;
+            if (string.IsNullOrEmpty(ID))
+                laser = new Laser();
+            else
+                laser = new Laser(ID);
+
             Vector2 direction = new Vector2((float)Math.Cos(rotation),
                                      (float)Math.Sin(rotation));
             direction.Normalize();

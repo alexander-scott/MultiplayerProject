@@ -31,11 +31,23 @@ namespace MultiplayerProject.Source
 
         public string NetworkID { get; set; }
 
+        public string LaserID { get; set; }
+
         // the speed the laser travels
         private const float _laserMoveSpeed = 30f;
         private const float _laserMaxTimeActive = 5f;
 
         private float _timeActive;
+
+        public Laser()
+        {
+            LaserID = Guid.NewGuid().ToString();
+        }
+
+        public Laser(string ID)
+        {
+            LaserID = ID;
+        }
 
         public void Initialize(Animation animation, Vector2 position, float rotation)
         {

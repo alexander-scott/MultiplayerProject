@@ -271,6 +271,7 @@ namespace MultiplayerProject.Source
         public float Speed { get; set; }
         public float Rotation { get; set; }
         public string PlayerID { get; set; }
+        public string LaserID { get; set; }
 
         public PlayerFiredPacket(float xPosition, float yPosition, float speed,
             float rotation) : base()

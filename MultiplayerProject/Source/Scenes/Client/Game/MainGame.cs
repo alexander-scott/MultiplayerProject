@@ -174,12 +174,14 @@ namespace MultiplayerProject.Source
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                if (_laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation))
+                var laser = _laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation);
+                if (laser != null)
                 {
                     input.FirePressed = true;
                     var dataPacket = _localPlayer.BuildUpdatePacket();
                     PlayerFiredPacket packet = new PlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds; // TOTAL GAME TIME NOT ELAPSED TIME!
+                    packet.LaserID = laser.LaserID;
                     
                     // Send the packet to the server
                     _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerFiredPacket);
@@ -256,7 +258,7 @@ namespace MultiplayerProject.Source
         {
             if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
             {
-                _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate);
+                _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID);
             }
         }
 
