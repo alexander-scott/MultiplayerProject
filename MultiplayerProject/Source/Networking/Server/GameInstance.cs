@@ -52,6 +52,7 @@ namespace MultiplayerProject.Source
                 _playerLasers[ComponentClients[i].ID] = new LaserManager();
 
                 Player player = new Player();
+                player.NetworkID = ComponentClients[i].ID;
                  _players[ComponentClients[i].ID] = player;             
             }
         }
@@ -123,7 +124,7 @@ namespace MultiplayerProject.Source
                 }
             }
 
-            //_collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
+            _collisionManager.CheckCollision(_players.Values.ToList(), new List<Enemy>(), GetActiveLasers());
 
             if (sendPacketThisFrame)
             {
@@ -172,6 +173,18 @@ namespace MultiplayerProject.Source
                 }
             }
             return returnList;
+        }
+
+        private List<Laser> GetActiveLasers()
+        {
+            List<Laser> lasers = new List<Laser>();
+
+            foreach (KeyValuePair<string, LaserManager> laserManager in _playerLasers)
+            { 
+                lasers.AddRange(laserManager.Value.Lasers);
+            }
+
+            return lasers;
         }
     }
 }

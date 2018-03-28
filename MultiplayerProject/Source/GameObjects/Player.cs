@@ -10,8 +10,8 @@ namespace MultiplayerProject.Source
         public bool Active;
         public int Health;
 
-        public int Width { get { return PlayerAnimation.FrameWidth; } }
-        public int Height { get { return PlayerAnimation.FrameHeight; } }
+        public int Width { get; set; }
+        public int Height { get; set; }
 
         public Vector2 Position { get { return PlayerState.Position; } }
         public float Rotation { get { return PlayerState.Rotation; } }
@@ -43,6 +43,9 @@ namespace MultiplayerProject.Source
             PlayerState.Velocity = Vector2.Zero;
             PlayerState.Rotation = 0;
 
+            Width = 115; // HARDCODED WIDTH AND HEIGHT
+            Height = 69;
+
             // Set the player to be active
             Active = true;
 
@@ -55,7 +58,7 @@ namespace MultiplayerProject.Source
             // Load the player resources
             Animation playerAnimation = new Animation();
             Texture2D playerTexture = content.Load<Texture2D>("shipAnimation");
-            playerAnimation.Initialize(playerTexture, Vector2.Zero, 0, 115, 69, 8, 30, new Color(colour.R, colour.G, colour.B), 1f, true);
+            playerAnimation.Initialize(playerTexture, Vector2.Zero, 0, Width, Height, 8, 30, new Color(colour.R, colour.G, colour.B), 1f, true);
 
             PlayerAnimation = playerAnimation;
         }

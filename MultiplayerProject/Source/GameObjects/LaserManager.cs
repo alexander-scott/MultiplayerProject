@@ -8,6 +8,8 @@ namespace MultiplayerProject.Source
 {
     public class LaserManager : INetworkedObject
     {
+        public List<Laser> Lasers { get { return _laserBeams; } }
+
         private List<Laser> _laserBeams;
         private Dictionary<string, List<Laser>> _playerLasers;
 

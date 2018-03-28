@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
@@ -83,6 +84,7 @@ namespace MultiplayerProject.Source
         public List<Collision> CheckCollision(List<Player> players, List<Enemy> enemies, List<Laser> lasers)
         {
             List<Collision> collisions = new List<Collision>();
+            bool laserStillActive;
 
             for (int iLaser = 0; iLaser < lasers.Count; iLaser++) // Loop through every active laser
             {
@@ -91,6 +93,7 @@ namespace MultiplayerProject.Source
                     (int)lasers[iLaser].Position.Y,
                     lasers[iLaser].Width,
                     lasers[iLaser].Height);
+                laserStillActive = true;
 
                 for (int iPlayer = 0; iPlayer < players.Count; iPlayer++) // Loop through every active player
                 {
@@ -100,26 +103,31 @@ namespace MultiplayerProject.Source
                     players[iPlayer].Width,
                     players[iPlayer].Height);
 
-                    if (laserRectangle.Intersects(playerRectangle))
+                    if (lasers[iLaser].PlayerFiredID != players[iPlayer].NetworkID // Make sure we don't check for collisions which the player that fired it
+                        && laserRectangle.Intersects(playerRectangle)) 
                     {
-                        Collision collision = new Collision(CollisionType.LaserToPlayer, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, players[iPlayer].NetworkID, "");
-                        
+                        collisions.Add(new Collision(CollisionType.LaserToPlayer, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, players[iPlayer].NetworkID, ""));
+                        Console.WriteLine("SUCCESSFULL LASER/PLAYER INTERSECTION");
+                        laserStillActive = false;
                         continue; // If collided don't check if collided with enemy as the laser has been destroyed
                     }
 
                 }
 
-                for (int iEnemy = 0; iEnemy < enemies.Count; iEnemy++) // Loop through every enemy
+                if (laserStillActive)
                 {
-                    Rectangle enemyRectangle = new Rectangle(
-                    (int)enemies[iEnemy].Position.X,
-                    (int)enemies[iEnemy].Position.Y,
-                    enemies[iEnemy].Width,
-                    enemies[iEnemy].Height);
-
-                    if (laserRectangle.Intersects(enemyRectangle))
+                    for (int iEnemy = 0; iEnemy < enemies.Count; iEnemy++) // Loop through every enemy
                     {
+                        Rectangle enemyRectangle = new Rectangle(
+                        (int)enemies[iEnemy].Position.X,
+                        (int)enemies[iEnemy].Position.Y,
+                        enemies[iEnemy].Width,
+                        enemies[iEnemy].Height);
 
+                        if (laserRectangle.Intersects(enemyRectangle))
+                        {
+                            //collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", enemies[iEnemy].));
+                        }
                     }
                 }
             }
