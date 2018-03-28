@@ -258,7 +258,7 @@ namespace MultiplayerProject.Source
 
         private void ClientMessenger_OnEnemySpawnedPacket(EnemySpawnedPacket enemySpawn)
         {
-            
+            _enemyManager.AddEnemy(new Vector2(enemySpawn.XPosition, enemySpawn.YPosition), enemySpawn.EnemyID);
         }
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)
