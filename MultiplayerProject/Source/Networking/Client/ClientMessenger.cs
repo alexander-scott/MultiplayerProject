@@ -19,6 +19,7 @@ namespace MultiplayerProject.Source
 
         public static event PlayerUpdateDelegate OnRecievedPlayerUpdatePacket;
         public static event PlayerFiredDelegate OnRecievedPlayerFiredPacket;
+        public static event EnemySpawnedDelegate OnEnemySpawnedPacket;
 
         private Client _client;
 
@@ -80,18 +81,18 @@ namespace MultiplayerProject.Source
                     break;
 
                 case MessageType.WR_ServerResponse_SuccessJoinRoom:
-                {
-                    StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
-                    OnRoomSuccessfullyJoined(lobbyID.String);
-                    break;
-                }
+                    {
+                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        OnRoomSuccessfullyJoined(lobbyID.String);
+                        break;
+                    }
 
                 case MessageType.WR_ServerResponse_SuccessLeaveRoom:
-                {
-                    StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
-                    OnRoomSuccessfullyLeft(lobbyID.String);
-                    break;
-                }
+                    {
+                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        OnRoomSuccessfullyLeft(lobbyID.String);
+                        break;
+                    }
 
                 case MessageType.GR_ServerResponse_SuccessReady:
                     {
@@ -112,7 +113,7 @@ namespace MultiplayerProject.Source
                     }
 
                 case MessageType.GI_ServerSend_UpdateRemotePlayer:
-                    { 
+                    {
                         var playerPacket = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
                         OnRecievedPlayerUpdatePacket(playerPacket);
                         break;
@@ -121,7 +122,14 @@ namespace MultiplayerProject.Source
                 case MessageType.GI_ServerSend_RemotePlayerFiredPacket:
                     {
                         var playerPacket = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
-                         OnRecievedPlayerFiredPacket(playerPacket);
+                        OnRecievedPlayerFiredPacket(playerPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_EnemySpawn:
+                    {
+                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemySpawnedPacket>();
+                        OnEnemySpawnedPacket(enemyPacket);
                         break;
                     }
             }

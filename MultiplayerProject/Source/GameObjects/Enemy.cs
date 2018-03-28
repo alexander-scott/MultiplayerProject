@@ -15,14 +15,27 @@ namespace MultiplayerProject.Source
         public int Value;  // The amount of score the enemy will give to the player
 
         public Vector2 CentrePosition { get { return new Vector2(Position.X - Width/2, Position.Y - Height / 2); } }
-        public int Width { get { return EnemyAnimation.FrameWidth; } }
+        public int Width { get; set; }
         public int Height { get { return EnemyAnimation.FrameHeight; } }
+
+        public string EnemyID { get; set; }
 
         const float ENEMY_MOVE_SPEED = 6f;
 
         const int ENEMY_STARTING_HEALTH = 10;
         const int ENEMY_DAMAGE = 10;
         const int ENEMY_DEATH_SCORE_INCREASE = 100;
+
+        public Enemy()
+        {
+            EnemyID = Guid.NewGuid().ToString();
+            Width = 47;
+        }
+
+        public Enemy(string ID)
+        {
+            EnemyID = ID;
+        }
 
         public void Initialize(Animation animation, Vector2 position)
         {    
@@ -41,14 +54,19 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            // The enemy always moves to the left so decrement its x position
-            Position.X -= ENEMY_MOVE_SPEED;
+            Update();
 
             // Update the position of the Animation
             EnemyAnimation.Position = Position;
 
             // Update Animation
             EnemyAnimation.Update(gameTime);
+        }
+
+        public void Update()
+        {
+            // The enemy always moves to the left so decrement its x position
+            Position.X -= ENEMY_MOVE_SPEED;
 
             // If the enemy is past the screen or its health reaches 0 then deactivate it
             if (Position.X < -Width || Health <= 0)
@@ -61,8 +79,11 @@ namespace MultiplayerProject.Source
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            // Draw the animation
-            EnemyAnimation.Draw(spriteBatch);
+            if (EnemyAnimation != null)
+            {
+                // Draw the animation
+                EnemyAnimation.Draw(spriteBatch);
+            }
         }
     }
 }

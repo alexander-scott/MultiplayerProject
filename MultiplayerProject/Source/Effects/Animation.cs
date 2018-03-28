@@ -118,10 +118,17 @@ namespace MultiplayerProject.Source
         public void Draw(SpriteBatch spriteBatch)
         {
             // Only draw the animation when we are active
-            if (Active)
+            if (Active && _spriteStrip != null)
             {
-                Vector2 origin = new Vector2(FrameWidth / 2, FrameHeight / 2);
-                spriteBatch.Draw(_spriteStrip, Position, _sourceRect, _color, Rotation, origin, 1, SpriteEffects.None, 0);
+                try // This try-catch is here in an attempt to catch an intermittent error
+                {
+                    Vector2 origin = new Vector2(FrameWidth / 2, FrameHeight / 2);
+                    spriteBatch.Draw(_spriteStrip, Position, _sourceRect, _color, Rotation, origin, 1, SpriteEffects.None, 0);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Animation Error occured: " + e.Message);
+                }
             }
         }
     }
