@@ -30,6 +30,10 @@ namespace MultiplayerProject.Source
         private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, Player> _players;
 
+        private EnemyManager _enemyManager;
+        private TimeSpan _enemySpawnTime;
+        private TimeSpan _previousEnemySpawnTime;
+
         private CollisionManager _collisionManager;
 
         public GameInstance(List<ServerConnection> clients)
@@ -41,6 +45,10 @@ namespace MultiplayerProject.Source
             _players = new Dictionary<string, Player>();
 
             _collisionManager = new CollisionManager();
+
+            _enemyManager = new EnemyManager();
+            _previousEnemySpawnTime = TimeSpan.Zero;
+            _enemySpawnTime = TimeSpan.FromSeconds(1.0f);
 
             var playerColours = GenerateRandomColours(clients.Count);
 
@@ -124,7 +132,16 @@ namespace MultiplayerProject.Source
                 }
             }
 
-            _collisionManager.CheckCollision(_players.Values.ToList(), new List<Enemy>(), GetActiveLasers());
+            // Spawn a new enemy enemy every 1.5 seconds
+            if (gameTime.TotalGameTime - _previousEnemySpawnTime > _enemySpawnTime)
+            {
+                _previousEnemySpawnTime = gameTime.TotalGameTime;
+                _enemyManager.AddEnemy();
+            }
+
+            _enemyManager.Update(gameTime);
+
+            _collisionManager.CheckCollision(_players.Values.ToList(), _enemyManager.Enemies, GetActiveLasers());
 
             if (sendPacketThisFrame)
             {

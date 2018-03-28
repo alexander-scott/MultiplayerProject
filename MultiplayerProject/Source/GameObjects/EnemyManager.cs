@@ -14,43 +14,27 @@ namespace MultiplayerProject.Source
 
         private List<Enemy> _enemies;
 
-        private TimeSpan _enemySpawnTime;
-        private TimeSpan _previousSpawnTime;
-
         private Random _random;
+        private float _width;
 
         public EnemyManager()
         {
+            // Initialize the enemies list
+            _enemies = new List<Enemy>();
+
+            // Initialize our random number generator
+            _random = new Random();
+
+            _width = 47;
         }
 
         public void Initalise(ContentManager content)
         {
             _enemyTexture = content.Load<Texture2D>("mineAnimation");
-
-            // Initialize the enemies list
-            _enemies = new List<Enemy>();
-
-            // Set the time keepers to zero
-            _previousSpawnTime = TimeSpan.Zero;
-
-            // Used to determine how fast enemy respawns
-            _enemySpawnTime = TimeSpan.FromSeconds(1.0f);
-
-            // Initialize our random number generator
-            _random = new Random();
         }
 
         public void Update(GameTime gameTime)
         {
-            // Spawn a new enemy enemy every 1.5 seconds
-            if (gameTime.TotalGameTime - _previousSpawnTime > _enemySpawnTime)
-            {
-                _previousSpawnTime = gameTime.TotalGameTime;
-
-                // Add an Enemy
-                AddEnemy();
-            }
-
             // Update the Enemies
             for (int i = _enemies.Count - 1; i >= 0; i--)
             {
@@ -71,7 +55,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        private void AddEnemy()
+        public void AddEnemy()
         {
             // Create the animation object
             Animation enemyAnimation = new Animation();
@@ -80,7 +64,7 @@ namespace MultiplayerProject.Source
             enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
 
             // Randomly generate the position of the enemy
-            Vector2 position = new Vector2(Application.WINDOW_WIDTH + _enemyTexture.Width / 2,
+            Vector2 position = new Vector2(Application.WINDOW_WIDTH + _width / 2,
                 _random.Next(100, Application.WINDOW_HEIGHT - 100));
 
             // Create an enemy
