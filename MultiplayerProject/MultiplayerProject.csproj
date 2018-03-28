@@ -52,15 +52,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Source\ClientApplication.cs" />
+    <Compile Include="Source\Collisions\Collision.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
     <Compile Include="Source\GameObjects\Enemy.cs" />
     <Compile Include="Source\GameObjects\Explosion.cs" />
     <Compile Include="Source\GameObjects\Laser.cs" />
-    <Compile Include="Source\Managers\BackgroundManager.cs" />
-    <Compile Include="Source\Managers\CollisionManager.cs" />
-    <Compile Include="Source\Managers\EnemyManager.cs" />
-    <Compile Include="Source\Managers\ExplosionManager.cs" />
-    <Compile Include="Source\Managers\LaserManager.cs" />
+    <Compile Include="Source\Effects\BackgroundManager.cs" />
+    <Compile Include="Source\Collisions\CollisionManager.cs" />
+    <Compile Include="Source\GameObjects\EnemyManager.cs" />
+    <Compile Include="Source\Effects\ExplosionManager.cs" />
+    <Compile Include="Source\GameObjects\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\Networking\Client\Client.cs" />
     <Compile Include="Source\Networking\Client\ClientMessenger.cs" />

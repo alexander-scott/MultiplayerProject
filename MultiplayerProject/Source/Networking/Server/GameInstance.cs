@@ -30,6 +30,8 @@ namespace MultiplayerProject.Source
         private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, Player> _players;
 
+        private CollisionManager _collisionManager;
+
         public GameInstance(List<ServerConnection> clients)
         {
             ComponentClients = clients;
@@ -37,6 +39,8 @@ namespace MultiplayerProject.Source
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _playerLasers = new Dictionary<string, LaserManager>();
             _players = new Dictionary<string, Player>();
+
+            _collisionManager = new CollisionManager();
 
             var playerColours = GenerateRandomColours(clients.Count);
 
@@ -118,6 +122,8 @@ namespace MultiplayerProject.Source
                     _playerLasers[player.Key].Update(gameTime);
                 }
             }
+
+            //_collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
 
             if (sendPacketThisFrame)
             {

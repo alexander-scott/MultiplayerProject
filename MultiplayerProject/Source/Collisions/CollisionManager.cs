@@ -56,6 +56,12 @@ namespace MultiplayerProject.Source
             });
         }
 
+        public List<Collision> CheckCollision(List<Player> players, List<Enemy> enemies, List<Laser> lasers)
+        {
+            return null;
+
+        }
+
         public void Draw(GraphicsDevice device, SpriteBatch spriteBatch, List<Enemy> enemies, List<Laser> lasers)
         {
             foreach (Enemy enemy in enemies)

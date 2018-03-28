@@ -18,7 +18,6 @@ namespace MultiplayerProject.Source
 
         private EnemyManager _enemyManager;
         private LaserManager _laserManager;
-        private CollisionManager _collisionManager;
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
 
@@ -64,7 +63,6 @@ namespace MultiplayerProject.Source
             _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
-            _collisionManager = new CollisionManager();
 
             ClientMessenger.OnRecievedPlayerUpdatePacket += OnRecievedPlayerUpdatePacket;
             ClientMessenger.OnRecievedPlayerFiredPacket += ClientMessenger_OnRecievedPlayerFiredPacket;
@@ -95,8 +93,6 @@ namespace MultiplayerProject.Source
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
-
-            //_collisionManager.CheckCollision(_enemyManager.Enemies, _laserManager.Lasers, _explosionManager);
         }
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
@@ -140,8 +136,6 @@ namespace MultiplayerProject.Source
             _laserManager.Draw(spriteBatch);
 
             _explosionManager.Draw(spriteBatch);
-
-            //_collisionManager.Draw(_graphics.GraphicsDevice, spriteBatch, _enemyManager.Enemies, _laserManager.Lasers);
 
             foreach (KeyValuePair<string, Player> player in _players)
             {
