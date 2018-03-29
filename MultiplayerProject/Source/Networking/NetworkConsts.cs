@@ -8,11 +8,7 @@ namespace MultiplayerProject.Source
     public delegate void EmptyDelegate();
     public delegate void StringDelegate(string str);
     public delegate void IntDelegate(int i);
-    public delegate void WaitingRoomDelegate(WaitingRoomInformation waitingRoom);
-    public delegate void GameRoomDelegate(GameInstanceInformation gameRoom);
-    public delegate void PlayerUpdateDelegate(PlayerUpdatePacket playerUpdate);
-    public delegate void PlayerFiredDelegate(PlayerFiredPacket playerUpdate);
-    public delegate void EnemySpawnedDelegate(EnemySpawnedPacket enemySpawn);
+    public delegate void BasePacketDelegate(BasePacket packet);
 
     public enum ApplicationType
     {
@@ -76,6 +72,7 @@ namespace MultiplayerProject.Source
 
         GI_ServerSend_RemotePlayerFiredPacket,
         GI_ServerSend_EnemySpawn,
+        GI_ServerSend_EnemyDefeated,
     }
 
     public struct InputInformation
@@ -298,6 +295,19 @@ namespace MultiplayerProject.Source
             XPosition = xPos;
             YPosition = yPos;
             EnemyID = enemyID;
+        }
+    }
+
+    [Serializable]
+    public class EnemyDefeatedPacket : BasePacket
+    {
+        public string CollidedLaserID { get; set; }
+        public string CollidedEnemyID { get; set; }
+
+        public EnemyDefeatedPacket(string laserID, string enemyID)
+        {
+            CollidedLaserID = laserID;
+            CollidedEnemyID = enemyID;
         }
     }
 }

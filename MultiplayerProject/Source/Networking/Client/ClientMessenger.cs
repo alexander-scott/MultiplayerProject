@@ -9,17 +9,18 @@ namespace MultiplayerProject.Source
     public class ClientMessenger
     {
         public static event EmptyDelegate OnServerForcedDisconnect;
-        public static event WaitingRoomDelegate OnWaitingRoomInformationRecieved;
+        public static event BasePacketDelegate OnWaitingRoomInformationRecieved;
         public static event StringDelegate OnRoomSuccessfullyJoined;
         public static event StringDelegate OnRoomSuccessfullyLeft;
         public static event EmptyDelegate OnRoomSuccessfullyReady;
         public static event EmptyDelegate OnRoomSuccessfullyUnready;
 
-        public static event GameRoomDelegate OnLoadNewGame;
+        public static event BasePacketDelegate OnLoadNewGame;
 
-        public static event PlayerUpdateDelegate OnRecievedPlayerUpdatePacket;
-        public static event PlayerFiredDelegate OnRecievedPlayerFiredPacket;
-        public static event EnemySpawnedDelegate OnEnemySpawnedPacket;
+        public static event BasePacketDelegate OnRecievedPlayerUpdatePacket;
+        public static event BasePacketDelegate OnRecievedPlayerFiredPacket;
+        public static event BasePacketDelegate OnEnemySpawnedPacket;
+        public static event BasePacketDelegate OnEnemyDefeatedPacket;
 
         private Client _client;
 
@@ -130,6 +131,13 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = packetBytes.DeserializeFromBytes<EnemySpawnedPacket>();
                         OnEnemySpawnedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_EnemyDefeated:
+                    {
+                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemyDefeatedPacket>();
+                        OnEnemyDefeatedPacket(enemyPacket);
                         break;
                     }
             }

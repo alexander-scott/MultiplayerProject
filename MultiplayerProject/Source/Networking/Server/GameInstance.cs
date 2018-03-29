@@ -150,7 +150,7 @@ namespace MultiplayerProject.Source
 
             _enemyManager.Update(gameTime);
 
-            _collisionManager.CheckCollision(_players.Values.ToList(), _enemyManager.Enemies, GetActiveLasers());
+            CheckCollisions();
 
             if (sendPacketThisFrame)
             {
@@ -166,6 +166,36 @@ namespace MultiplayerProject.Source
                         updatePacket.Input = player.Value.LastKeyboardMovementInput;
 
                         ComponentClients[i].SendPacketToClient(updatePacket, MessageType.GI_ServerSend_UpdateRemotePlayer);
+                    }
+                }
+            }
+        }
+
+        private void CheckCollisions()
+        {
+            var collisions = _collisionManager.CheckCollision(_players.Values.ToList(), _enemyManager.Enemies, GetActiveLasers());
+
+            if (collisions.Count > 0)
+            {
+                for (int iCollision = 0; iCollision < collisions.Count; iCollision++)
+                {
+                    if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
+                    {
+                        _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
+                        _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Defeat collided enemy
+
+                        // INCREMENT PLAYER SCORE HERE
+
+                        // Create packet to send to clients
+                        EnemyDefeatedPacket packet = new EnemyDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedEnemyID);
+                        for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
+                        {
+                            ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemyDefeated);
+                        }
+                    }
+                    else
+                    {
+
                     }
                 }
             }

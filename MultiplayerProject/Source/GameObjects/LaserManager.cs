@@ -145,5 +145,17 @@ namespace MultiplayerProject.Source
 
             return laser;
         }
+
+        public void DeactivateLaser(string laserID)
+        {
+            for (int i = 0; i < _laserBeams.Count; i++)
+            {
+                if (_laserBeams[i].LaserID == laserID)
+                {
+                    _laserBeams[i].Active = false;
+                    return;
+                }
+            }
+        }
     }
 }

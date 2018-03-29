@@ -111,7 +111,6 @@ namespace MultiplayerProject.Source
                         laserStillActive = false;
                         continue; // If collided don't check if collided with enemy as the laser has been destroyed
                     }
-
                 }
 
                 if (laserStillActive)
@@ -126,12 +125,12 @@ namespace MultiplayerProject.Source
 
                         if (laserRectangle.Intersects(enemyRectangle))
                         {
-                            //collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", enemies[iEnemy].));
+                            collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", enemies[iEnemy].EnemyID));
+                            Console.WriteLine("SUCCESSFULL LASER/ENEMY INTERSECTION");
                         }
                     }
                 }
             }
-
 
             return collisions;
         }

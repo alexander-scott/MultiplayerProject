@@ -97,8 +97,10 @@ namespace MultiplayerProject.Source
             _client.Stop(); 
         }
 
-        private void ClientMessenger_OnLoadNewGame(GameInstanceInformation gameInstance)
+        private void ClientMessenger_OnLoadNewGame(BasePacket packet)
         {
+            GameInstanceInformation gameInstance = (GameInstanceInformation)packet;
+
             _sceneLoading = true;
             _currentScene = new MainGame(gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
             _currentScene.Initalise(_contentManager, _graphicsDevice);

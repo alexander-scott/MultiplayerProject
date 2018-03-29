@@ -99,5 +99,31 @@ namespace MultiplayerProject.Source
             // Add the enemy to the active enemies list
             _enemies.Add(enemy);
         }
+
+        public void DeactivateEnemy(string enemyID)
+        {
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                if (_enemies[i].EnemyID == enemyID)
+                {
+                    _enemies[i].Active = false;
+                    return;
+                }
+            }
+        }
+
+        public Enemy DeactivateAndReturnEnemy(string enemyID)
+        {
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                if (_enemies[i].EnemyID == enemyID)
+                {
+                    _enemies[i].Active = false;
+                    return _enemies[i];
+                }
+            }
+
+            return null;
+        }
     }
 }
