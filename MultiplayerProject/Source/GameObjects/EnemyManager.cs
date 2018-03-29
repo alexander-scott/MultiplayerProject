@@ -111,5 +111,19 @@ namespace MultiplayerProject.Source
                 }
             }
         }
+
+        public Enemy DeactivateAndReturnEnemy(string enemyID)
+        {
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                if (_enemies[i].EnemyID == enemyID)
+                {
+                    _enemies[i].Active = false;
+                    return _enemies[i];
+                }
+            }
+
+            return null;
+        }
     }
 }

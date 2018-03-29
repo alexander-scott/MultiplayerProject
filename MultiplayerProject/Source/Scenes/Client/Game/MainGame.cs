@@ -270,7 +270,11 @@ namespace MultiplayerProject.Source
         private void ClientMessenger_OnEnemyDefeatedPacket(BasePacket packet)
         {
             EnemyDefeatedPacket newPacket = (EnemyDefeatedPacket)packet;
-            Console.WriteLine("enemy defeated packet recieved");
+
+            _laserManager.DeactivateLaser(newPacket.CollidedLaserID);
+
+            var enemy = _enemyManager.DeactivateAndReturnEnemy(newPacket.CollidedEnemyID);
+            _explosionManager.AddExplosion(enemy.Position);
         }
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)
