@@ -98,8 +98,10 @@ namespace MultiplayerProject.Source
             _waitingForResponseFromServer = false;
         }
 
-        private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation waitingRoom)
+        private void Client_OnWaitingRoomInformationRecieved(BasePacket packet)
         {
+            WaitingRoomInformation waitingRoom = (WaitingRoomInformation)packet;
+
             _waitingRoom = waitingRoom;
             _roomUIItems.Clear();
 

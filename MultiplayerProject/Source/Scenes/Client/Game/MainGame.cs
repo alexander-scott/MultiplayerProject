@@ -67,6 +67,7 @@ namespace MultiplayerProject.Source
             ClientMessenger.OnRecievedPlayerUpdatePacket += OnRecievedPlayerUpdatePacket;
             ClientMessenger.OnRecievedPlayerFiredPacket += ClientMessenger_OnRecievedPlayerFiredPacket;
             ClientMessenger.OnEnemySpawnedPacket += ClientMessenger_OnEnemySpawnedPacket;
+            ClientMessenger.OnEnemyDefeatedPacket += ClientMessenger_OnEnemyDefeatedPacket;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -192,12 +193,15 @@ namespace MultiplayerProject.Source
             return input;
         }
 
-        private void OnRecievedPlayerUpdatePacket(PlayerUpdatePacket serverUpdate)
+        private void OnRecievedPlayerUpdatePacket(BasePacket packet)
         {
+            PlayerUpdatePacket serverUpdate = (PlayerUpdatePacket)packet;
+
             if (Application.APPLY_SERVER_RECONCILLIATION &&
                 serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0
                 && _updatePackets.Count > 0)
             {
+                
                 PlayerUpdatePacket localUpdate = GetUpdateAtSequenceNumber(serverUpdate.SequenceNumber);
 
                 if (localUpdate.XPosition != serverUpdate.XPosition
@@ -217,9 +221,9 @@ namespace MultiplayerProject.Source
 
                     while (_updatePackets.Count > 0)
                     {
-                        PlayerUpdatePacket packet = _updatePackets.Dequeue();
-                        newQueue.Enqueue(packet);
-                        updateList.Add(packet);
+                        PlayerUpdatePacket updatePacket = _updatePackets.Dequeue();
+                        newQueue.Enqueue(updatePacket);
+                        updateList.Add(updatePacket);
                     }
 
                     _updatePackets = newQueue; // Set the new queue
@@ -248,17 +252,25 @@ namespace MultiplayerProject.Source
             }
         }
 
-        private void ClientMessenger_OnRecievedPlayerFiredPacket(PlayerFiredPacket playerUpdate)
+        private void ClientMessenger_OnRecievedPlayerFiredPacket(BasePacket packet)
         {
+            PlayerFiredPacket playerUpdate = (PlayerFiredPacket)packet;
             if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
             {
                 _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID, _playerColours[playerUpdate.PlayerID]);
             }
         }
 
-        private void ClientMessenger_OnEnemySpawnedPacket(EnemySpawnedPacket enemySpawn)
+        private void ClientMessenger_OnEnemySpawnedPacket(BasePacket packet)
         {
+            EnemySpawnedPacket enemySpawn = (EnemySpawnedPacket)packet;
             _enemyManager.AddEnemy(new Vector2(enemySpawn.XPosition, enemySpawn.YPosition), enemySpawn.EnemyID);
+        }
+
+        private void ClientMessenger_OnEnemyDefeatedPacket(BasePacket packet)
+        {
+            EnemyDefeatedPacket newPacket = (EnemyDefeatedPacket)packet;
+            Console.WriteLine("enemy defeated packet recieved");
         }
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)
