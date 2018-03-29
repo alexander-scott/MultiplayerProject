@@ -19,8 +19,6 @@ namespace MultiplayerProject.Source
          */
     public class GameInstance : IMessageable
     {
-        private int framesSinceLastSend;
-
         public event EmptyDelegate OnReturnToGameRoom;
 
         public MessageableComponent ComponentType { get; set; }
@@ -28,13 +26,15 @@ namespace MultiplayerProject.Source
 
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
         private Dictionary<string, LaserManager> _playerLasers;
+        private Dictionary<string, int> _playerScores;
         private Dictionary<string, Player> _players;
+
+        private CollisionManager _collisionManager;
 
         private EnemyManager _enemyManager;
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
-
-        private CollisionManager _collisionManager;
+        private int framesSinceLastSend;
 
         public GameInstance(List<ServerConnection> clients)
         {
@@ -42,6 +42,7 @@ namespace MultiplayerProject.Source
 
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _playerLasers = new Dictionary<string, LaserManager>();
+            _playerScores = new Dictionary<string, int>();
             _players = new Dictionary<string, Player>();
 
             _collisionManager = new CollisionManager();
@@ -56,8 +57,10 @@ namespace MultiplayerProject.Source
             {
                 ComponentClients[i].AddServerComponent(this);
                 ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
+
                 _playerUpdates[ComponentClients[i].ID] = null;
                 _playerLasers[ComponentClients[i].ID] = new LaserManager();
+                _playerScores[ComponentClients[i].ID] = 0;
 
                 Player player = new Player();
                 player.NetworkID = ComponentClients[i].ID;
@@ -114,11 +117,25 @@ namespace MultiplayerProject.Source
                 framesSinceLastSend = 0;
             }
 
+            ApplyPlayerInput(gameTime);
+
+            UpdateEnemies(gameTime);
+            
+            CheckCollisions();
+
+            if (sendPacketThisFrame)
+            {
+                SendPlayerStatesToClients();
+            }
+        }
+
+        private void ApplyPlayerInput(GameTime gameTime)
+        {
             // Apply the inputs recieved from the clients to the simulation running on the server
             foreach (KeyValuePair<string, Player> player in _players)
             {
                 if (_playerUpdates[player.Key] != null)
-                {              
+                {
                     player.Value.ApplyInputToPlayer(_playerUpdates[player.Key].Input, (float)gameTime.ElapsedGameTime.TotalSeconds);
                     player.Value.LastSequenceNumberProcessed = _playerUpdates[player.Key].SequenceNumber;
                     player.Value.LastKeyboardMovementInput = _playerUpdates[player.Key].Input;
@@ -131,7 +148,10 @@ namespace MultiplayerProject.Source
                     _playerLasers[player.Key].Update(gameTime);
                 }
             }
+        }
 
+        private void UpdateEnemies(GameTime gameTime)
+        {
             // Spawn a new enemy enemy every 1.5 seconds
             if (gameTime.TotalGameTime - _previousEnemySpawnTime > _enemySpawnTime)
             {
@@ -149,26 +169,6 @@ namespace MultiplayerProject.Source
             }
 
             _enemyManager.Update(gameTime);
-
-            CheckCollisions();
-
-            if (sendPacketThisFrame)
-            {
-                // Send a copy of the simulation on the server to all clients
-                for (int i = 0; i < ComponentClients.Count; i++)
-                {
-                    foreach (KeyValuePair<string, Player> player in _players)
-                    {
-                        PlayerUpdatePacket updatePacket;
-                        updatePacket = player.Value.BuildUpdatePacket(); // Here we are using the servers values which makes it authorative over the clients
-                        updatePacket.PlayerID = player.Key;
-                        updatePacket.SequenceNumber = player.Value.LastSequenceNumberProcessed;
-                        updatePacket.Input = player.Value.LastKeyboardMovementInput;
-
-                        ComponentClients[i].SendPacketToClient(updatePacket, MessageType.GI_ServerSend_UpdateRemotePlayer);
-                    }
-                }
-            }
         }
 
         private void CheckCollisions()
@@ -185,18 +185,51 @@ namespace MultiplayerProject.Source
                         _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Defeat collided enemy
 
                         // INCREMENT PLAYER SCORE HERE
+                        _playerScores[collisions[iCollision].AttackingPlayerID]++;
 
                         // Create packet to send to clients
-                        EnemyDefeatedPacket packet = new EnemyDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedEnemyID);
+                        EnemyDefeatedPacket packet = new EnemyDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedEnemyID, collisions[iCollision].AttackingPlayerID, _playerScores[collisions[iCollision].AttackingPlayerID]);
                         for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
                         {
                             ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemyDefeated);
                         }
+
                     }
                     else
                     {
 
                     }
+                }
+
+                CheckGameOver();
+            }
+        }
+
+        private void SendPlayerStatesToClients()
+        {
+            // Send a copy of the simulation on the server to all clients
+            for (int i = 0; i < ComponentClients.Count; i++)
+            {
+                foreach (KeyValuePair<string, Player> player in _players)
+                {
+                    PlayerUpdatePacket updatePacket;
+                    updatePacket = player.Value.BuildUpdatePacket(); // Here we are using the servers values which makes it authorative over the clients
+                    updatePacket.PlayerID = player.Key;
+                    updatePacket.SequenceNumber = player.Value.LastSequenceNumberProcessed;
+                    updatePacket.Input = player.Value.LastKeyboardMovementInput;
+
+                    ComponentClients[i].SendPacketToClient(updatePacket, MessageType.GI_ServerSend_UpdateRemotePlayer);
+                }
+            }
+        }
+
+        private void CheckGameOver()
+        {
+            foreach (KeyValuePair<string, int> player in _playerScores)
+            {
+                if (player.Value > Application.SCORE_TO_WIN)
+                {
+                    Console.WriteLine("PLAYER HAS WON");
                 }
             }
         }

@@ -304,10 +304,15 @@ namespace MultiplayerProject.Source
         public string CollidedLaserID { get; set; }
         public string CollidedEnemyID { get; set; }
 
-        public EnemyDefeatedPacket(string laserID, string enemyID)
+        public string AttackingPlayerID { get; set; }
+        public int AttackingPlayerNewScore { get; set; }
+
+        public EnemyDefeatedPacket(string laserID, string enemyID, string attackingPlayerID, int attackingPlayerNewScore)
         {
             CollidedLaserID = laserID;
             CollidedEnemyID = enemyID;
+            AttackingPlayerID = attackingPlayerID;
+            AttackingPlayerNewScore = attackingPlayerNewScore;
         }
     }
 }

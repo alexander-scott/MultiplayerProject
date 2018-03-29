@@ -21,11 +21,17 @@ namespace MultiplayerProject.Source
 
         private bool _sceneLoading;
 
+        private int _width;
+        private int _height;
+
         public ClientApplication(GraphicsDevice graphicsDevice, ContentManager contentManager)
         {
             _client = new Client();
             _graphicsDevice = graphicsDevice;
             _contentManager = contentManager;
+
+            _width = graphicsDevice.Viewport.Width;
+            _height = graphicsDevice.Viewport.Height;
 
             ClientMessenger.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
             ClientMessenger.OnLoadNewGame += ClientMessenger_OnLoadNewGame;
@@ -102,7 +108,7 @@ namespace MultiplayerProject.Source
             GameInstanceInformation gameInstance = (GameInstanceInformation)packet;
 
             _sceneLoading = true;
-            _currentScene = new MainGame(gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
+            _currentScene = new MainGame(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
             _sceneLoading = false;
         }

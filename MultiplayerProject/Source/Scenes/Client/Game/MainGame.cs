@@ -16,6 +16,8 @@ namespace MultiplayerProject.Source
 
         private Client _client;
 
+        private MainGameGUI _GUI;
+
         private EnemyManager _enemyManager;
         private LaserManager _laserManager;
         private ExplosionManager _explosionManager;
@@ -26,7 +28,7 @@ namespace MultiplayerProject.Source
         private int _packetNumber = -1;
         private Queue<PlayerUpdatePacket> _updatePackets;
 
-        public MainGame(int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
+        public MainGame(int width, int height, int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
             _playerColours = new Dictionary<string, PlayerColour>();
@@ -56,6 +58,8 @@ namespace MultiplayerProject.Source
                 _players.Add(player.NetworkID, player);
             }
 
+            _GUI = new MainGameGUI(width, height, playerIDs, playerColours);
+
             _updatePackets = new Queue<PlayerUpdatePacket>();
 
             _enemyManager = new EnemyManager();
@@ -76,6 +80,8 @@ namespace MultiplayerProject.Source
             {
                 player.Value.Initialize(content, _playerColours[player.Key]);
             }
+
+            _GUI.Initalise(content);
 
             _enemyManager.Initalise(content);
             _laserManager.Initalise(content);
@@ -143,6 +149,8 @@ namespace MultiplayerProject.Source
             {
                 player.Value.Draw(spriteBatch);
             }
+
+            _GUI.Draw(spriteBatch);
         }    
         
         private KeyboardMovementInput ProcessInputForLocalPlayer(GameTime gameTime, InputInformation inputInfo)
