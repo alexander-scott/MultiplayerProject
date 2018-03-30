@@ -179,10 +179,11 @@ namespace MultiplayerProject.Source
             {
                 for (int iCollision = 0; iCollision < collisions.Count; iCollision++)
                 {
+                    _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
+
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
-                    {
-                        _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
-                        _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Defeat collided enemy
+                    {                      
+                        _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
 
                         // INCREMENT PLAYER SCORE HERE
                         _playerScores[collisions[iCollision].AttackingPlayerID]++;
@@ -193,11 +194,20 @@ namespace MultiplayerProject.Source
                         {
                             ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemyDefeated);
                         }
-
                     }
                     else
                     {
+                        // DECCREMENT PLAYER SCORE HERE
+                        if (_playerScores[collisions[iCollision].DefeatedPlayerID] > 0)
+                            _playerScores[collisions[iCollision].DefeatedPlayerID]--;
 
+                        // Create packet to send to clients
+                        // TODO: In future move player to a random spot on the map and send that data with this packet
+                        PlayerDefeatedPacket packet = new PlayerDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedPlayerID, _playerScores[collisions[iCollision].DefeatedPlayerID]);
+                        for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
+                        {
+                            ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_PlayerDefeated);
+                        }
                     }
                 }
 

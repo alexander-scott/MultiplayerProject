@@ -73,6 +73,7 @@ namespace MultiplayerProject.Source
         GI_ServerSend_RemotePlayerFiredPacket,
         GI_ServerSend_EnemySpawn,
         GI_ServerSend_EnemyDefeated,
+        GI_ServerSend_PlayerDefeated,
     }
 
     public struct InputInformation
@@ -313,6 +314,21 @@ namespace MultiplayerProject.Source
             CollidedEnemyID = enemyID;
             AttackingPlayerID = attackingPlayerID;
             AttackingPlayerNewScore = attackingPlayerNewScore;
+        }
+    }
+
+    [Serializable]
+    public class PlayerDefeatedPacket : BasePacket
+    {
+        public string CollidedLaserID { get; set; }
+        public string CollidedPlayerID { get; set; }
+        public int CollidedPlayerNewScore { get; set; }
+
+        public PlayerDefeatedPacket(string laserID, string playerID, int collidedPlayerNewScore)
+        {
+            CollidedLaserID = laserID;
+            CollidedPlayerID = playerID;
+            CollidedPlayerNewScore = collidedPlayerNewScore;
         }
     }
 }

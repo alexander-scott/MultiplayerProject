@@ -21,6 +21,7 @@ namespace MultiplayerProject.Source
         public static event BasePacketDelegate OnRecievedPlayerFiredPacket;
         public static event BasePacketDelegate OnEnemySpawnedPacket;
         public static event BasePacketDelegate OnEnemyDefeatedPacket;
+        public static event BasePacketDelegate OnPlayerDefeatedPacket;
 
         private Client _client;
 
@@ -138,6 +139,13 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = packetBytes.DeserializeFromBytes<EnemyDefeatedPacket>();
                         OnEnemyDefeatedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_PlayerDefeated:
+                    {
+                        var enemyPacket = packetBytes.DeserializeFromBytes<PlayerDefeatedPacket>();
+                        OnPlayerDefeatedPacket(enemyPacket);
                         break;
                     }
             }
