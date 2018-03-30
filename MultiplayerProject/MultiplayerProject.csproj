@@ -73,6 +73,7 @@
     <Compile Include="Source\Networking\Server\GameInstance.cs" />
     <Compile Include="Source\Networking\Server\IMessageable.cs" />
     <Compile Include="Source\Networking\Server\GameRoom.cs" />
+    <Compile Include="Source\Networking\Server\ServerLeaderboard.cs" />
     <Compile Include="Source\Networking\Server\WaitingRoom.cs" />
     <Compile Include="Source\Networking\Server\ServerConnection.cs" />
     <Compile Include="Source\Networking\Server\Server.cs" />

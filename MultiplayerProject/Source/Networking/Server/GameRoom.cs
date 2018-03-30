@@ -15,11 +15,12 @@ namespace MultiplayerProject.Source
         public string RoomName;
         public string ID;
 
-        private bool _isPlaying;
+        private GameRoomState roomState;
         private int _maxConnections;
         private Dictionary<ServerConnection, bool> _clientReadyStatus;
 
         private GameInstance _gameInstance;
+        private ServerLeaderboard _gameLeaderboard;
 
         public GameRoom(int maxConnections, string name)
         {
@@ -27,7 +28,7 @@ namespace MultiplayerProject.Source
             RoomName = name;
 
             _clientReadyStatus = new Dictionary<ServerConnection, bool>();
-            _isPlaying = false;
+            roomState = GameRoomState.Waiting;
 
             ID = Guid.NewGuid().ToString();
             ComponentClients = new List<ServerConnection>();
@@ -42,7 +43,7 @@ namespace MultiplayerProject.Source
 
         public RoomInformation GetRoomInformation()
         {
-            return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount(), _isPlaying);
+            return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount(), roomState);
         }
 
         public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
@@ -95,17 +96,25 @@ namespace MultiplayerProject.Source
 
         private void LaunchGameInstance()
         {
-            _isPlaying = true;
+            roomState = GameRoomState.InSession;
 
             _gameInstance = new GameInstance(ComponentClients);
-            _gameInstance.OnReturnToGameRoom += _gameInstance_OnReturnToGameRoom;
+            _gameInstance.OnGameCompleted += OnGameCompleted;
         }
 
-        private void _gameInstance_OnReturnToGameRoom()
+        private void OnGameCompleted(BasePacket packet)
         {
-            _gameInstance.OnReturnToGameRoom -= _gameInstance_OnReturnToGameRoom;
+            _gameInstance.OnGameCompleted -= OnGameCompleted;
 
-            throw new NotImplementedException();
+            roomState = GameRoomState.Leaderboards;
+            OnRoomStateChanged();
+
+            for (int i = 0; i < ComponentClients.Count; i++)
+            {
+                ComponentClients[i].RemoveServerComponent(_gameInstance);
+            }
+
+            _gameLeaderboard = new ServerLeaderboard(ComponentClients); 
         }
 
         private int GetReadyCount()
@@ -126,10 +135,20 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            if (_gameInstance == null)
-                return;
+            if (roomState == GameRoomState.InSession)
+            {
+                if (_gameInstance == null)
+                    return;
 
-            _gameInstance.Update(gameTime);
+                _gameInstance.Update(gameTime);
+            }
+            else if (roomState == GameRoomState.Leaderboards)
+            {
+                if (_gameLeaderboard == null)
+                    return;
+
+                _gameLeaderboard.Update(gameTime);
+            }
         }
     }
 }

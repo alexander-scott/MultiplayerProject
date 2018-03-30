@@ -19,7 +19,7 @@ namespace MultiplayerProject.Source
          */
     public class GameInstance : IMessageable
     {
-        public event EmptyDelegate OnReturnToGameRoom;
+        public event BasePacketDelegate OnGameCompleted;
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
@@ -239,7 +239,30 @@ namespace MultiplayerProject.Source
             {
                 if (player.Value > Application.SCORE_TO_WIN)
                 {
-                    Console.WriteLine("PLAYER HAS WON");
+                    Console.WriteLine("GAME OVER");
+
+                    int playerCount = ComponentClients.Count;
+                    int[] playerScores = new int[playerCount];
+                    string[] playerNames = new string[playerCount];
+
+                    int index = 0;
+                    foreach (KeyValuePair<string, int> playerScore in _playerScores)
+                    {
+                        playerScores[index] = playerScore.Value;
+                        playerNames[index] = "PLAYER" + index;
+                        index++;
+                    }
+
+                    LeaderboardPacket packet = new LeaderboardPacket(playerCount, playerNames, playerScores);
+
+                    for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
+                    {
+                        ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_GameOver);
+                    }
+
+                    OnGameCompleted(packet);
+
+                    return;
                 }
             }
         }

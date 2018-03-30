@@ -74,6 +74,15 @@ namespace MultiplayerProject.Source
         GI_ServerSend_EnemySpawn,
         GI_ServerSend_EnemyDefeated,
         GI_ServerSend_PlayerDefeated,
+
+        GI_ServerSend_GameOver,
+    }
+
+    public enum GameRoomState : byte
+    {
+        Waiting,
+        InSession,
+        Leaderboards
     }
 
     public struct InputInformation
@@ -151,15 +160,15 @@ namespace MultiplayerProject.Source
         public int ReadyCount { get; set; }
         public string[] ConnectionIDs { get; set; }
         public string[] ConnectionNames { get; set; }
-        public bool IsPlaying { get; set; }
+        public GameRoomState RoomState { get; set; }
 
-        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections, int readyCount, bool isPlaying) : base()
+        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections, int readyCount, GameRoomState roomState) : base()
         {
             RoomName = roomName;
             RoomID = roomID;
             ReadyCount = readyCount;
             ConnectionCount = connections.Count;
-            IsPlaying = isPlaying;
+            RoomState = roomState;
 
             ConnectionIDs = new string[ConnectionCount];
             ConnectionNames = new string[ConnectionCount];
@@ -329,6 +338,21 @@ namespace MultiplayerProject.Source
             CollidedLaserID = laserID;
             CollidedPlayerID = playerID;
             CollidedPlayerNewScore = collidedPlayerNewScore;
+        }
+    }
+
+    [Serializable]
+    public class LeaderboardPacket : BasePacket
+    {
+        public int PlayerCount { get; set; }
+        public string[] PlayerNames { get; set; }
+        public int[] PlayerScores { get; set; }
+
+        public LeaderboardPacket(int playerCount, string[] playerNames, int[] playerScores)
+        {
+            PlayerCount = playerCount;
+            PlayerNames = playerNames;
+            PlayerScores = playerScores;
         }
     }
 }

@@ -113,10 +113,21 @@ namespace MultiplayerProject.Source
                 {
                     GameRoomUIItem uiItem = new GameRoomUIItem();
                     uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
-                    if (!room.IsPlaying)
-                        uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
-                    else
-                        uiItem.Text = room.RoomName + " : PLAYING";
+
+                    switch (room.RoomState)
+                    {
+                        case GameRoomState.Waiting:
+                            uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
+                            break;
+
+                        case GameRoomState.InSession:
+                            uiItem.Text = room.RoomName + " : PLAYING";
+                            break;
+
+                        case GameRoomState.Leaderboards:
+                            uiItem.Text = room.RoomName + " : GAME FINISHING";
+                            break;
+                    }
 
                     Vector2 size = _font.MeasureString(uiItem.Text);
                     float xScale = (uiItem.Rect.Width / size.X);
@@ -259,7 +270,7 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && !_waitingRoom.Rooms[i].IsPlaying)
+                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && _waitingRoom.Rooms[i].RoomState != GameRoomState.InSession && _waitingRoom.Rooms[i].RoomState != GameRoomState.Leaderboards)
                                 {
                                     OnJoinGameRoom(_waitingRoom.Rooms[i].RoomID);
                                     _waitingForResponseFromServer = true;
@@ -270,7 +281,7 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_waitingRoom.Rooms[i].IsPlaying)
+                                if (_waitingRoom.Rooms[i].RoomState == GameRoomState.InSession || _waitingRoom.Rooms[i].RoomState == GameRoomState.Leaderboards)
                                 {
                                     _roomUIItems[i].BorderColour = Color.Red;
                                 }
