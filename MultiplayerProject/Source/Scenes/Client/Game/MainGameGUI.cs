@@ -64,5 +64,10 @@ namespace MultiplayerProject.Source
         {
             _font = content.Load<SpriteFont>("Font");
         }
+
+        public void UpdatePlayerScore(string playerID, int newScore)
+        {
+            _playerScores[playerID] = newScore;
+        }
     }
 }

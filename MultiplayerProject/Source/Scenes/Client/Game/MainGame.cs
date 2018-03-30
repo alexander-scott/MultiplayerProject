@@ -277,11 +277,13 @@ namespace MultiplayerProject.Source
 
         private void ClientMessenger_OnEnemyDefeatedPacket(BasePacket packet)
         {
-            EnemyDefeatedPacket newPacket = (EnemyDefeatedPacket)packet;
+            EnemyDefeatedPacket enemyDefeatedPacket = (EnemyDefeatedPacket)packet;
 
-            _laserManager.DeactivateLaser(newPacket.CollidedLaserID);
+            _GUI.UpdatePlayerScore(enemyDefeatedPacket.AttackingPlayerID, enemyDefeatedPacket.AttackingPlayerNewScore);
 
-            var enemy = _enemyManager.DeactivateAndReturnEnemy(newPacket.CollidedEnemyID);
+            _laserManager.DeactivateLaser(enemyDefeatedPacket.CollidedLaserID);
+
+            var enemy = _enemyManager.DeactivateAndReturnEnemy(enemyDefeatedPacket.CollidedEnemyID);
             _explosionManager.AddExplosion(enemy.Position);
         }
 

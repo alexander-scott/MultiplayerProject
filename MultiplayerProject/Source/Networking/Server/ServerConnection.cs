@@ -69,7 +69,19 @@ namespace MultiplayerProject
         public void SendPacketToClient(BasePacket packet, MessageType type)
         {
             byte[] bytes = packet.PackMessage(type);
-            Writer.Write(Convert.ToBase64String(bytes));
+            string stringToSend = Convert.ToBase64String(bytes);
+
+            try
+            {
+                var testBytes = Convert.FromBase64String(stringToSend);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("FAILED TO CONVERT TO BASE64 STRING");
+            }
+
+
+            Writer.Write(stringToSend);
             Writer.Flush();
         }
 
