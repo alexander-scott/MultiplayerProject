@@ -72,6 +72,7 @@ namespace MultiplayerProject.Source
             ClientMessenger.OnRecievedPlayerFiredPacket += ClientMessenger_OnRecievedPlayerFiredPacket;
             ClientMessenger.OnEnemySpawnedPacket += ClientMessenger_OnEnemySpawnedPacket;
             ClientMessenger.OnEnemyDefeatedPacket += ClientMessenger_OnEnemyDefeatedPacket;
+            ClientMessenger.OnPlayerDefeatedPacket += ClientMessenger_OnPlayerDefeatedPacket;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -101,6 +102,24 @@ namespace MultiplayerProject.Source
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            _backgroundManager.Draw(spriteBatch);
+
+            _enemyManager.Draw(spriteBatch);
+
+            _laserManager.Draw(spriteBatch);
+
+            foreach (KeyValuePair<string, Player> player in _players)
+            {
+                player.Value.Draw(spriteBatch);
+            }
+
+            _explosionManager.Draw(spriteBatch);
+
+            _GUI.Draw(spriteBatch);
         }
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
@@ -135,24 +154,6 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            _backgroundManager.Draw(spriteBatch);
-
-            _enemyManager.Draw(spriteBatch);
-
-            _laserManager.Draw(spriteBatch);
-
-            _explosionManager.Draw(spriteBatch);
-
-            foreach (KeyValuePair<string, Player> player in _players)
-            {
-                player.Value.Draw(spriteBatch);
-            }
-
-            _GUI.Draw(spriteBatch);
-        }    
-        
         private KeyboardMovementInput ProcessInputForLocalPlayer(GameTime gameTime, InputInformation inputInfo)
         {
             KeyboardMovementInput input = new KeyboardMovementInput();
@@ -285,6 +286,19 @@ namespace MultiplayerProject.Source
 
             var enemy = _enemyManager.DeactivateAndReturnEnemy(enemyDefeatedPacket.CollidedEnemyID);
             _explosionManager.AddExplosion(enemy.Position);
+        }
+
+        private void ClientMessenger_OnPlayerDefeatedPacket(BasePacket packet)
+        {
+            PlayerDefeatedPacket playerDefeatedPacket = (PlayerDefeatedPacket)packet;
+
+            _GUI.UpdatePlayerScore(playerDefeatedPacket.CollidedPlayerID, playerDefeatedPacket.CollidedPlayerNewScore);
+
+            _laserManager.DeactivateLaser(playerDefeatedPacket.CollidedLaserID);
+
+            var player = _players[playerDefeatedPacket.CollidedPlayerID];
+
+            _explosionManager.AddExplosion(player.Position);
         }
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)
