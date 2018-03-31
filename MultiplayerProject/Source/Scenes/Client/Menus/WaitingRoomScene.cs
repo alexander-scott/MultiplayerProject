@@ -72,6 +72,58 @@ namespace MultiplayerProject.Source
             ClientMessenger.OnRoomSuccessfullyUnready += ClientMessenger_OnRoomSuccessfullyUnready;
         }
 
+        public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
+        {
+            _font = content.Load<SpriteFont>("Font");
+            _device = graphicsDevice;
+
+            _titlePosition = new Vector2(Application.WINDOW_WIDTH / 2, 0);
+            _titlePosition.X -= (_font.MeasureString(_titleText).X / 2);
+
+            ReformatButton();
+        }
+
+        public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
+        {
+            if (_waitingForResponseFromServer)
+                return;
+
+            CheckBottomButtonClicked(inputInfo);
+
+            CheckRoomClicked(inputInfo);
+        }
+
+        public void Update(GameTime gameTime)
+        {
+
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            // Draw title
+            spriteBatch.DrawString(_font, _titleText, _titlePosition, Color.White);
+
+            // Draw new room button
+            spriteBatch.DrawString(_font, _buttonText, _buttonPosition, Color.White);
+            Texture2D newRoomBtnTexture = new Texture2D(_device, _buttonRect.Width, _buttonRect.Height);
+            newRoomBtnTexture.CreateBorder(1, _buttonColour);
+            spriteBatch.Draw(newRoomBtnTexture, _buttonPosition, Color.White);
+
+            if (_roomUIItems.Count != 0)
+            {
+                for (int i = 0; i < _roomUIItems.Count; i++)
+                {
+                    // Draw room ui item string
+                    spriteBatch.DrawString(_font, _roomUIItems[i].Text, _roomUIItems[i].Position, Color.White);
+
+                    // Draw room ui item border
+                    Texture2D texture = new Texture2D(_device, _roomUIItems[i].Rect.Width, _roomUIItems[i].Rect.Height);
+                    texture.CreateBorder(_roomUIItems[i].BorderWidth, _roomUIItems[i].BorderColour);
+                    spriteBatch.Draw(texture, _roomUIItems[i].Position, Color.White);
+                }
+            }
+        }
+
         private void ClientMessenger_OnRoomSuccessfullyUnready()
         {
             _readyToPlay = false;
@@ -196,58 +248,6 @@ namespace MultiplayerProject.Source
             }
 
             ReformatButton();
-        }
-
-        public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
-        {
-            _font = content.Load<SpriteFont>("Font");
-            _device = graphicsDevice;
-
-            _titlePosition = new Vector2(Application.WINDOW_WIDTH / 2, 0);
-            _titlePosition.X -= (_font.MeasureString(_titleText).X / 2);
-
-            ReformatButton();
-        }
-
-        public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
-        {
-            if (_waitingForResponseFromServer)
-                return;
-
-            CheckBottomButtonClicked(inputInfo);
-
-            CheckRoomClicked(inputInfo);
-        }
-
-        public void Update(GameTime gameTime)
-        {
-
-        }
-
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            // Draw title
-            spriteBatch.DrawString(_font, _titleText, _titlePosition, Color.White);
-
-            // Draw new room button
-            spriteBatch.DrawString(_font, _buttonText, _buttonPosition, Color.White);
-            Texture2D newRoomBtnTexture = new Texture2D(_device, _buttonRect.Width, _buttonRect.Height);
-            newRoomBtnTexture.CreateBorder(1, _buttonColour);
-            spriteBatch.Draw(newRoomBtnTexture, _buttonPosition, Color.White);
-
-            if (_roomUIItems.Count != 0)
-            {
-                for (int i = 0; i < _roomUIItems.Count; i++)
-                {
-                    // Draw room ui item string
-                    spriteBatch.DrawString(_font, _roomUIItems[i].Text, _roomUIItems[i].Position, Color.White);
-
-                    // Draw room ui item border
-                    Texture2D texture = new Texture2D(_device, _roomUIItems[i].Rect.Width, _roomUIItems[i].Rect.Height);
-                    texture.CreateBorder(_roomUIItems[i].BorderWidth, _roomUIItems[i].BorderColour);
-                    spriteBatch.Draw(texture, _roomUIItems[i].Position, Color.White);
-                }
-            }
         }
 
         private void ReformatButton()

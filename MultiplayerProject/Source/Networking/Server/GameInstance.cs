@@ -237,7 +237,7 @@ namespace MultiplayerProject.Source
         {
             foreach (KeyValuePair<string, int> player in _playerScores)
             {
-                if (player.Value > Application.SCORE_TO_WIN)
+                if (player.Value >= Application.SCORE_TO_WIN)
                 {
                     Console.WriteLine("GAME OVER");
 

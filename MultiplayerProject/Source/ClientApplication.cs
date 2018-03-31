@@ -35,6 +35,7 @@ namespace MultiplayerProject.Source
 
             ClientMessenger.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
             ClientMessenger.OnLoadNewGame += ClientMessenger_OnLoadNewGame;
+            ClientMessenger.OnGameOver += ClientMessenger_OnGameOver;
         }
 
         public void Initalise(string hostname, int port)
@@ -109,6 +110,16 @@ namespace MultiplayerProject.Source
 
             _sceneLoading = true;
             _currentScene = new MainGame(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
+            _currentScene.Initalise(_contentManager, _graphicsDevice);
+            _sceneLoading = false;
+        }
+
+        private void ClientMessenger_OnGameOver(BasePacket packet)
+        {
+            LeaderboardPacket leaderBoard = (LeaderboardPacket)packet;
+
+            _sceneLoading = true;
+            _currentScene = new LeaderboardScene(_width, _height, leaderBoard);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
             _sceneLoading = false;
         }

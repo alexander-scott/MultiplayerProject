@@ -8,15 +8,21 @@ namespace MultiplayerProject.Source
 {
     public class ClientMessenger
     {
+        // Base
         public static event EmptyDelegate OnServerForcedDisconnect;
+
+        // Waiting room
         public static event BasePacketDelegate OnWaitingRoomInformationRecieved;
         public static event StringDelegate OnRoomSuccessfullyJoined;
         public static event StringDelegate OnRoomSuccessfullyLeft;
         public static event EmptyDelegate OnRoomSuccessfullyReady;
         public static event EmptyDelegate OnRoomSuccessfullyUnready;
 
+        // Game room
         public static event BasePacketDelegate OnLoadNewGame;
+        public static event BasePacketDelegate OnGameOver;
 
+        // Game instance
         public static event BasePacketDelegate OnRecievedPlayerUpdatePacket;
         public static event BasePacketDelegate OnRecievedPlayerFiredPacket;
         public static event BasePacketDelegate OnEnemySpawnedPacket;
@@ -146,6 +152,13 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = packetBytes.DeserializeFromBytes<PlayerDefeatedPacket>();
                         OnPlayerDefeatedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_GameOver:
+                    {
+                        var leaderboard = packetBytes.DeserializeFromBytes<LeaderboardPacket>();
+                        OnGameOver(leaderboard);
                         break;
                     }
             }

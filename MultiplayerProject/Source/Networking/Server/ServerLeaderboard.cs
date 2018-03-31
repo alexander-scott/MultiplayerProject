@@ -24,7 +24,10 @@ namespace MultiplayerProject.Source
 
         public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
         {
-            throw new NotImplementedException();
+            switch (messageType)
+            {
+
+            }
         }
 
         public void RemoveClient(ServerConnection client)
@@ -34,7 +37,7 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }
