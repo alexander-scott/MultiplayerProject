@@ -28,6 +28,7 @@ namespace MultiplayerProject.Source
         private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, int> _playerScores;
         private Dictionary<string, Player> _players;
+        private Dictionary<string, Color> _playerColours;
 
         private CollisionManager _collisionManager;
 
@@ -43,6 +44,7 @@ namespace MultiplayerProject.Source
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _playerLasers = new Dictionary<string, LaserManager>();
             _playerScores = new Dictionary<string, int>();
+            _playerColours = new Dictionary<string, Color>();
             _players = new Dictionary<string, Player>();
 
             _collisionManager = new CollisionManager();
@@ -61,6 +63,7 @@ namespace MultiplayerProject.Source
                 _playerUpdates[ComponentClients[i].ID] = null;
                 _playerLasers[ComponentClients[i].ID] = new LaserManager();
                 _playerScores[ComponentClients[i].ID] = 0;
+                _playerColours[ComponentClients[i].ID] = playerColours[i];
 
                 Player player = new Player();
                 player.NetworkID = ComponentClients[i].ID;
@@ -253,8 +256,15 @@ namespace MultiplayerProject.Source
                         index++;
                     }
 
-                    LeaderboardPacket packet = new LeaderboardPacket(playerCount, playerNames, playerScores);
+                    PlayerColour[] playerColours = new PlayerColour[_playerColours.Count];
+                    index = 0;
+                    foreach (KeyValuePair<string, Color> playerColour in _playerColours)
+                    {
+                        playerColours[index] = new PlayerColour(playerColour.Value.R, playerColour.Value.G, playerColour.Value.B);
+                        index++;
+                    }
 
+                    LeaderboardPacket packet = new LeaderboardPacket(playerCount, playerNames, playerScores, playerColours);
                     for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
                     {
                         ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_GameOver);

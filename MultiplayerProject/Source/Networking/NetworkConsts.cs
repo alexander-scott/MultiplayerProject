@@ -347,12 +347,14 @@ namespace MultiplayerProject.Source
         public int PlayerCount { get; set; }
         public string[] PlayerNames { get; set; }
         public int[] PlayerScores { get; set; }
+        public PlayerColour[] PlayerColours { get; set; }
 
-        public LeaderboardPacket(int playerCount, string[] playerNames, int[] playerScores)
+        public LeaderboardPacket(int playerCount, string[] playerNames, int[] playerScores, PlayerColour[] playerColours)
         {
             PlayerCount = playerCount;
             PlayerNames = playerNames;
             PlayerScores = playerScores;
+            PlayerColours = playerColours;
         }
     }
 }
