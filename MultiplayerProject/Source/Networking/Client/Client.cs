@@ -18,18 +18,21 @@ namespace MultiplayerProject
 
     public class Client
     {
+        public static event EmptyDelegate OnServerForcedDisconnect;
+        public static event BasePacketDelegate OnLoadNewGame;
+        public static event BasePacketDelegate OnGameOver;
+
         private TcpClient _tcpClient;
         private NetworkStream _stream;
         private BinaryWriter _writer;
         private BinaryReader _reader;
         private Thread _thread;
 
-        private ClientMessenger _reciever;
+        private IScene _currentScene;
 
         public Client()
         {
             _tcpClient = new TcpClient();
-            _reciever = new ClientMessenger(this);
         }
 
         public bool Connect(string hostname, int port)
@@ -73,6 +76,11 @@ namespace MultiplayerProject
                 _thread.Abort();
         }
 
+        public void SetCurrentScene(IScene scene)
+        {
+            _currentScene = scene;
+        }
+
         private void CleanUp()
         {
             _tcpClient.Close();
@@ -100,7 +108,7 @@ namespace MultiplayerProject
                             while (stream.HasValidPackage(out Int32 messageSize))
                             {
                                 MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                _reciever.RecieveServerResponse(type, buffer);
+                                ProcessServerPacket(type, buffer);
                             }
                         }
                     }
@@ -113,6 +121,37 @@ namespace MultiplayerProject
             finally
             {
                 CleanUp();
+            }
+        }
+
+        private void ProcessServerPacket(MessageType messageType, byte[] packetBytes)
+        {
+            switch (messageType)
+            {
+                case MessageType.Server_Disconnect:
+                    OnServerForcedDisconnect();
+                    break;
+
+                case MessageType.GI_ServerSend_LoadNewGame:
+                    {
+                        OnLoadNewGame(packetBytes.DeserializeFromBytes<GameInstanceInformation>());
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_GameOver:
+                    {
+                        var leaderboard = packetBytes.DeserializeFromBytes<LeaderboardPacket>();
+                        OnGameOver(leaderboard);
+                        break;
+                    }
+
+                default:
+                    {
+                        if (_currentScene != null)
+                            _currentScene.RecieveServerResponse(messageType, packetBytes);
+                        break;
+
+                    }
             }
         }
     }

@@ -9,12 +9,10 @@ namespace MultiplayerProject.Source
 {
     public class GameScene : IScene
     {
-        private Dictionary<string,Player> _players;
+        private Dictionary<string, Player> _players;
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
         private Dictionary<string, PlayerColour> _playerColours;
-
-        private Client _client;
 
         private GameSceneGUI _GUI;
 
@@ -28,23 +26,25 @@ namespace MultiplayerProject.Source
         private int _packetNumber = -1;
         private Queue<PlayerUpdatePacket> _updatePackets;
 
+        public Client Client { get; set; }
+
         public GameScene(int width, int height, int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
             _playerColours = new Dictionary<string, PlayerColour>();
             _remotePlayers = new List<RemotePlayer>();
 
-            _client = client; 
+            Client = client;
 
             for (int i = 0; i < playerCount; i++)
             {
-                Player player; 
+                Player player;
                 if (playerIDs[i] == localClientID)
                 {
                     var locPlay = new LocalPlayer();
                     _localPlayer = locPlay;
                     player = locPlay;
-                } 
+                }
                 else
                 {
                     var remPlay = new RemotePlayer();
@@ -67,12 +67,6 @@ namespace MultiplayerProject.Source
             _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
-
-            ClientMessenger.OnRecievedPlayerUpdatePacket += OnRecievedPlayerUpdatePacket;
-            ClientMessenger.OnRecievedPlayerFiredPacket += ClientMessenger_OnRecievedPlayerFiredPacket;
-            ClientMessenger.OnEnemySpawnedPacket += ClientMessenger_OnEnemySpawnedPacket;
-            ClientMessenger.OnEnemyDefeatedPacket += ClientMessenger_OnEnemyDefeatedPacket;
-            ClientMessenger.OnPlayerDefeatedPacket += ClientMessenger_OnPlayerDefeatedPacket;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -150,7 +144,7 @@ namespace MultiplayerProject.Source
             if (sendPacketThisFrame)
             {
                 // Send the packet to the server
-                _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
+                SendMessageToTheServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
             }
         }
 
@@ -186,9 +180,9 @@ namespace MultiplayerProject.Source
                     PlayerFiredPacket packet = new PlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds; // TOTAL GAME TIME NOT ELAPSED TIME!
                     packet.LaserID = laser.LaserID;
-                    
+
                     // Send the packet to the server
-                    _client.SendMessageToServer(packet, MessageType.GI_ClientSend_PlayerFiredPacket);
+                    SendMessageToTheServer(packet, MessageType.GI_ClientSend_PlayerFiredPacket);
                 }
             }
 
@@ -210,7 +204,7 @@ namespace MultiplayerProject.Source
                 serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0
                 && _updatePackets.Count > 0)
             {
-                
+
                 PlayerUpdatePacket localUpdate = GetUpdateAtSequenceNumber(serverUpdate.SequenceNumber);
 
                 if (localUpdate.XPosition != serverUpdate.XPosition
@@ -319,6 +313,52 @@ namespace MultiplayerProject.Source
             }
 
             return localUpdate;
+        }
+
+        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        {
+            switch (messageType)
+            {
+                case MessageType.GI_ServerSend_UpdateRemotePlayer:
+                    {
+                        var playerPacket = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
+                        OnRecievedPlayerUpdatePacket(playerPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_RemotePlayerFiredPacket:
+                    {
+                        var playerPacket = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
+                        ClientMessenger_OnRecievedPlayerFiredPacket(playerPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_EnemySpawn:
+                    {
+                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemySpawnedPacket>();
+                        ClientMessenger_OnEnemySpawnedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_EnemyDefeated:
+                    {
+                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemyDefeatedPacket>();
+                        ClientMessenger_OnEnemyDefeatedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_PlayerDefeated:
+                    {
+                        var enemyPacket = packetBytes.DeserializeFromBytes<PlayerDefeatedPacket>();
+                        ClientMessenger_OnPlayerDefeatedPacket(enemyPacket);
+                        break;
+                    }
+            }
+        }
+
+        public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
+        {
+            Client.SendMessageToServer(packet, messageType);
         }
     }
 }

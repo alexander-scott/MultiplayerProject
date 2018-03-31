@@ -8,7 +8,7 @@ namespace MultiplayerProject.Source
     {
         public static event EmptyDelegate OnRequestToReturnToMainMenu;
 
-        private IScene _currentScene;
+        private ServerScene _currentScene;
 
         private Server _server;
         private GraphicsDevice _graphicsDevice;

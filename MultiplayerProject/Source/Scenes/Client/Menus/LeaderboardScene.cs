@@ -18,6 +18,8 @@ namespace MultiplayerProject.Source
 
     public class LeaderboardScene : IScene
     {
+        public Client Client { get; set; }
+
         private SpriteFont _font;
         private GraphicsDevice _device;
         private int _width;
@@ -41,8 +43,10 @@ namespace MultiplayerProject.Source
         private Color _exitButtonColour;
         private string _exitButtonText = "RETURN TO MAIN MENU";
 
-        public LeaderboardScene(int width, int height, LeaderboardPacket leaderboardPacket)
+        public LeaderboardScene(Client client, int width, int height, LeaderboardPacket leaderboardPacket)
         {
+            Client = client;
+
             _width = width;
             _height = height;
             _leaderboard = leaderboardPacket;
@@ -158,6 +162,16 @@ namespace MultiplayerProject.Source
                     }
                 }
             }
+        }
+
+        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
+        {
+            Client.SendMessageToServer(packet, messageType);
         }
 
         public void Update(GameTime gameTime)

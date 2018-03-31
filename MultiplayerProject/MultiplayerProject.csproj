@@ -63,7 +63,6 @@
     <Compile Include="Source\GameObjects\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\Networking\Client\Client.cs" />
-    <Compile Include="Source\Networking\Client\ClientMessenger.cs" />
     <Compile Include="Source\Networking\Client\INetworkedObject.cs" />
     <Compile Include="Source\Networking\Client\LocalPlayer.cs" />
     <Compile Include="Source\Networking\Client\RemotePlayer.cs" />
@@ -81,7 +80,7 @@
     <Compile Include="Source\GameObjects\Player.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Source\Scenes\Client\Game\LeaderboardScene.cs" />
+    <Compile Include="Source\Scenes\Client\Menus\LeaderboardScene.cs" />
     <Compile Include="Source\Scenes\Client\Game\GameSceneGUI.cs" />
     <Compile Include="Source\Scenes\Client\Menus\DisconnectedFromServerScene.cs" />
     <Compile Include="Source\Scenes\IScene.cs" />

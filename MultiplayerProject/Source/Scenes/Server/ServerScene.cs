@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
 {
-    public class ServerScene : IScene
+    public class ServerScene
     {
         private SpriteFont _font;
         private GraphicsDevice _device;

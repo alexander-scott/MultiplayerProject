@@ -27,12 +27,6 @@ namespace MultiplayerProject.Source
 
     public class WaitingRoomScene : IScene
     {
-        public static event EmptyDelegate OnNewGameRoomClicked;
-        public static event StringDelegate OnJoinGameRoom;
-        public static event StringDelegate OnLeaveGameRoom;
-        public static event EmptyDelegate OnClientReady;
-        public static event EmptyDelegate OnClientUnready;
-
         private WaitingRoomInformation _waitingRoom;
 
         private string _joinedRoomID;
@@ -57,19 +51,16 @@ namespace MultiplayerProject.Source
         private List<GameRoomUIItem> _roomUIItems;
         private const int _roomStartYPos = 50;
 
-        public WaitingRoomScene()
-        {
-            _waitingForResponseFromServer = false;
+        public Client Client { get; set; }
 
+        public WaitingRoomScene(Client client)
+        {
+            Client = client;
+
+            _waitingForResponseFromServer = false;
             _state = WaitingRoomState.NotInRoomAbleToCreate;
 
             _roomUIItems = new List<GameRoomUIItem>();
-
-            ClientMessenger.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
-            ClientMessenger.OnRoomSuccessfullyJoined += ClientMessageReciever_OnRoomSuccessfullyJoined;
-            ClientMessenger.OnRoomSuccessfullyLeft += ClientMessageReciever_OnRoomSuccessfullyLeft;
-            ClientMessenger.OnRoomSuccessfullyReady += ClientMessenger_OnRoomSuccessfullyReady;
-            ClientMessenger.OnRoomSuccessfullyUnready += ClientMessenger_OnRoomSuccessfullyUnready;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -272,7 +263,7 @@ namespace MultiplayerProject.Source
                             {
                                 if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && _waitingRoom.Rooms[i].RoomState != GameRoomState.InSession && _waitingRoom.Rooms[i].RoomState != GameRoomState.Leaderboards)
                                 {
-                                    OnJoinGameRoom(_waitingRoom.Rooms[i].RoomID);
+                                    SendMessageToTheServer(new StringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_JoinRoom);
                                     _waitingForResponseFromServer = true;
                                 }
                             }
@@ -309,7 +300,7 @@ namespace MultiplayerProject.Source
                                 {
                                     if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                                     {
-                                        OnLeaveGameRoom(_waitingRoom.Rooms[i].RoomID);
+                                        SendMessageToTheServer(new StringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_LeaveRoom);
                                         _waitingForResponseFromServer = true;
                                     }
                                 }
@@ -379,7 +370,7 @@ namespace MultiplayerProject.Source
                                 if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                                 {
                                     // New room valid click
-                                    OnNewGameRoomClicked();
+                                    SendMessageToTheServer(new BasePacket(), MessageType.WR_ClientRequest_CreateRoom);
                                 }
                             }
                             else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
@@ -420,7 +411,7 @@ namespace MultiplayerProject.Source
                             if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                             {
                                 // ON READY UP
-                                OnClientReady();
+                                SendMessageToTheServer(new BasePacket(), MessageType.GR_ClientRequest_Ready);
                                 _waitingForResponseFromServer = true;
                             }
                         }
@@ -450,7 +441,7 @@ namespace MultiplayerProject.Source
                             if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                             {
                                 // ON UNREADY
-                                OnClientUnready();
+                                SendMessageToTheServer(new BasePacket(), MessageType.GR_ClientRequest_Unready);
                                 _waitingForResponseFromServer = true;
                             }
                         }
@@ -472,6 +463,56 @@ namespace MultiplayerProject.Source
                         break;
                     }
             }
+        }
+
+        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        {
+            switch (messageType)
+            {
+                case MessageType.WR_ServerSend_WaitingRoomFullInfo:
+                    var waitingRooms = packetBytes.DeserializeFromBytes<WaitingRoomInformation>();
+                    Client_OnWaitingRoomInformationRecieved(waitingRooms);
+                    break;
+
+                case MessageType.WR_ServerResponse_FailJoinRoom:
+                    Console.WriteLine("FAILED TO JOIN ROOM");
+                    break;
+
+                case MessageType.WR_ServerResponse_FailCreateRoom:
+                    Console.WriteLine("FAILED TO CREATE ROOM");
+                    break;
+
+                case MessageType.WR_ServerResponse_SuccessJoinRoom:
+                    {
+                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        ClientMessageReciever_OnRoomSuccessfullyJoined(lobbyID.String);
+                        break;
+                    }
+
+                case MessageType.WR_ServerResponse_SuccessLeaveRoom:
+                    {
+                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        ClientMessageReciever_OnRoomSuccessfullyLeft(lobbyID.String);
+                        break;
+                    }
+
+                case MessageType.GR_ServerResponse_SuccessReady:
+                    {
+                        ClientMessenger_OnRoomSuccessfullyReady();
+                        break;
+                    }
+
+                case MessageType.GR_ServerResponse_SuccessUnready:
+                    {
+                        ClientMessenger_OnRoomSuccessfullyUnready();
+                        break;
+                    }
+            }
+        }
+
+        public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
+        {
+            Client.SendMessageToServer(packet, messageType);
         }
     }
 }
