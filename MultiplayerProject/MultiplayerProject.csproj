@@ -82,10 +82,10 @@
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Source\Scenes\Client\Game\LeaderboardScene.cs" />
-    <Compile Include="Source\Scenes\Client\Game\MainGameGUI.cs" />
+    <Compile Include="Source\Scenes\Client\Game\GameSceneGUI.cs" />
     <Compile Include="Source\Scenes\Client\Menus\DisconnectedFromServerScene.cs" />
     <Compile Include="Source\Scenes\IScene.cs" />
-    <Compile Include="Source\Scenes\Client\Game\MainGame.cs" />
+    <Compile Include="Source\Scenes\Client\Game\GameScene.cs" />
     <Compile Include="Source\Scenes\MainMenu.cs" />
     <Compile Include="Source\Scenes\Client\Menus\WaitingRoomScene.cs" />
     <Compile Include="Source\Scenes\Server\ServerScene.cs" />

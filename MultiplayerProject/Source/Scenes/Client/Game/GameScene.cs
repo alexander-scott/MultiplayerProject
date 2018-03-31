@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
-    public class MainGame : IScene
+    public class GameScene : IScene
     {
         private Dictionary<string,Player> _players;
         private List<RemotePlayer> _remotePlayers;
@@ -16,7 +16,7 @@ namespace MultiplayerProject.Source
 
         private Client _client;
 
-        private MainGameGUI _GUI;
+        private GameSceneGUI _GUI;
 
         private EnemyManager _enemyManager;
         private LaserManager _laserManager;
@@ -28,7 +28,7 @@ namespace MultiplayerProject.Source
         private int _packetNumber = -1;
         private Queue<PlayerUpdatePacket> _updatePackets;
 
-        public MainGame(int width, int height, int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
+        public GameScene(int width, int height, int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
             _playerColours = new Dictionary<string, PlayerColour>();
@@ -58,7 +58,7 @@ namespace MultiplayerProject.Source
                 _players.Add(player.NetworkID, player);
             }
 
-            _GUI = new MainGameGUI(width, height, playerIDs, playerColours);
+            _GUI = new GameSceneGUI(width, height, playerIDs, playerColours);
 
             _updatePackets = new Queue<PlayerUpdatePacket>();
 

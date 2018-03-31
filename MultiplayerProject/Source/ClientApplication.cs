@@ -109,7 +109,7 @@ namespace MultiplayerProject.Source
             GameInstanceInformation gameInstance = (GameInstanceInformation)packet;
 
             _sceneLoading = true;
-            _currentScene = new MainGame(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
+            _currentScene = new GameScene(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
             _sceneLoading = false;
         }

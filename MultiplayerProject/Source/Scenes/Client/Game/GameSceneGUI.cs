@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MultiplayerProject.Source
 {
-    public class MainGameGUI
+    public class GameSceneGUI
     {
         private SpriteFont _font;
 
@@ -21,7 +21,7 @@ namespace MultiplayerProject.Source
         private int _width;
         private int _height;
 
-        public MainGameGUI(int width, int height, string[] playerIDs, PlayerColour[] playerColours)
+        public GameSceneGUI(int width, int height, string[] playerIDs, PlayerColour[] playerColours)
         {
             _width = width;
             _height = height;
