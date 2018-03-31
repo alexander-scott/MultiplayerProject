@@ -144,7 +144,7 @@ namespace MultiplayerProject.Source
             if (sendPacketThisFrame)
             {
                 // Send the packet to the server
-                SendMessageToTheServer(packet, MessageType.GI_ClientSend_PlayerUpdatePacket);
+                SendMessageToTheServer(packet, MessageType.GI_ClientSend_PlayerUpdate);
             }
         }
 
@@ -182,7 +182,7 @@ namespace MultiplayerProject.Source
                     packet.LaserID = laser.LaserID;
 
                     // Send the packet to the server
-                    SendMessageToTheServer(packet, MessageType.GI_ClientSend_PlayerFiredPacket);
+                    SendMessageToTheServer(packet, MessageType.GI_ClientSend_PlayerFired);
                 }
             }
 
@@ -326,7 +326,7 @@ namespace MultiplayerProject.Source
                         break;
                     }
 
-                case MessageType.GI_ServerSend_RemotePlayerFiredPacket:
+                case MessageType.GI_ServerSend_RemotePlayerFired:
                     {
                         var playerPacket = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
                         ClientMessenger_OnRecievedPlayerFiredPacket(playerPacket);

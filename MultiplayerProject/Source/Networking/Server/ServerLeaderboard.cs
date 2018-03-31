@@ -11,14 +11,17 @@ namespace MultiplayerProject.Source
     {
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
+        private Dictionary<ServerConnection, bool> _clientReadyStatus;
 
         public ServerLeaderboard(List<ServerConnection> clients)
         {
             ComponentClients = clients;
+            _clientReadyStatus = new Dictionary<ServerConnection, bool>();
 
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 ComponentClients[i].AddServerComponent(this);
+                _clientReadyStatus[ComponentClients[i]] = false;
             }
         }
 
@@ -26,8 +29,20 @@ namespace MultiplayerProject.Source
         {
             switch (messageType)
             {
+                case MessageType.LB_ClientSend_RematchReady:
+                    {
+                        _clientReadyStatus[client] = true;
+                        break;
+                    }
 
+                case MessageType.LB_ClientSend_RematchUnready:
+                    {
+                        _clientReadyStatus[client] = false;
+                        break;
+                    }
             }
+
+            UpdateLobbyState();
         }
 
         public void RemoveClient(ServerConnection client)
@@ -38,6 +53,24 @@ namespace MultiplayerProject.Source
         public void Update(GameTime gameTime)
         {
             //throw new NotImplementedException();
+        }
+
+        private void UpdateLobbyState()
+        {
+            int readyCount = 0;
+            for (int i = 0; i < ComponentClients.Count; i++)
+            {
+                if (_clientReadyStatus[ComponentClients[i]])
+                {
+                    readyCount++;
+                }
+            }
+
+            for (int i = 0; i < ComponentClients.Count; i++)
+            {
+                LeaderboardUpdatePacket packet = new LeaderboardUpdatePacket(ComponentClients.Count, readyCount, _clientReadyStatus[ComponentClients[i]]);
+                ComponentClients[i].SendPacketToClient(packet, MessageType.LB_ServerSend_UpdateLeaderboard);
+            }               
         }
     }
 }

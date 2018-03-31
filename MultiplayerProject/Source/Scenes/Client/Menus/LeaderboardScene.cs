@@ -28,6 +28,10 @@ namespace MultiplayerProject.Source
 
         private LeaderboardSceneState _sceneState;
 
+        private int _playersLeftInInstance;
+        private int _readyRematchCount;
+        private bool _isReadyRematch;
+
         private string _titleText = "LEADERBOARD";
         private Vector2 _titlePosition;
 
@@ -51,6 +55,10 @@ namespace MultiplayerProject.Source
             _height = height;
             _leaderboard = leaderboardPacket;
             _sceneState = LeaderboardSceneState.WaitingForInput;
+
+            _readyRematchCount = 0;
+            _isReadyRematch = false;
+            _playersLeftInInstance = leaderboardPacket.PlayerCount;
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -110,6 +118,7 @@ namespace MultiplayerProject.Source
                     {
                         // READY
                         _sceneState = LeaderboardSceneState.RematchSelected;
+                        SendMessageToTheServer(new BasePacket(), MessageType.LB_ClientSend_RematchReady);
                     }
                     else if (_exitButtonRect.Contains(inputInfo.CurrentMouseState.Position))
                     {
@@ -148,6 +157,7 @@ namespace MultiplayerProject.Source
                     {
                         // UNREADY
                         _sceneState = LeaderboardSceneState.WaitingForInput;
+                        SendMessageToTheServer(new BasePacket(), MessageType.LB_ClientSend_RematchUnready);
                     }
                 }
                 else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // If hover
@@ -166,7 +176,18 @@ namespace MultiplayerProject.Source
 
         public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
         {
-            //throw new NotImplementedException();
+            switch (messageType)
+            {
+                case MessageType.LB_ServerSend_UpdateLeaderboard:
+                    {
+                        var packet = packetBytes.DeserializeFromBytes<LeaderboardUpdatePacket>();
+                        _isReadyRematch = packet.IsClientReady;
+                        _readyRematchCount = packet.PlayerReadyCount;
+                        _playersLeftInInstance = packet.PlayerCount;
+                        ReformatButtons();
+                        break;
+                    }
+            }
         }
 
         public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
@@ -181,6 +202,8 @@ namespace MultiplayerProject.Source
 
         private void ReformatButtons()
         {
+            _rematchButtonText = "RESTART GAME (" + _readyRematchCount + "/" + _playersLeftInInstance + ")";
+
             _exitButtonPosition = new Vector2(Application.WINDOW_WIDTH / 2, Application.WINDOW_HEIGHT);
             _exitButtonPosition.Y -= (_font.MeasureString(_exitButtonText).Y);
             _exitButtonPosition.X -= (_font.MeasureString(_exitButtonText).X) / 2;

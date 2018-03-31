@@ -75,7 +75,7 @@ namespace MultiplayerProject.Source
         {
             switch (messageType)
             {
-                case MessageType.GI_ClientSend_PlayerUpdatePacket:
+                case MessageType.GI_ClientSend_PlayerUpdate:
                     {
                         var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
                         packet.PlayerID = client.ID;
@@ -83,7 +83,7 @@ namespace MultiplayerProject.Source
                         break;
                     }
 
-                case MessageType.GI_ClientSend_PlayerFiredPacket:
+                case MessageType.GI_ClientSend_PlayerFired:
                     {
                         var packet = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
                         packet.PlayerID = client.ID;
@@ -95,7 +95,7 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < ComponentClients.Count; i++)
                             {
-                                ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFiredPacket);
+                                ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFired);
                             }
                         }
                         break;

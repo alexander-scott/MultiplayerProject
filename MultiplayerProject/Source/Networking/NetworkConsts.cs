@@ -67,15 +67,22 @@ namespace MultiplayerProject.Source
         GI_ServerSend_LoadNewGame,
         GI_ServerSend_UpdateRemotePlayer,
         
-        GI_ClientSend_PlayerUpdatePacket,
-        GI_ClientSend_PlayerFiredPacket,
+        GI_ClientSend_PlayerUpdate,
+        GI_ClientSend_PlayerFired,
 
-        GI_ServerSend_RemotePlayerFiredPacket,
+        GI_ServerSend_RemotePlayerFired,
         GI_ServerSend_EnemySpawn,
         GI_ServerSend_EnemyDefeated,
         GI_ServerSend_PlayerDefeated,
 
         GI_ServerSend_GameOver,
+
+        // Leaderboard
+        LB_ClientSend_RematchReady,
+        LB_ClientSend_RematchUnready,
+        LB_ClientSend_ReturnToWaitingRoom,
+
+        LB_ServerSend_UpdateLeaderboard
     }
 
     public enum GameRoomState : byte
@@ -355,6 +362,21 @@ namespace MultiplayerProject.Source
             PlayerNames = playerNames;
             PlayerScores = playerScores;
             PlayerColours = playerColours;
+        }
+    }
+
+    [Serializable]
+    public class LeaderboardUpdatePacket : BasePacket
+    {
+        public int PlayerCount { get; set; }
+        public int PlayerReadyCount { get; set; }
+        public bool IsClientReady { get; set; }
+
+        public LeaderboardUpdatePacket(int playerCount, int playerReadyCount, bool clientReady)
+        {
+            PlayerCount = playerCount;
+            PlayerReadyCount = playerReadyCount;
+            IsClientReady = clientReady;
         }
     }
 }
