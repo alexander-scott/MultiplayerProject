@@ -35,6 +35,7 @@ namespace MultiplayerProject.Source
             ComponentClients = new List<ServerConnection>();
 
             ServerLeaderboard.OnClientLeaveGameRoom += ServerLeaderboard_OnClientLeaveGameRoom;
+            ServerLeaderboard.OnStartRematch += ServerLeaderboard_OnStartRematch;
         }
 
         public void AddClientToRoom(ServerConnection client)
@@ -151,6 +152,15 @@ namespace MultiplayerProject.Source
                     return;
 
                 _gameLeaderboard.Update(gameTime);
+            }
+        }
+
+        private void ServerLeaderboard_OnStartRematch()
+        {
+            if (ComponentClients.Count > 0)
+            {
+                LaunchGameInstance();
+                OnRoomStateChanged();
             }
         }
 

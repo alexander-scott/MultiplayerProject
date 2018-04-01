@@ -10,6 +10,7 @@ namespace MultiplayerProject.Source
     public class ServerLeaderboard : IMessageable
     {
         public static event ServerConnectionDelegate OnClientLeaveGameRoom;
+        public static event EmptyDelegate OnStartRematch;
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
@@ -55,6 +56,7 @@ namespace MultiplayerProject.Source
             }
 
             UpdateLobbyState();
+            CheckRestartGame();
         }
 
         public void RemoveClient(ServerConnection client)
@@ -69,8 +71,21 @@ namespace MultiplayerProject.Source
 
         private void UpdateLobbyState()
         {
-            int readyCount = 0;
+            int readyCount = GetReadyCount();
+
             for (int i = 0; i < ComponentClients.Count; i++)
+            {
+                LeaderboardUpdatePacket packet = new LeaderboardUpdatePacket(ComponentClients.Count, readyCount, _clientReadyStatus[ComponentClients[i]]);
+                ComponentClients[i].SendPacketToClient(packet, MessageType.LB_ServerSend_UpdateLeaderboard);
+            }               
+        }
+
+        private int GetReadyCount()
+        {
+            int numberOfClients = ComponentClients.Count;
+
+            int readyCount = 0;
+            for (int i = 0; i < numberOfClients; i++)
             {
                 if (_clientReadyStatus[ComponentClients[i]])
                 {
@@ -78,11 +93,19 @@ namespace MultiplayerProject.Source
                 }
             }
 
-            for (int i = 0; i < ComponentClients.Count; i++)
+            return readyCount;
+        }
+
+        private void CheckRestartGame()
+        {
+            if (GetReadyCount() == ComponentClients.Count)
             {
-                LeaderboardUpdatePacket packet = new LeaderboardUpdatePacket(ComponentClients.Count, readyCount, _clientReadyStatus[ComponentClients[i]]);
-                ComponentClients[i].SendPacketToClient(packet, MessageType.LB_ServerSend_UpdateLeaderboard);
-            }               
+                for (int i = 0; i < ComponentClients.Count; i++)
+                {
+                    ComponentClients[i].RemoveServerComponent(this);
+                }
+                OnStartRematch();
+            }
         }
     }
 }

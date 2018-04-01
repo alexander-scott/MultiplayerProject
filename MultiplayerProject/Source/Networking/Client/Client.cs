@@ -89,7 +89,16 @@ namespace MultiplayerProject
         public void SendMessageToServer(BasePacket packet, MessageType type)
         {
             var bytes = packet.PackMessage(type);
-            _writer.Write(Convert.ToBase64String(bytes));
+            var convertedString = Convert.ToBase64String(bytes);
+            try
+            {
+                var testCOnvert = Convert.FromBase64String(convertedString);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("ERROR WRITING BYTES");
+            }
+            _writer.Write(convertedString);
             _writer.Flush();
         }
 
