@@ -68,14 +68,14 @@ namespace MultiplayerProject.Source
                         client.SendPacketToClient(new BasePacket(), MessageType.GR_ServerResponse_SuccessReady);
                         _clientReadyStatus[client] = true;
 
-                        OnRoomStateChanged();
-
                         if (GetReadyCount() == ComponentClients.Count)
                         {
                             // TODO: Introduce a countdown here
 
                             LaunchGameInstance();
                         }
+
+                        OnRoomStateChanged();
 
                         break;
                     }
