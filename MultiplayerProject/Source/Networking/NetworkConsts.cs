@@ -9,6 +9,7 @@ namespace MultiplayerProject.Source
     public delegate void StringDelegate(string str);
     public delegate void IntDelegate(int i);
     public delegate void BasePacketDelegate(BasePacket packet);
+    public delegate void ServerConnectionDelegate(ServerConnection client, string roomID);
 
     public enum ApplicationType
     {

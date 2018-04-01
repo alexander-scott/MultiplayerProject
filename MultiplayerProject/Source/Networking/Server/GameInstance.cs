@@ -24,6 +24,8 @@ namespace MultiplayerProject.Source
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
 
+        private string _gameRoomID;
+
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
         private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, int> _playerScores;
@@ -37,9 +39,11 @@ namespace MultiplayerProject.Source
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
 
-        public GameInstance(List<ServerConnection> clients)
+        public GameInstance(List<ServerConnection> clients, string gameRoomID)
         {
             ComponentClients = clients;
+
+            _gameRoomID = gameRoomID;
 
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _playerLasers = new Dictionary<string, LaserManager>();

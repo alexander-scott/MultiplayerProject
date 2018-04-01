@@ -8,12 +8,13 @@ namespace MultiplayerProject.Source
     public class GameRoom : IMessageable
     {
         public static event EmptyDelegate OnRoomStateChanged;
+        public static event StringDelegate OnRoomClosed;
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
 
-        public string RoomName;
-        public string ID;
+        public string RoomName { get; set; }
+        public string ID { get; set; }
 
         private GameRoomState roomState;
         private int _maxConnections;
@@ -32,6 +33,8 @@ namespace MultiplayerProject.Source
 
             ID = Guid.NewGuid().ToString();
             ComponentClients = new List<ServerConnection>();
+
+            ServerLeaderboard.OnClientLeaveGameRoom += ServerLeaderboard_OnClientLeaveGameRoom;
         }
 
         public void AddClientToRoom(ServerConnection client)
@@ -98,7 +101,7 @@ namespace MultiplayerProject.Source
         {
             roomState = GameRoomState.InSession;
 
-            _gameInstance = new GameInstance(ComponentClients);
+            _gameInstance = new GameInstance(ComponentClients, ID);
             _gameInstance.OnGameCompleted += OnGameCompleted;
         }
 
@@ -114,7 +117,7 @@ namespace MultiplayerProject.Source
                 ComponentClients[i].RemoveServerComponent(_gameInstance);
             }
 
-            _gameLeaderboard = new ServerLeaderboard(ComponentClients); 
+            _gameLeaderboard = new ServerLeaderboard(ComponentClients, ID); 
         }
 
         private int GetReadyCount()
@@ -148,6 +151,18 @@ namespace MultiplayerProject.Source
                     return;
 
                 _gameLeaderboard.Update(gameTime);
+            }
+        }
+
+        private void ServerLeaderboard_OnClientLeaveGameRoom(ServerConnection client, string roomID)
+        {
+            client.RemoveServerComponent(this);
+            RemoveClient(client);
+
+            if (ComponentClients.Count == 0 && roomID == ID)
+            {
+                OnRoomClosed(ID);
+                OnRoomStateChanged();
             }
         }
     }

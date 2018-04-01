@@ -151,7 +151,8 @@ namespace MultiplayerProject.Source
             WaitingRoomInformation waitingRoom = (WaitingRoomInformation)packet;
 
             _waitingRoom = waitingRoom;
-            _roomUIItems.Clear();
+
+            List<GameRoomUIItem> newItems = new List<GameRoomUIItem>();
 
             RoomInformation joinedRoom = null;
             if (_waitingRoom != null)
@@ -197,7 +198,7 @@ namespace MultiplayerProject.Source
                     uiItem.BorderColour = Color.Blue;
                     uiItem.BorderWidth = 1;
 
-                    _roomUIItems.Add(uiItem);
+                    newItems.Add(uiItem);
                     startYPos += 50;
 
                     if (room.RoomID == _joinedRoomID)
@@ -206,6 +207,8 @@ namespace MultiplayerProject.Source
                     }
                 }
             }
+
+            _roomUIItems = newItems;
 
             if (joinedRoom != null)
             {

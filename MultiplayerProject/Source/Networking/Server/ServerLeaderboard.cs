@@ -9,13 +9,17 @@ namespace MultiplayerProject.Source
 {
     public class ServerLeaderboard : IMessageable
     {
+        public static event ServerConnectionDelegate OnClientLeaveGameRoom;
+
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
         private Dictionary<ServerConnection, bool> _clientReadyStatus;
+        private string _gameRoomID;
 
-        public ServerLeaderboard(List<ServerConnection> clients)
+        public ServerLeaderboard(List<ServerConnection> clients, string gameroomID)
         {
             ComponentClients = clients;
+            _gameRoomID = gameroomID;
             _clientReadyStatus = new Dictionary<ServerConnection, bool>();
 
             for (int i = 0; i < ComponentClients.Count; i++)
@@ -43,7 +47,9 @@ namespace MultiplayerProject.Source
 
                 case MessageType.LB_ClientSend_ReturnToWaitingRoom:
                     {
+                        client.RemoveServerComponent(this);
                         RemoveClient(client);
+                        OnClientLeaveGameRoom(client, _gameRoomID);
                         break;
                     }
             }
