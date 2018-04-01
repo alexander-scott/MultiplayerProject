@@ -27,12 +27,6 @@ namespace MultiplayerProject.Source
 
     public class WaitingRoomScene : IScene
     {
-        public static event EmptyDelegate OnNewGameRoomClicked;
-        public static event StringDelegate OnJoinGameRoom;
-        public static event StringDelegate OnLeaveGameRoom;
-        public static event EmptyDelegate OnClientReady;
-        public static event EmptyDelegate OnClientUnready;
-
         private WaitingRoomInformation _waitingRoom;
 
         private string _joinedRoomID;
@@ -57,134 +51,16 @@ namespace MultiplayerProject.Source
         private List<GameRoomUIItem> _roomUIItems;
         private const int _roomStartYPos = 50;
 
-        public WaitingRoomScene()
-        {
-            _waitingForResponseFromServer = false;
+        public Client Client { get; set; }
 
+        public WaitingRoomScene(Client client)
+        {
+            Client = client;
+
+            _waitingForResponseFromServer = false;
             _state = WaitingRoomState.NotInRoomAbleToCreate;
 
             _roomUIItems = new List<GameRoomUIItem>();
-
-            ClientMessenger.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
-            ClientMessenger.OnRoomSuccessfullyJoined += ClientMessageReciever_OnRoomSuccessfullyJoined;
-            ClientMessenger.OnRoomSuccessfullyLeft += ClientMessageReciever_OnRoomSuccessfullyLeft;
-            ClientMessenger.OnRoomSuccessfullyReady += ClientMessenger_OnRoomSuccessfullyReady;
-            ClientMessenger.OnRoomSuccessfullyUnready += ClientMessenger_OnRoomSuccessfullyUnready;
-        }
-
-        private void ClientMessenger_OnRoomSuccessfullyUnready()
-        {
-            _readyToPlay = false;
-            _waitingForResponseFromServer = false;
-            _state = WaitingRoomState.InRoomNotReady;
-        }
-
-        private void ClientMessenger_OnRoomSuccessfullyReady()
-        {
-            _readyToPlay = true;
-            _waitingForResponseFromServer = false;
-            _state = WaitingRoomState.InRoomReady;
-        }
-
-        private void ClientMessageReciever_OnRoomSuccessfullyLeft(string str)
-        {
-            _joinedRoomID = "";
-            _waitingForResponseFromServer = false;
-        }
-
-        private void ClientMessageReciever_OnRoomSuccessfullyJoined(string str)
-        {
-            _joinedRoomID = str;
-            _waitingForResponseFromServer = false;
-        }
-
-        private void Client_OnWaitingRoomInformationRecieved(BasePacket packet)
-        {
-            WaitingRoomInformation waitingRoom = (WaitingRoomInformation)packet;
-
-            _waitingRoom = waitingRoom;
-            _roomUIItems.Clear();
-
-            RoomInformation joinedRoom = null;
-            if (_waitingRoom != null)
-            {
-                int startYPos = _roomStartYPos;
-                foreach (var room in _waitingRoom.Rooms)
-                {
-                    GameRoomUIItem uiItem = new GameRoomUIItem();
-                    uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
-                    if (!room.IsPlaying)
-                        uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
-                    else
-                        uiItem.Text = room.RoomName + " : PLAYING";
-
-                    Vector2 size = _font.MeasureString(uiItem.Text);
-                    float xScale = (uiItem.Rect.Width / size.X);
-                    float yScale = (uiItem.Rect.Height / size.Y);
-                    float scale = Math.Min(xScale, yScale);
-
-                    // Figure out the location to absolutely-center it in the boundaries rectangle.
-                    int strWidth = (int)Math.Round(size.X * scale);
-                    int strHeight = (int)Math.Round(size.Y * scale);
-
-                    // Set Position
-                    uiItem.Position = new Vector2
-                    {
-                        X = (((uiItem.Rect.Width - strWidth) / 2) + uiItem.Rect.X),
-                        Y = (((uiItem.Rect.Height - strHeight) / 2) + uiItem.Rect.Y)
-                    };
-
-                    // Set border options
-                    uiItem.BorderColour = Color.Blue;
-                    uiItem.BorderWidth = 1;
-
-                    _roomUIItems.Add(uiItem);
-                    startYPos += 50;
-
-                    if (room.RoomID == _joinedRoomID)
-                    {
-                        joinedRoom = room;
-                    }
-                }
-            }
-
-            if (joinedRoom != null)
-            {
-                if (joinedRoom.ConnectionCount == 1)
-                {
-                    _buttonText = "WAITING FOR MORE PLAYERS";
-                    _state = WaitingRoomState.InRoomWaitingForPlayers;
-                    _readyToPlay = false;
-                }
-                else
-                {
-                    if (!_readyToPlay)
-                    {
-                        _buttonText = "CLICK TO READY (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
-                        _state = WaitingRoomState.InRoomNotReady;
-                    }
-                    else
-                    {
-                        _buttonText = "READY TO PLAY! (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
-                        _state = WaitingRoomState.InRoomReady;
-                    }
-                }
-            }
-            else
-            {
-                if (_roomUIItems.Count < Server.MAX_ROOMS)
-                {
-                    _buttonText = "CREATE NEW ROOM";
-                    _state = WaitingRoomState.NotInRoomAbleToCreate;
-                }
-                else
-                {
-                    _buttonText = "UNABLE TO CREATE NEW ROOM";
-                    _state = WaitingRoomState.NotInRoomUnableToCreate;
-                }
-            }
-
-            ReformatButton();
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -239,6 +115,140 @@ namespace MultiplayerProject.Source
             }
         }
 
+        public void RequestWaitingRoomUpdate()
+        {
+            SendMessageToTheServer(new BasePacket(), MessageType.WR_ClientRequest_WaitingRoomInfo);
+        }
+
+        private void ClientMessenger_OnRoomSuccessfullyUnready()
+        {
+            _readyToPlay = false;
+            _waitingForResponseFromServer = false;
+            _state = WaitingRoomState.InRoomNotReady;
+        }
+
+        private void ClientMessenger_OnRoomSuccessfullyReady()
+        {
+            _readyToPlay = true;
+            _waitingForResponseFromServer = false;
+            _state = WaitingRoomState.InRoomReady;
+        }
+
+        private void ClientMessageReciever_OnRoomSuccessfullyLeft(string str)
+        {
+            _joinedRoomID = "";
+            _waitingForResponseFromServer = false;
+        }
+
+        private void ClientMessageReciever_OnRoomSuccessfullyJoined(string str)
+        {
+            _joinedRoomID = str;
+            _waitingForResponseFromServer = false;
+        }
+
+        private void Client_OnWaitingRoomInformationRecieved(BasePacket packet)
+        {
+            WaitingRoomInformation waitingRoom = (WaitingRoomInformation)packet;
+
+            _waitingRoom = waitingRoom;
+
+            List<GameRoomUIItem> newItems = new List<GameRoomUIItem>();
+
+            RoomInformation joinedRoom = null;
+            if (_waitingRoom != null)
+            {
+                int startYPos = _roomStartYPos;
+                foreach (var room in _waitingRoom.Rooms)
+                {
+                    GameRoomUIItem uiItem = new GameRoomUIItem();
+                    uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
+
+                    switch (room.RoomState)
+                    {
+                        case GameRoomState.Waiting:
+                            uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
+                            break;
+
+                        case GameRoomState.InSession:
+                            uiItem.Text = room.RoomName + " : PLAYING";
+                            break;
+
+                        case GameRoomState.Leaderboards:
+                            uiItem.Text = room.RoomName + " : GAME FINISHING";
+                            break;
+                    }
+
+                    Vector2 size = _font.MeasureString(uiItem.Text);
+                    float xScale = (uiItem.Rect.Width / size.X);
+                    float yScale = (uiItem.Rect.Height / size.Y);
+                    float scale = Math.Min(xScale, yScale);
+
+                    // Figure out the location to absolutely-center it in the boundaries rectangle.
+                    int strWidth = (int)Math.Round(size.X * scale);
+                    int strHeight = (int)Math.Round(size.Y * scale);
+
+                    // Set Position
+                    uiItem.Position = new Vector2
+                    {
+                        X = (((uiItem.Rect.Width - strWidth) / 2) + uiItem.Rect.X),
+                        Y = (((uiItem.Rect.Height - strHeight) / 2) + uiItem.Rect.Y)
+                    };
+
+                    // Set border options
+                    uiItem.BorderColour = Color.Blue;
+                    uiItem.BorderWidth = 1;
+
+                    newItems.Add(uiItem);
+                    startYPos += 50;
+
+                    if (room.RoomID == _joinedRoomID)
+                    {
+                        joinedRoom = room;
+                    }
+                }
+            }
+
+            _roomUIItems = newItems;
+
+            if (joinedRoom != null)
+            {
+                if (joinedRoom.ConnectionCount == 1)
+                {
+                    _buttonText = "WAITING FOR MORE PLAYERS";
+                    _state = WaitingRoomState.InRoomWaitingForPlayers;
+                    _readyToPlay = false;
+                }
+                else
+                {
+                    if (!_readyToPlay)
+                    {
+                        _buttonText = "CLICK TO READY (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
+                        _state = WaitingRoomState.InRoomNotReady;
+                    }
+                    else
+                    {
+                        _buttonText = "READY TO PLAY! (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
+                        _state = WaitingRoomState.InRoomReady;
+                    }
+                }
+            }
+            else
+            {
+                if (_roomUIItems.Count < Server.MAX_ROOMS)
+                {
+                    _buttonText = "CREATE NEW ROOM";
+                    _state = WaitingRoomState.NotInRoomAbleToCreate;
+                }
+                else
+                {
+                    _buttonText = "UNABLE TO CREATE NEW ROOM";
+                    _state = WaitingRoomState.NotInRoomUnableToCreate;
+                }
+            }
+
+            ReformatButton();
+        }
+
         private void ReformatButton()
         {
             _buttonPosition = new Vector2(Application.WINDOW_WIDTH / 2, Application.WINDOW_HEIGHT - (_font.MeasureString(_buttonText).Y));
@@ -259,9 +269,9 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && !_waitingRoom.Rooms[i].IsPlaying)
+                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && _waitingRoom.Rooms[i].RoomState != GameRoomState.InSession && _waitingRoom.Rooms[i].RoomState != GameRoomState.Leaderboards)
                                 {
-                                    OnJoinGameRoom(_waitingRoom.Rooms[i].RoomID);
+                                    SendMessageToTheServer(new StringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_JoinRoom);
                                     _waitingForResponseFromServer = true;
                                 }
                             }
@@ -270,7 +280,7 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_waitingRoom.Rooms[i].IsPlaying)
+                                if (_waitingRoom.Rooms[i].RoomState == GameRoomState.InSession || _waitingRoom.Rooms[i].RoomState == GameRoomState.Leaderboards)
                                 {
                                     _roomUIItems[i].BorderColour = Color.Red;
                                 }
@@ -298,7 +308,7 @@ namespace MultiplayerProject.Source
                                 {
                                     if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                                     {
-                                        OnLeaveGameRoom(_waitingRoom.Rooms[i].RoomID);
+                                        SendMessageToTheServer(new StringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_LeaveRoom);
                                         _waitingForResponseFromServer = true;
                                     }
                                 }
@@ -368,7 +378,7 @@ namespace MultiplayerProject.Source
                                 if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                                 {
                                     // New room valid click
-                                    OnNewGameRoomClicked();
+                                    SendMessageToTheServer(new BasePacket(), MessageType.WR_ClientRequest_CreateRoom);
                                 }
                             }
                             else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // Else if mouse is hovering
@@ -409,7 +419,7 @@ namespace MultiplayerProject.Source
                             if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                             {
                                 // ON READY UP
-                                OnClientReady();
+                                SendMessageToTheServer(new BasePacket(), MessageType.GR_ClientRequest_Ready);
                                 _waitingForResponseFromServer = true;
                             }
                         }
@@ -439,7 +449,7 @@ namespace MultiplayerProject.Source
                             if (_buttonRect.Contains(inputInfo.CurrentMouseState.Position))
                             {
                                 // ON UNREADY
-                                OnClientUnready();
+                                SendMessageToTheServer(new BasePacket(), MessageType.GR_ClientRequest_Unready);
                                 _waitingForResponseFromServer = true;
                             }
                         }
@@ -461,6 +471,56 @@ namespace MultiplayerProject.Source
                         break;
                     }
             }
+        }
+
+        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        {
+            switch (messageType)
+            {
+                case MessageType.WR_ServerSend_WaitingRoomFullInfo:
+                    var waitingRooms = packetBytes.DeserializeFromBytes<WaitingRoomInformation>();
+                    Client_OnWaitingRoomInformationRecieved(waitingRooms);
+                    break;
+
+                case MessageType.WR_ServerResponse_FailJoinRoom:
+                    Console.WriteLine("FAILED TO JOIN ROOM");
+                    break;
+
+                case MessageType.WR_ServerResponse_FailCreateRoom:
+                    Console.WriteLine("FAILED TO CREATE ROOM");
+                    break;
+
+                case MessageType.WR_ServerResponse_SuccessJoinRoom:
+                    {
+                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        ClientMessageReciever_OnRoomSuccessfullyJoined(lobbyID.String);
+                        break;
+                    }
+
+                case MessageType.WR_ServerResponse_SuccessLeaveRoom:
+                    {
+                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        ClientMessageReciever_OnRoomSuccessfullyLeft(lobbyID.String);
+                        break;
+                    }
+
+                case MessageType.GR_ServerResponse_SuccessReady:
+                    {
+                        ClientMessenger_OnRoomSuccessfullyReady();
+                        break;
+                    }
+
+                case MessageType.GR_ServerResponse_SuccessUnready:
+                    {
+                        ClientMessenger_OnRoomSuccessfullyUnready();
+                        break;
+                    }
+            }
+        }
+
+        public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
+        {
+            Client.SendMessageToServer(packet, messageType);
         }
     }
 }

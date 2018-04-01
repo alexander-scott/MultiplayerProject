@@ -63,7 +63,6 @@
     <Compile Include="Source\GameObjects\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\Networking\Client\Client.cs" />
-    <Compile Include="Source\Networking\Client\ClientMessenger.cs" />
     <Compile Include="Source\Networking\Client\INetworkedObject.cs" />
     <Compile Include="Source\Networking\Client\LocalPlayer.cs" />
     <Compile Include="Source\Networking\Client\RemotePlayer.cs" />
@@ -73,6 +72,7 @@
     <Compile Include="Source\Networking\Server\GameInstance.cs" />
     <Compile Include="Source\Networking\Server\IMessageable.cs" />
     <Compile Include="Source\Networking\Server\GameRoom.cs" />
+    <Compile Include="Source\Networking\Server\ServerLeaderboard.cs" />
     <Compile Include="Source\Networking\Server\WaitingRoom.cs" />
     <Compile Include="Source\Networking\Server\ServerConnection.cs" />
     <Compile Include="Source\Networking\Server\Server.cs" />
@@ -80,10 +80,11 @@
     <Compile Include="Source\GameObjects\Player.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Source\Scenes\Client\Game\MainGameGUI.cs" />
+    <Compile Include="Source\Scenes\Client\Menus\LeaderboardScene.cs" />
+    <Compile Include="Source\Scenes\Client\Game\GameSceneGUI.cs" />
     <Compile Include="Source\Scenes\Client\Menus\DisconnectedFromServerScene.cs" />
     <Compile Include="Source\Scenes\IScene.cs" />
-    <Compile Include="Source\Scenes\Client\Game\MainGame.cs" />
+    <Compile Include="Source\Scenes\Client\Game\GameScene.cs" />
     <Compile Include="Source\Scenes\MainMenu.cs" />
     <Compile Include="Source\Scenes\Client\Menus\WaitingRoomScene.cs" />
     <Compile Include="Source\Scenes\Server\ServerScene.cs" />

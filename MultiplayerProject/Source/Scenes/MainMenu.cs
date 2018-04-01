@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace MultiplayerProject.Source
 {
-    public class MainMenu : IScene
+    public class MainMenu
     {
         public static event StringDelegate OnServerStartRequested;
         public static event StringDelegate OnClientStartRequested;

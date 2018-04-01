@@ -9,6 +9,7 @@ namespace MultiplayerProject.Source
     public delegate void StringDelegate(string str);
     public delegate void IntDelegate(int i);
     public delegate void BasePacketDelegate(BasePacket packet);
+    public delegate void ServerConnectionDelegate(ServerConnection client, string roomID);
 
     public enum ApplicationType
     {
@@ -39,6 +40,7 @@ namespace MultiplayerProject.Source
         WR_ServerSend_NewRoom,
         WR_ServerSend_DeleteRoom,
 
+        WR_ClientRequest_WaitingRoomInfo,
         WR_ClientRequest_JoinRoom,
         WR_ClientRequest_LeaveRoom,
         WR_ClientRequest_CreateRoom,
@@ -67,13 +69,29 @@ namespace MultiplayerProject.Source
         GI_ServerSend_LoadNewGame,
         GI_ServerSend_UpdateRemotePlayer,
         
-        GI_ClientSend_PlayerUpdatePacket,
-        GI_ClientSend_PlayerFiredPacket,
+        GI_ClientSend_PlayerUpdate,
+        GI_ClientSend_PlayerFired,
 
-        GI_ServerSend_RemotePlayerFiredPacket,
+        GI_ServerSend_RemotePlayerFired,
         GI_ServerSend_EnemySpawn,
         GI_ServerSend_EnemyDefeated,
         GI_ServerSend_PlayerDefeated,
+
+        GI_ServerSend_GameOver,
+
+        // Leaderboard
+        LB_ClientSend_RematchReady,
+        LB_ClientSend_RematchUnready,
+        LB_ClientSend_ReturnToWaitingRoom,
+
+        LB_ServerSend_UpdateLeaderboard
+    }
+
+    public enum GameRoomState : byte
+    {
+        Waiting,
+        InSession,
+        Leaderboards
     }
 
     public struct InputInformation
@@ -151,15 +169,15 @@ namespace MultiplayerProject.Source
         public int ReadyCount { get; set; }
         public string[] ConnectionIDs { get; set; }
         public string[] ConnectionNames { get; set; }
-        public bool IsPlaying { get; set; }
+        public GameRoomState RoomState { get; set; }
 
-        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections, int readyCount, bool isPlaying) : base()
+        public RoomInformation(string roomName, string roomID, List<ServerConnection> connections, int readyCount, GameRoomState roomState) : base()
         {
             RoomName = roomName;
             RoomID = roomID;
             ReadyCount = readyCount;
             ConnectionCount = connections.Count;
-            IsPlaying = isPlaying;
+            RoomState = roomState;
 
             ConnectionIDs = new string[ConnectionCount];
             ConnectionNames = new string[ConnectionCount];
@@ -329,6 +347,38 @@ namespace MultiplayerProject.Source
             CollidedLaserID = laserID;
             CollidedPlayerID = playerID;
             CollidedPlayerNewScore = collidedPlayerNewScore;
+        }
+    }
+
+    [Serializable]
+    public class LeaderboardPacket : BasePacket
+    {
+        public int PlayerCount { get; set; }
+        public string[] PlayerNames { get; set; }
+        public int[] PlayerScores { get; set; }
+        public PlayerColour[] PlayerColours { get; set; }
+
+        public LeaderboardPacket(int playerCount, string[] playerNames, int[] playerScores, PlayerColour[] playerColours)
+        {
+            PlayerCount = playerCount;
+            PlayerNames = playerNames;
+            PlayerScores = playerScores;
+            PlayerColours = playerColours;
+        }
+    }
+
+    [Serializable]
+    public class LeaderboardUpdatePacket : BasePacket
+    {
+        public int PlayerCount { get; set; }
+        public int PlayerReadyCount { get; set; }
+        public bool IsClientReady { get; set; }
+
+        public LeaderboardUpdatePacket(int playerCount, int playerReadyCount, bool clientReady)
+        {
+            PlayerCount = playerCount;
+            PlayerReadyCount = playerReadyCount;
+            IsClientReady = clientReady;
         }
     }
 }

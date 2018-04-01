@@ -12,6 +12,7 @@ namespace MultiplayerProject.Source
         public List<ServerConnection> ComponentClients { get; set; }
 
         private List<GameRoom> _activeRooms;
+        private List<GameRoom> _closedRooms;
         private int _maxRooms;
 
         public WaitingRoom(int maxLobbies)
@@ -19,9 +20,26 @@ namespace MultiplayerProject.Source
             ComponentType = MessageableComponent.WaitingRoom;
             ComponentClients = new List<ServerConnection>();
             _maxRooms = maxLobbies;
+
             _activeRooms = new List<GameRoom>();
+            _closedRooms = new List<GameRoom>();
 
             GameRoom.OnRoomStateChanged += GameRoom_OnRoomStateChanged;
+            GameRoom.OnRoomClosed += GameRoom_OnRoomClosed;
+        }
+
+        private void GameRoom_OnRoomClosed(string id)
+        {
+            for (int i = 0; i < _activeRooms.Count; i++)
+            {
+                if (_activeRooms[i].ID == id)
+                {
+                    var closedRoom = _activeRooms[i];
+                    _activeRooms.RemoveAt(i);
+                    _closedRooms.Add(closedRoom);
+                    return;
+                }
+            }
         }
 
         private void GameRoom_OnRoomStateChanged()
@@ -104,6 +122,12 @@ namespace MultiplayerProject.Source
         {
             switch (type)
             {
+                case MessageType.WR_ClientRequest_WaitingRoomInfo:
+                    {
+                        client.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_WaitingRoomFullInfo);
+                        break;
+                    }
+
                 case MessageType.WR_ClientRequest_CreateRoom:
                 {
                     if (_activeRooms.Count < Server.MAX_ROOMS)

@@ -18,6 +18,8 @@ namespace MultiplayerProject.Source
         {
         }
 
+        public Client Client { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.DrawString(_font, "DISCONNECTED FROM SERVER", new Vector2(161, 161), Color.Black);
@@ -32,6 +34,16 @@ namespace MultiplayerProject.Source
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
 
+        }
+
+        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
+        {
+            throw new NotImplementedException();
         }
 
         public void Update(GameTime gameTime)

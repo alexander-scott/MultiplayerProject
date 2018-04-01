@@ -19,15 +19,18 @@ namespace MultiplayerProject.Source
          */
     public class GameInstance : IMessageable
     {
-        public event EmptyDelegate OnReturnToGameRoom;
+        public event BasePacketDelegate OnGameCompleted;
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
+
+        private string _gameRoomID;
 
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
         private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, int> _playerScores;
         private Dictionary<string, Player> _players;
+        private Dictionary<string, Color> _playerColours;
 
         private CollisionManager _collisionManager;
 
@@ -36,13 +39,16 @@ namespace MultiplayerProject.Source
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
 
-        public GameInstance(List<ServerConnection> clients)
+        public GameInstance(List<ServerConnection> clients, string gameRoomID)
         {
             ComponentClients = clients;
+
+            _gameRoomID = gameRoomID;
 
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _playerLasers = new Dictionary<string, LaserManager>();
             _playerScores = new Dictionary<string, int>();
+            _playerColours = new Dictionary<string, Color>();
             _players = new Dictionary<string, Player>();
 
             _collisionManager = new CollisionManager();
@@ -61,6 +67,7 @@ namespace MultiplayerProject.Source
                 _playerUpdates[ComponentClients[i].ID] = null;
                 _playerLasers[ComponentClients[i].ID] = new LaserManager();
                 _playerScores[ComponentClients[i].ID] = 0;
+                _playerColours[ComponentClients[i].ID] = playerColours[i];
 
                 Player player = new Player();
                 player.NetworkID = ComponentClients[i].ID;
@@ -72,7 +79,7 @@ namespace MultiplayerProject.Source
         {
             switch (messageType)
             {
-                case MessageType.GI_ClientSend_PlayerUpdatePacket:
+                case MessageType.GI_ClientSend_PlayerUpdate:
                     {
                         var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
                         packet.PlayerID = client.ID;
@@ -80,7 +87,7 @@ namespace MultiplayerProject.Source
                         break;
                     }
 
-                case MessageType.GI_ClientSend_PlayerFiredPacket:
+                case MessageType.GI_ClientSend_PlayerFired:
                     {
                         var packet = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
                         packet.PlayerID = client.ID;
@@ -92,7 +99,7 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < ComponentClients.Count; i++)
                             {
-                                ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFiredPacket);
+                                ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFired);
                             }
                         }
                         break;
@@ -237,9 +244,39 @@ namespace MultiplayerProject.Source
         {
             foreach (KeyValuePair<string, int> player in _playerScores)
             {
-                if (player.Value > Application.SCORE_TO_WIN)
+                if (player.Value >= Application.SCORE_TO_WIN)
                 {
-                    Console.WriteLine("PLAYER HAS WON");
+                    Console.WriteLine("GAME OVER");
+
+                    int playerCount = ComponentClients.Count;
+                    int[] playerScores = new int[playerCount];
+                    string[] playerNames = new string[playerCount];
+
+                    int index = 0;
+                    foreach (KeyValuePair<string, int> playerScore in _playerScores)
+                    {
+                        playerScores[index] = playerScore.Value;
+                        playerNames[index] = "PLAYER" + index;
+                        index++;
+                    }
+
+                    PlayerColour[] playerColours = new PlayerColour[_playerColours.Count];
+                    index = 0;
+                    foreach (KeyValuePair<string, Color> playerColour in _playerColours)
+                    {
+                        playerColours[index] = new PlayerColour(playerColour.Value.R, playerColour.Value.G, playerColour.Value.B);
+                        index++;
+                    }
+
+                    LeaderboardPacket packet = new LeaderboardPacket(playerCount, playerNames, playerScores, playerColours);
+                    for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
+                    {
+                        ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_GameOver);
+                    }
+
+                    OnGameCompleted(packet);
+
+                    return;
                 }
             }
         }

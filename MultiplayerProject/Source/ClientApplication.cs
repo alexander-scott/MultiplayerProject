@@ -19,8 +19,6 @@ namespace MultiplayerProject.Source
         private GraphicsDevice _graphicsDevice;
         private ContentManager _contentManager;
 
-        private bool _sceneLoading;
-
         private int _width;
         private int _height;
 
@@ -33,8 +31,10 @@ namespace MultiplayerProject.Source
             _width = graphicsDevice.Viewport.Width;
             _height = graphicsDevice.Viewport.Height;
 
-            ClientMessenger.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
-            ClientMessenger.OnLoadNewGame += ClientMessenger_OnLoadNewGame;
+            Client.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
+            Client.OnLoadNewGame += ClientMessenger_OnLoadNewGame;
+            Client.OnGameOver += ClientMessenger_OnGameOver;
+            LeaderboardScene.OnReturnToWaitingRoom += LeaderboardScene_OnReturnToWaitingRoom;
         }
 
         public void Initalise(string hostname, int port)
@@ -47,10 +47,9 @@ namespace MultiplayerProject.Source
                 {
                     _client.Run();
 
-                    _sceneLoading = true;
-                    _currentScene = new WaitingRoomScene();
-                    _currentScene.Initalise(_contentManager, _graphicsDevice);
-                    _sceneLoading = false;
+                    var newScene = new WaitingRoomScene(_client);
+                    newScene.Initalise(_contentManager, _graphicsDevice);
+                    SetNewScene(newScene);
                 }
                 catch (NotConnectedException e)
                 {
@@ -65,7 +64,7 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
-            if (_currentScene == null || _sceneLoading)
+            if (_currentScene == null)
                 return;
 
             _currentScene.Update(gameTime);
@@ -73,7 +72,7 @@ namespace MultiplayerProject.Source
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
-            if (_currentScene == null || _sceneLoading)
+            if (_currentScene == null)
                 return;
 
             _currentScene.ProcessInput(gameTime, inputInfo);
@@ -81,7 +80,7 @@ namespace MultiplayerProject.Source
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            if (_currentScene == null || _sceneLoading)
+            if (_currentScene == null)
                 return;
 
             _currentScene.Draw(spriteBatch);
@@ -100,17 +99,39 @@ namespace MultiplayerProject.Source
             OnRequestToReturnToMainMenu();
 
             Console.WriteLine("Disconnected from server");
-            _client.Stop(); 
+            _client.Stop();
         }
 
         private void ClientMessenger_OnLoadNewGame(BasePacket packet)
         {
             GameInstanceInformation gameInstance = (GameInstanceInformation)packet;
 
-            _sceneLoading = true;
-            _currentScene = new MainGame(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
-            _currentScene.Initalise(_contentManager, _graphicsDevice);
-            _sceneLoading = false;
+            var newScene = new GameScene(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
+            newScene.Initalise(_contentManager, _graphicsDevice);
+            SetNewScene(newScene);
+        }
+
+        private void ClientMessenger_OnGameOver(BasePacket packet)
+        {
+            LeaderboardPacket leaderBoard = (LeaderboardPacket)packet;
+
+            var scene = new LeaderboardScene(_client, _width, _height, leaderBoard);
+            scene.Initalise(_contentManager, _graphicsDevice);
+            SetNewScene(scene);
+        }
+
+        private void LeaderboardScene_OnReturnToWaitingRoom()
+        {
+            var newScene = new WaitingRoomScene(_client);
+            newScene.Initalise(_contentManager, _graphicsDevice);
+            SetNewScene(newScene);
+            newScene.RequestWaitingRoomUpdate();
+        }
+
+        private void SetNewScene(IScene scene)
+        {
+            _currentScene = scene;
+            _client.SetCurrentScene(scene);
         }
     }
 }
