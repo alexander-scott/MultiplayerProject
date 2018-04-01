@@ -12,12 +12,15 @@ namespace MultiplayerProject.Source
 {
     public enum LeaderboardSceneState
     {
-        WaitingForInput,
+        WaitingForSelection,
         RematchSelected,
+        WaitingForExit,
     }
 
     public class LeaderboardScene : IScene
     {
+        public static event EmptyDelegate OnReturnToWaitingRoom;
+
         public Client Client { get; set; }
 
         private SpriteFont _font;
@@ -54,7 +57,7 @@ namespace MultiplayerProject.Source
             _width = width;
             _height = height;
             _leaderboard = leaderboardPacket;
-            _sceneState = LeaderboardSceneState.WaitingForInput;
+            _sceneState = LeaderboardSceneState.WaitingForSelection;
 
             _readyRematchCount = 0;
             _isReadyRematch = false;
@@ -110,7 +113,7 @@ namespace MultiplayerProject.Source
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
-            if (_sceneState == LeaderboardSceneState.WaitingForInput)
+            if (_sceneState == LeaderboardSceneState.WaitingForSelection)
             {
                 if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
                 {
@@ -123,6 +126,7 @@ namespace MultiplayerProject.Source
                     else if (_exitButtonRect.Contains(inputInfo.CurrentMouseState.Position))
                     {
                         // LEAVE GAME
+                        LeaveGame();
                     }
                 }
                 else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // If hover
@@ -146,6 +150,31 @@ namespace MultiplayerProject.Source
                     }
                 }
             }
+            else if (_sceneState == LeaderboardSceneState.WaitingForExit)
+            {
+                _rematchButtonColour = Color.Red;
+
+                // If clicked
+                if (inputInfo.CurrentMouseState.LeftButton == ButtonState.Pressed && inputInfo.PreviousMouseState.LeftButton == ButtonState.Released)
+                {
+                    if (_exitButtonRect.Contains(inputInfo.CurrentMouseState.Position))
+                    {
+                        // LEAVE GAME
+                        LeaveGame();
+                    }
+                }
+                else if (inputInfo.PreviousMouseState.LeftButton == ButtonState.Released) // If hover
+                {
+                    if (_exitButtonRect.Contains(inputInfo.CurrentMouseState.Position))
+                    {
+                        _exitButtonColour = Color.Orange;
+                    }
+                    else
+                    {
+                        _exitButtonColour = Color.Blue;
+                    }
+                }
+            }
             else
             {
                 _exitButtonColour = Color.Red;
@@ -156,7 +185,7 @@ namespace MultiplayerProject.Source
                     if (_rematchButtonRect.Contains(inputInfo.CurrentMouseState.Position))
                     {
                         // UNREADY
-                        _sceneState = LeaderboardSceneState.WaitingForInput;
+                        _sceneState = LeaderboardSceneState.WaitingForSelection;
                         SendMessageToTheServer(new BasePacket(), MessageType.LB_ClientSend_RematchUnready);
                     }
                 }
@@ -184,6 +213,12 @@ namespace MultiplayerProject.Source
                         _isReadyRematch = packet.IsClientReady;
                         _readyRematchCount = packet.PlayerReadyCount;
                         _playersLeftInInstance = packet.PlayerCount;
+
+                        if (_playersLeftInInstance == 1)
+                        {
+                            _sceneState = LeaderboardSceneState.WaitingForExit;
+                        }
+
                         ReformatButtons();
                         break;
                     }
@@ -215,6 +250,12 @@ namespace MultiplayerProject.Source
             _rematchButtonPosition.X -= (_font.MeasureString(_rematchButtonText).X) / 2;
             _rematchButtonRect = new Rectangle((int)_rematchButtonPosition.X, (int)_rematchButtonPosition.Y,
                 (int)_font.MeasureString(_rematchButtonText).X, (int)_font.MeasureString(_rematchButtonText).Y);
+        }
+
+        private void LeaveGame()
+        {
+            SendMessageToTheServer(new BasePacket(), MessageType.LB_ClientSend_ReturnToWaitingRoom);
+            OnReturnToWaitingRoom();
         }
     }
 }

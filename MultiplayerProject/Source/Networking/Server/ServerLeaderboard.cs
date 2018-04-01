@@ -40,6 +40,12 @@ namespace MultiplayerProject.Source
                         _clientReadyStatus[client] = false;
                         break;
                     }
+
+                case MessageType.LB_ClientSend_ReturnToWaitingRoom:
+                    {
+                        RemoveClient(client);
+                        break;
+                    }
             }
 
             UpdateLobbyState();
@@ -47,7 +53,7 @@ namespace MultiplayerProject.Source
 
         public void RemoveClient(ServerConnection client)
         {
-            throw new NotImplementedException();
+            ComponentClients.Remove(client);
         }
 
         public void Update(GameTime gameTime)

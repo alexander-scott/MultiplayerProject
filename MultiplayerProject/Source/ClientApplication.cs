@@ -34,6 +34,7 @@ namespace MultiplayerProject.Source
             Client.OnServerForcedDisconnect += Client_OnDisconnectedFromServer;
             Client.OnLoadNewGame += ClientMessenger_OnLoadNewGame;
             Client.OnGameOver += ClientMessenger_OnGameOver;
+            LeaderboardScene.OnReturnToWaitingRoom += LeaderboardScene_OnReturnToWaitingRoom;
         }
 
         public void Initalise(string hostname, int port)
@@ -117,6 +118,14 @@ namespace MultiplayerProject.Source
             var scene = new LeaderboardScene(_client, _width, _height, leaderBoard);
             scene.Initalise(_contentManager, _graphicsDevice);
             SetNewScene(scene);
+        }
+
+        private void LeaderboardScene_OnReturnToWaitingRoom()
+        {
+            var newScene = new WaitingRoomScene(_client);
+            newScene.Initalise(_contentManager, _graphicsDevice);
+            SetNewScene(newScene);
+            newScene.RequestWaitingRoomUpdate();
         }
 
         private void SetNewScene(IScene scene)

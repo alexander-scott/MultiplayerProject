@@ -115,6 +115,11 @@ namespace MultiplayerProject.Source
             }
         }
 
+        public void RequestWaitingRoomUpdate()
+        {
+            SendMessageToTheServer(new BasePacket(), MessageType.WR_ClientRequest_WaitingRoomInfo);
+        }
+
         private void ClientMessenger_OnRoomSuccessfullyUnready()
         {
             _readyToPlay = false;

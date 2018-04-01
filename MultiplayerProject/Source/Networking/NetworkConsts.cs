@@ -39,6 +39,7 @@ namespace MultiplayerProject.Source
         WR_ServerSend_NewRoom,
         WR_ServerSend_DeleteRoom,
 
+        WR_ClientRequest_WaitingRoomInfo,
         WR_ClientRequest_JoinRoom,
         WR_ClientRequest_LeaveRoom,
         WR_ClientRequest_CreateRoom,

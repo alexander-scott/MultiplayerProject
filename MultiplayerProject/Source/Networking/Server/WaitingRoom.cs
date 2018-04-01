@@ -104,6 +104,12 @@ namespace MultiplayerProject.Source
         {
             switch (type)
             {
+                case MessageType.WR_ClientRequest_WaitingRoomInfo:
+                    {
+                        client.SendPacketToClient(GetWaitingRoomInformation(), MessageType.WR_ServerSend_WaitingRoomFullInfo);
+                        break;
+                    }
+
                 case MessageType.WR_ClientRequest_CreateRoom:
                 {
                     if (_activeRooms.Count < Server.MAX_ROOMS)
