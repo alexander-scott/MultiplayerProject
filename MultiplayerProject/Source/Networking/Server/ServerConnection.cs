@@ -77,7 +77,7 @@ namespace MultiplayerProject
             }
             catch (Exception e)
             {
-                Console.WriteLine("FAILED TO CONVERT TO BASE64 STRING");
+                Console.WriteLine("FAILED TO CONVERT TO BASE64 STRING: " + e.Message);
             }
 
 

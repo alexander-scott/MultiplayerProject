@@ -60,7 +60,6 @@ namespace MultiplayerProject
             MainMenu.OnClientStartRequested += OnClientStartRequested;
 
             ClientApplication.OnRequestToReturnToMainMenu += ReturnToMainMenu;
-            ServerApplication.OnRequestToReturnToMainMenu += ReturnToMainMenu;
         }
 
         protected override void Initialize()

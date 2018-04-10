@@ -6,8 +6,6 @@ namespace MultiplayerProject.Source
 {
     public class ServerApplication
     {
-        public static event EmptyDelegate OnRequestToReturnToMainMenu;
-
         private ServerScene _currentScene;
 
         private Server _server;

@@ -92,11 +92,11 @@ namespace MultiplayerProject
             var convertedString = Convert.ToBase64String(bytes);
             try
             {
-                var testCOnvert = Convert.FromBase64String(convertedString);
+                var testCOnvert = Convert.FromBase64String(convertedString); // THis is here in an attempt to catch a conversion error
             }
             catch (Exception e)
             {
-                Console.WriteLine("ERROR WRITING BYTES");
+                Console.WriteLine("ERROR WRITING BYTES: " + e.Message);
             }
             _writer.Write(convertedString);
             _writer.Flush();
@@ -156,6 +156,7 @@ namespace MultiplayerProject
 
                 default:
                     {
+                        // Let the current scene handle the message
                         if (_currentScene != null)
                             _currentScene.RecieveServerResponse(messageType, packetBytes);
                         break;
