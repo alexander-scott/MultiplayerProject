@@ -36,7 +36,7 @@ namespace MultiplayerProject.Source
 
         }
 
-        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        public void RecieveServerResponse(byte[] packet, MessageType type)
         {
             throw new NotImplementedException();
         }

@@ -50,13 +50,13 @@ namespace MultiplayerProject.Source
             return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount(), roomState);
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
+        public void RecieveClientMessage(ServerConnection client, byte[] packet, MessageType type)
         {
             switch (type)
             {
                 case MessageType.WR_ClientRequest_LeaveRoom:
                     {
-                        StringPacket leavePacket = buffer.DeserializeFromBytes<StringPacket>();
+                        StringPacket leavePacket = MessageShark.MessageSharkSerializer.Deserialize<StringPacket>(packet);
                         client.SendPacketToClient(new StringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveRoom);
                         RemoveClient(client);
                         break;

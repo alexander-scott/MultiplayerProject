@@ -146,16 +146,14 @@ namespace MultiplayerProject.Source
             _waitingForResponseFromServer = false;
         }
 
-        private void Client_OnWaitingRoomInformationRecieved(BasePacket packet)
+        private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation waitingRoom)
         {
-            WaitingRoomInformation waitingRoom = (WaitingRoomInformation)packet;
-
             _waitingRoom = waitingRoom;
 
             List<GameRoomUIItem> newItems = new List<GameRoomUIItem>();
 
             RoomInformation joinedRoom = null;
-            if (_waitingRoom != null)
+            if (_waitingRoom != null && _waitingRoom.Rooms != null)
             {
                 int startYPos = _roomStartYPos;
                 foreach (var room in _waitingRoom.Rooms)
@@ -473,13 +471,13 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        public void RecieveServerResponse(byte[] packet, MessageType type)
         {
-            switch (messageType)
+            switch (type)
             {
                 case MessageType.WR_ServerSend_WaitingRoomFullInfo:
-                    var waitingRooms = packetBytes.DeserializeFromBytes<WaitingRoomInformation>();
-                    Client_OnWaitingRoomInformationRecieved(waitingRooms);
+                    var newPacket = MessageShark.MessageSharkSerializer.Deserialize<WaitingRoomInformation>(packet);
+                    Client_OnWaitingRoomInformationRecieved(newPacket);
                     break;
 
                 case MessageType.WR_ServerResponse_FailJoinRoom:
@@ -492,14 +490,14 @@ namespace MultiplayerProject.Source
 
                 case MessageType.WR_ServerResponse_SuccessJoinRoom:
                     {
-                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        var lobbyID = MessageShark.MessageSharkSerializer.Deserialize<StringPacket>(packet);
                         ClientMessageReciever_OnRoomSuccessfullyJoined(lobbyID.String);
                         break;
                     }
 
                 case MessageType.WR_ServerResponse_SuccessLeaveRoom:
                     {
-                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        var lobbyID = MessageShark.MessageSharkSerializer.Deserialize<StringPacket>(packet);
                         ClientMessageReciever_OnRoomSuccessfullyLeft(lobbyID.String);
                         break;
                     }

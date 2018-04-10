@@ -203,16 +203,16 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        public void RecieveServerResponse(byte[] packet, MessageType type)
         {
-            switch (messageType)
+            switch (type)
             {
                 case MessageType.LB_ServerSend_UpdateLeaderboard:
                     {
-                        var packet = packetBytes.DeserializeFromBytes<LeaderboardUpdatePacket>();
-                        _isReadyRematch = packet.IsClientReady;
-                        _readyRematchCount = packet.PlayerReadyCount;
-                        _playersLeftInInstance = packet.PlayerCount;
+                        var updatePacket = MessageShark.MessageSharkSerializer.Deserialize<LeaderboardUpdatePacket>(packet);
+                        _isReadyRematch = updatePacket.IsClientReady;
+                        _readyRematchCount = updatePacket.PlayerReadyCount;
+                        _playersLeftInInstance = updatePacket.PlayerCount;
 
                         if (_playersLeftInInstance == 1)
                         {

@@ -75,31 +75,31 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        public void RecieveClientMessage(ServerConnection client, byte[] packet, MessageType type)
         {
-            switch (messageType)
+            switch (type)
             {
                 case MessageType.GI_ClientSend_PlayerUpdate:
                     {
-                        var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
-                        packet.PlayerID = client.ID;
-                        _playerUpdates[client.ID] = packet;
+                        var updatePacket = MessageShark.MessageSharkSerializer.Deserialize<PlayerUpdatePacket>(packet);
+                        updatePacket.PlayerID = client.ID;
+                        _playerUpdates[client.ID] = updatePacket;
                         break;
                     }
 
                 case MessageType.GI_ClientSend_PlayerFired:
                     {
-                        var packet = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
-                        packet.PlayerID = client.ID;
+                        var firedPacket = MessageShark.MessageSharkSerializer.Deserialize<PlayerFiredPacket>(packet);
+                        firedPacket.PlayerID = client.ID;
 
-                        var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
+                        var timeDifference = (firedPacket.SendDate - DateTime.UtcNow).TotalSeconds;
 
-                        var laser = _playerLasers[client.ID].FireLaserServer(packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation, packet.LaserID, packet.PlayerID);
+                        var laser = _playerLasers[client.ID].FireLaserServer(firedPacket.TotalGameTime, (float)timeDifference, new Vector2(firedPacket.XPosition, firedPacket.YPosition), firedPacket.Rotation, firedPacket.LaserID, firedPacket.PlayerID);
                         if (laser != null)
                         {
                             for (int i = 0; i < ComponentClients.Count; i++)
                             {
-                                ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFired);
+                                ComponentClients[i].SendPacketToClient(firedPacket, MessageType.GI_ServerSend_RemotePlayerFired);
                             }
                         }
                         break;

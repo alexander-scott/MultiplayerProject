@@ -1,4 +1,5 @@
-﻿using MultiplayerProject.Source;
+﻿using MessageShark;
+using MultiplayerProject.Source;
 using System;
 using System.IO;
 using System.Net.Sockets;
@@ -88,7 +89,9 @@ namespace MultiplayerProject
 
         public void SendMessageToServer(BasePacket packet, MessageType type)
         {
-            var bytes = packet.PackMessage(type);
+            packet.MessageType = type;
+            var bytes = MessageSharkSerializer.Serialize(packet);
+
             var convertedString = Convert.ToBase64String(bytes);
             try
             {
@@ -114,11 +117,8 @@ namespace MultiplayerProject
                         byte[] bytes = Convert.FromBase64String(message);
                         using (var stream = new MemoryStream(bytes))
                         {
-                            while (stream.HasValidPackage(out Int32 messageSize))
-                            {
-                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                ProcessServerPacket(type, buffer);
-                            }
+                            var packet = MessageSharkSerializer.Deserialize<BasePacket>(bytes);
+                            ProcessServerPacket(bytes, packet.MessageType);
                         }
                     }
                 }
@@ -133,9 +133,9 @@ namespace MultiplayerProject
             }
         }
 
-        private void ProcessServerPacket(MessageType messageType, byte[] packetBytes)
+        private void ProcessServerPacket(byte[] packet, MessageType type)
         {
-            switch (messageType)
+            switch (type)
             {
                 case MessageType.Server_Disconnect:
                     OnServerForcedDisconnect();
@@ -143,14 +143,15 @@ namespace MultiplayerProject
 
                 case MessageType.GI_ServerSend_LoadNewGame:
                     {
-                        OnLoadNewGame(packetBytes.DeserializeFromBytes<GameInstanceInformation>());
+                        var newPacket = MessageSharkSerializer.Deserialize<GameInstanceInformation>(packet);
+                        OnLoadNewGame(newPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_GameOver:
                     {
-                        var leaderboard = packetBytes.DeserializeFromBytes<LeaderboardPacket>();
-                        OnGameOver(leaderboard);
+                        var newPacket = MessageSharkSerializer.Deserialize<LeaderboardPacket>(packet);
+                        OnGameOver(newPacket);
                         break;
                     }
 
@@ -158,7 +159,7 @@ namespace MultiplayerProject
                     {
                         // Let the current scene handle the message
                         if (_currentScene != null)
-                            _currentScene.RecieveServerResponse(messageType, packetBytes);
+                            _currentScene.RecieveServerResponse(packet, type);
                         break;
 
                     }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using MessageShark;
 
 namespace MultiplayerProject
 {
@@ -68,7 +69,9 @@ namespace MultiplayerProject
 
         public void SendPacketToClient(BasePacket packet, MessageType type)
         {
-            byte[] bytes = packet.PackMessage(type);
+            packet.MessageType = type;
+
+            byte[] bytes = MessageSharkSerializer.Serialize(packet);
             string stringToSend = Convert.ToBase64String(bytes);
 
             try
@@ -79,7 +82,6 @@ namespace MultiplayerProject
             {
                 Console.WriteLine("FAILED TO CONVERT TO BASE64 STRING: " + e.Message);
             }
-
 
             Writer.Write(stringToSend);
             Writer.Flush();
@@ -95,16 +97,10 @@ namespace MultiplayerProject
                     while ((message = Reader.ReadString()) != null)
                     {
                         byte[] bytes = Convert.FromBase64String(message);
-                        using (var stream = new MemoryStream(bytes))
+                        var packet = MessageSharkSerializer.Deserialize<BasePacket>(bytes);
+                        for (int i = 0; i < _messageableComponents.Count; i++)
                         {
-                            while (stream.HasValidPackage(out int messageSize))
-                            {
-                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                for (int i = 0; i < _messageableComponents.Count; i++)
-                                {
-                                    _messageableComponents[i].RecieveClientMessage(this, type, buffer);
-                                }
-                            }
+                            _messageableComponents[i].RecieveClientMessage(this, bytes, packet.MessageType);
                         }
                     }
                 }

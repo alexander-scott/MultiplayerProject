@@ -315,42 +315,42 @@ namespace MultiplayerProject.Source
             return localUpdate;
         }
 
-        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        public void RecieveServerResponse(byte[] packet, MessageType type)
         {
-            switch (messageType)
+            switch (type)
             {
                 case MessageType.GI_ServerSend_UpdateRemotePlayer:
                     {
-                        var playerPacket = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
-                        OnRecievedPlayerUpdatePacket(playerPacket);
+                        var newPacket = MessageShark.MessageSharkSerializer.Deserialize<PlayerUpdatePacket>(packet);
+                        OnRecievedPlayerUpdatePacket(newPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_RemotePlayerFired:
                     {
-                        var playerPacket = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
-                        ClientMessenger_OnRecievedPlayerFiredPacket(playerPacket);
+                        var newPacket = MessageShark.MessageSharkSerializer.Deserialize<PlayerFiredPacket>(packet);
+                        ClientMessenger_OnRecievedPlayerFiredPacket(newPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_EnemySpawn:
                     {
-                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemySpawnedPacket>();
-                        ClientMessenger_OnEnemySpawnedPacket(enemyPacket);
+                        var newPacket = MessageShark.MessageSharkSerializer.Deserialize<EnemySpawnedPacket>(packet);
+                        ClientMessenger_OnEnemySpawnedPacket(newPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_EnemyDefeated:
                     {
-                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemyDefeatedPacket>();
-                        ClientMessenger_OnEnemyDefeatedPacket(enemyPacket);
+                        var newPacket = MessageShark.MessageSharkSerializer.Deserialize<EnemyDefeatedPacket>(packet);
+                        ClientMessenger_OnEnemyDefeatedPacket(newPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_PlayerDefeated:
                     {
-                        var enemyPacket = packetBytes.DeserializeFromBytes<PlayerDefeatedPacket>();
-                        ClientMessenger_OnPlayerDefeatedPacket(enemyPacket);
+                        var newPacket = MessageShark.MessageSharkSerializer.Deserialize<PlayerDefeatedPacket>(packet);
+                        ClientMessenger_OnPlayerDefeatedPacket(newPacket);
                         break;
                     }
             }

@@ -101,10 +101,10 @@ namespace MultiplayerProject
             }
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        public void RecieveClientMessage(ServerConnection client, byte[] packet, MessageType type)
         {
             // The only packets we should look for recieving here are disconnect or exit messages. Or perhaps info like round trip time or ping time
-            switch (messageType)
+            switch (type)
             {
                 case MessageType.Client_Disconnect:
                     client.StopAll();

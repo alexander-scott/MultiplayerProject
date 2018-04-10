@@ -76,13 +76,13 @@ namespace MultiplayerProject.Source
             WaitingRoomInformation waitingRoomInfo = new WaitingRoomInformation
             {
                 RoomCount = _activeRooms.Count,
-                Rooms = new RoomInformation[_activeRooms.Count]
+                Rooms = new List<RoomInformation>()
             };
 
             int count = 0;
             foreach(var room in _activeRooms)
             {
-                waitingRoomInfo.Rooms[count] = room.GetRoomInformation();
+                waitingRoomInfo.Rooms.Add(room.GetRoomInformation());
                 count++;
             }
 
@@ -118,7 +118,7 @@ namespace MultiplayerProject.Source
             throw new Exception("UNABLE TO FIND ROOM");
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
+        public void RecieveClientMessage(ServerConnection client, byte[] packet, MessageType type)
         {
             switch (type)
             {
@@ -144,7 +144,7 @@ namespace MultiplayerProject.Source
                     
                 case MessageType.WR_ClientRequest_JoinRoom:
                 {
-                    StringPacket joinPacket = buffer.DeserializeFromBytes<StringPacket>();
+                    StringPacket joinPacket = MessageShark.MessageSharkSerializer.Deserialize<StringPacket>(packet);
                     GameRoom joinedRoom = GetGameRoomFromID(joinPacket.String);
                     if (joinedRoom.ComponentClients.Count < MAX_PEOPLE_PER_ROOM)
                     {

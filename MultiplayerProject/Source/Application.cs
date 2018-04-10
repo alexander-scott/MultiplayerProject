@@ -56,6 +56,8 @@ namespace MultiplayerProject
             IsMouseVisible = true;
             Content.RootDirectory = "Content";
 
+            MessageShark.MessageSharkSerializer.Build();
+
             MainMenu.OnServerStartRequested += OnServerStartRequested;
             MainMenu.OnClientStartRequested += OnClientStartRequested;
 

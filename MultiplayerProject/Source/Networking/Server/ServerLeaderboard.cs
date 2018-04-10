@@ -30,9 +30,9 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        public void RecieveClientMessage(ServerConnection client, byte[] packet, MessageType type)
         {
-            switch (messageType)
+            switch (type)
             {
                 case MessageType.LB_ClientSend_RematchReady:
                     {

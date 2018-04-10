@@ -13,7 +13,7 @@ namespace MultiplayerProject.Source
 
         List<ServerConnection> ComponentClients { get; set; }
 
-        void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes);
+        void RecieveClientMessage(ServerConnection client, byte[] packet, MessageType type);
         void RemoveClient(ServerConnection client);
         void Update(GameTime gameTime);
     }

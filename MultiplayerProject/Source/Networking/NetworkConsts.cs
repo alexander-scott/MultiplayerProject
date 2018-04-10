@@ -110,6 +110,7 @@ namespace MultiplayerProject.Source
     public class BasePacket
     {
         public DateTime SendDate { get; set; }
+        public MessageType MessageType { get; set; }
 
         public BasePacket()
         {
@@ -192,8 +193,8 @@ namespace MultiplayerProject.Source
     [Serializable]
     public class WaitingRoomInformation : BasePacket
     {
-        public RoomInformation[] Rooms;
-        public int RoomCount;
+        public List<RoomInformation> Rooms { get; set; }
+        public int RoomCount { get; set; }
 
         public WaitingRoomInformation() : base()
         {
