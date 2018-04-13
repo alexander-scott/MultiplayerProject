@@ -56,6 +56,8 @@ namespace MultiplayerProject
             IsMouseVisible = true;
             Content.RootDirectory = "Content";
 
+            MonoGame_Textbox.KeyboardInput.Initialize(this, 500f, 20);
+
             MainMenu.OnServerStartRequested += OnServerStartRequested;
             MainMenu.OnClientStartRequested += OnClientStartRequested;
 
@@ -196,7 +198,6 @@ namespace MultiplayerProject
         private void ReturnToMainMenu()
         {
             _appType = ApplicationType.None;
-            _mainMenu.Reset();
         }
     }
 }

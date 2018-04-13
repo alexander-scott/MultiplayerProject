@@ -62,6 +62,12 @@
     <Compile Include="Source\Effects\ExplosionManager.cs" />
     <Compile Include="Source\GameObjects\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
+    <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />
+    <Compile Include="Source\MonoGame\TextBox\Extensions.cs" />
+    <Compile Include="Source\MonoGame\TextBox\KeyboardInput.cs" />
+    <Compile Include="Source\MonoGame\TextBox\Text.cs" />
+    <Compile Include="Source\MonoGame\TextBox\TextBox.cs" />
+    <Compile Include="Source\MonoGame\TextBox\TextRenderer.cs" />
     <Compile Include="Source\Networking\Client\Client.cs" />
     <Compile Include="Source\Networking\Client\INetworkedObject.cs" />
     <Compile Include="Source\Networking\Client\LocalPlayer.cs" />

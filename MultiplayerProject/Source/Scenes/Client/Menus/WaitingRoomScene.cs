@@ -110,7 +110,9 @@ namespace MultiplayerProject.Source
                     // Draw room ui item border
                     Texture2D texture = new Texture2D(_device, _roomUIItems[i].Rect.Width, _roomUIItems[i].Rect.Height);
                     texture.CreateBorder(_roomUIItems[i].BorderWidth, _roomUIItems[i].BorderColour);
-                    spriteBatch.Draw(texture, _roomUIItems[i].Position, Color.White);
+
+                    if (_roomUIItems[i] != null) // Fixes a bug where _roomUIItems[i] becomes null and crashes
+                        spriteBatch.Draw(texture, _roomUIItems[i].Position, Color.White);
                 }
             }
         }
