@@ -21,7 +21,7 @@ namespace MultiplayerProject.Source
         private int _width;
         private int _height;
 
-        public GameSceneGUI(int width, int height, string[] playerIDs, PlayerColour[] playerColours)
+        public GameSceneGUI(int width, int height, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours)
         {
             _width = width;
             _height = height;
@@ -35,7 +35,7 @@ namespace MultiplayerProject.Source
             for (int i = 0; i < _playerCount; i++)
             {
                 _playerScores.Add(playerIDs[i], 0);
-                _playerNames.Add(playerIDs[i], "PLAYER" + i);
+                _playerNames.Add(playerIDs[i], playerNames[i]);
                 _playerColours.Add(playerIDs[i], playerColours[i]);
             }
         }

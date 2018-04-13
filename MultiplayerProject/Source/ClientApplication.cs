@@ -108,7 +108,7 @@ namespace MultiplayerProject.Source
         {
             GameInstanceInformation gameInstance = (GameInstanceInformation)packet;
 
-            var newScene = new GameScene(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
+            var newScene = new GameScene(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerNames, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
             newScene.Initalise(_contentManager, _graphicsDevice);
             SetNewScene(newScene);
         }

@@ -28,7 +28,7 @@ namespace MultiplayerProject.Source
 
         public Client Client { get; set; }
 
-        public GameScene(int width, int height, int playerCount, string[] playerIDs, PlayerColour[] playerColours, string localClientID, Client client)
+        public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
             _playerColours = new Dictionary<string, PlayerColour>();
@@ -58,7 +58,7 @@ namespace MultiplayerProject.Source
                 _players.Add(player.NetworkID, player);
             }
 
-            _GUI = new GameSceneGUI(width, height, playerIDs, playerColours);
+            _GUI = new GameSceneGUI(width, height, playerIDs, playerNames, playerColours);
 
             _updatePackets = new Queue<PlayerUpdatePacket>();
 

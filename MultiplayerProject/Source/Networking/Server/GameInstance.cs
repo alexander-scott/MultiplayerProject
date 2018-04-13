@@ -29,6 +29,7 @@ namespace MultiplayerProject.Source
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
         private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, int> _playerScores;
+        private Dictionary<string, string> _playerNames;
         private Dictionary<string, Player> _players;
         private Dictionary<string, Color> _playerColours;
 
@@ -48,6 +49,7 @@ namespace MultiplayerProject.Source
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _playerLasers = new Dictionary<string, LaserManager>();
             _playerScores = new Dictionary<string, int>();
+            _playerNames = new Dictionary<string, string>();
             _playerColours = new Dictionary<string, Color>();
             _players = new Dictionary<string, Player>();
 
@@ -67,6 +69,7 @@ namespace MultiplayerProject.Source
                 _playerUpdates[ComponentClients[i].ID] = null;
                 _playerLasers[ComponentClients[i].ID] = new LaserManager();
                 _playerScores[ComponentClients[i].ID] = 0;
+                _playerNames[ComponentClients[i].ID] = ComponentClients[i].Name;
                 _playerColours[ComponentClients[i].ID] = playerColours[i];
 
                 Player player = new Player();
@@ -256,7 +259,7 @@ namespace MultiplayerProject.Source
                     foreach (KeyValuePair<string, int> playerScore in _playerScores)
                     {
                         playerScores[index] = playerScore.Value;
-                        playerNames[index] = "PLAYER" + index;
+                        playerNames[index] = _playerNames[playerScore.Key];
                         index++;
                     }
 

@@ -207,6 +207,7 @@ namespace MultiplayerProject.Source
     {
         public int PlayerCount { get; set; }
         public string[] PlayerIDs { get; set; }
+        public string[] PlayerNames { get; set; }
         public PlayerColour[] PlayerColours { get; set; }
         public string LocalPlayerID { get; set; }
 
@@ -216,10 +217,12 @@ namespace MultiplayerProject.Source
             LocalPlayerID = localPlayerID;
 
             PlayerIDs = new string[PlayerCount];
+            PlayerNames = new string[playerCount];
             PlayerColours = new PlayerColour[PlayerCount];
             for (int i = 0; i < PlayerCount; i++)
             {
                 PlayerIDs[i] = players[i].ID;
+                PlayerNames[i] = players[i].Name;
                 PlayerColours[i] = new PlayerColour(playerColours[i].R, playerColours[i].G, playerColours[i].B);
             }
         }
