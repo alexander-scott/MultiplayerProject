@@ -33,6 +33,7 @@ namespace MultiplayerProject.Source
         // Base
         Client_Disconnect,
         Server_Disconnect,
+        Client_SendPlayerName,
 
         // Waiting room
         WR_ServerSend_WaitingRoomFullInfo,

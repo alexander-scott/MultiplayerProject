@@ -74,10 +74,10 @@ namespace MultiplayerProject
             base.Initialize(); 
         }
 
-        private void OnClientStartRequested(string str)
+        private void OnClientStartRequested(string playerName)
         {
             _appType = ApplicationType.Client;
-            _client.Initalise(hostname, port);
+            _client.Initalise(hostname, port, playerName);
         }
 
         private void OnServerStartRequested(string str)

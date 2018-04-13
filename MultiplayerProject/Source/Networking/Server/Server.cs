@@ -109,6 +109,11 @@ namespace MultiplayerProject
                 case MessageType.Client_Disconnect:
                     client.StopAll();
                     break;
+
+                case MessageType.Client_SendPlayerName:
+                    StringPacket namePacket = packetBytes.DeserializeFromBytes<StringPacket>();
+                    client.SetPlayerName(namePacket.String);
+                    break;
             }
         }
 

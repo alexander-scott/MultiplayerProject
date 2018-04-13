@@ -37,7 +37,7 @@ namespace MultiplayerProject.Source
             LeaderboardScene.OnReturnToWaitingRoom += LeaderboardScene_OnReturnToWaitingRoom;
         }
 
-        public void Initalise(string hostname, int port)
+        public void Initalise(string hostname, int port, string playerName)
         {
             Console.WriteLine("Attempting to connect...");
             if (_client.Connect(hostname, port))
@@ -50,6 +50,8 @@ namespace MultiplayerProject.Source
                     var newScene = new WaitingRoomScene(_client);
                     newScene.Initalise(_contentManager, _graphicsDevice);
                     SetNewScene(newScene);
+
+                    _client.SendMessageToServer(new StringPacket(playerName), MessageType.Client_SendPlayerName);
                 }
                 catch (NotConnectedException e)
                 {

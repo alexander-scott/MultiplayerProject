@@ -31,8 +31,13 @@ namespace MultiplayerProject
             Writer = new BinaryWriter(Stream, Encoding.UTF8);
 
             ID = Guid.NewGuid().ToString();
-            Name = "Test Connection Name";
+            Name = "UNNAMED PLAYER";
             _messageableComponents = new List<IMessageable>();
+        }
+
+        public void SetPlayerName(string name)
+        {
+            Name = name;
         }
 
         public void AddServerComponent(IMessageable component)
