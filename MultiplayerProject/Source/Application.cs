@@ -57,6 +57,7 @@ namespace MultiplayerProject
             Content.RootDirectory = "Content";
 
             MonoGame_Textbox.KeyboardInput.Initialize(this, 500f, 20);
+            Logger.Instance.Initalise(true);
 
             MainMenu.OnServerStartRequested += OnServerStartRequested;
             MainMenu.OnClientStartRequested += OnClientStartRequested;
@@ -84,6 +85,7 @@ namespace MultiplayerProject
         {
             _appType = ApplicationType.Server;
             _server.Initalise(hostname, port);
+            Logger.Instance.Info("Launching new server instance");
         }
 
         protected override void LoadContent()

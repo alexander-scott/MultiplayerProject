@@ -59,6 +59,7 @@ namespace MultiplayerProject.Source
                         StringPacket leavePacket = buffer.DeserializeFromBytes<StringPacket>();
                         client.SendPacketToClient(new StringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveRoom);
                         RemoveClient(client);
+                        Logger.Instance.Info(client.Name + " left " + RoomName);
                         break;
                     }
 
@@ -68,11 +69,14 @@ namespace MultiplayerProject.Source
                         client.SendPacketToClient(new BasePacket(), MessageType.GR_ServerResponse_SuccessReady);
                         _clientReadyStatus[client] = true;
 
+                        Logger.Instance.Info(client.Name + " readied up in " + RoomName + ". (" + GetReadyCount() + "/" + ComponentClients.Count + ") players ready");
+
                         if (GetReadyCount() == ComponentClients.Count)
                         {
                             // TODO: Introduce a countdown here
 
                             LaunchGameInstance();
+                            Logger.Instance.Info(RoomName + " has started a game instance");
                         }
 
                         OnRoomStateChanged();
@@ -84,6 +88,8 @@ namespace MultiplayerProject.Source
                     {
                         client.SendPacketToClient(new BasePacket(), MessageType.GR_ServerResponse_SuccessUnready);
                         _clientReadyStatus[client] = false;
+
+                        Logger.Instance.Info(client.Name + " unreadied in " + RoomName + ". (" + GetReadyCount() + "/" + ComponentClients.Count + ") players ready");
 
                         OnRoomStateChanged();
                         break;
@@ -161,6 +167,7 @@ namespace MultiplayerProject.Source
             {
                 LaunchGameInstance();
                 OnRoomStateChanged();
+                Logger.Instance.Info(RoomName + " has restarted their game");
             }
         }
 
@@ -168,6 +175,7 @@ namespace MultiplayerProject.Source
         {
             client.RemoveServerComponent(this);
             RemoveClient(client);
+            Logger.Instance.Info(client.Name + " left " + RoomName);
 
             if (ComponentClients.Count == 0 && roomID == ID)
             {

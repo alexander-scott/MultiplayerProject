@@ -132,7 +132,8 @@ namespace MultiplayerProject.Source
                 {
                     if (_activeRooms.Count < Server.MAX_ROOMS)
                     {
-                        CreateNewRoom("TEST NEW ROOM " + _activeRooms.Count);
+                        Logger.Instance.Info("New Game Room created by " + client.Name);
+                        CreateNewRoom(client.Name + "'s Room");
                         GameRoom_OnRoomStateChanged();
                     }
                     else
@@ -151,6 +152,7 @@ namespace MultiplayerProject.Source
                         client.SendPacketToClient(new StringPacket(joinPacket.String), MessageType.WR_ServerResponse_SuccessJoinRoom);
                         joinedRoom.AddClientToRoom(client);
                         GameRoom_OnRoomStateChanged();
+                        Logger.Instance.Info(client.Name + " joined " + joinedRoom.RoomName);
                     }
                     else
                     {

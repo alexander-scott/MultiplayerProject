@@ -46,7 +46,7 @@ namespace MultiplayerProject.Source
             _font = content.Load<SpriteFont>("Font");
 
             _viewPort = new Rectangle(Application.WINDOW_WIDTH / 2, 150, 400, 200);
-            _textbox = new TextBox(_viewPort, 100, _textboxText, graphicsDevice, _font, Color.LightGray, Color.DarkGreen, 30);
+            _textbox = new TextBox(_viewPort, 20, _textboxText, graphicsDevice, _font, Color.LightGray, Color.DarkGreen, 30);
 
             _titlePosition = new Vector2(Application.WINDOW_WIDTH / 2, 100);
             _titlePosition.X -= (_font.MeasureString(_titleText).X / 2);

@@ -71,14 +71,13 @@ namespace MultiplayerProject
         {
             _tcpListener.Start();
 
-            Console.WriteLine("Listening...");
+            Logger.Instance.Info("Listening for connections...");
 
             try
             {
                 while (true)
                 {
                     Socket socket = _tcpListener.AcceptSocket();
-                    Console.WriteLine("New Connection Made");
 
                     // Create a new client instance
                     ServerConnection client = new ServerConnection(socket);
@@ -93,7 +92,7 @@ namespace MultiplayerProject
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error occured: " + e.Message);
+                Logger.Instance.Error("Error occured: " + e.Message);
             }
             finally
             {
@@ -113,6 +112,7 @@ namespace MultiplayerProject
                 case MessageType.Client_SendPlayerName:
                     StringPacket namePacket = packetBytes.DeserializeFromBytes<StringPacket>();
                     client.SetPlayerName(namePacket.String);
+                    Logger.Instance.Info("New player connected : " + client.Name);
                     break;
             }
         }

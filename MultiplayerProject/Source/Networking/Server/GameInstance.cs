@@ -249,7 +249,7 @@ namespace MultiplayerProject.Source
             {
                 if (player.Value >= Application.SCORE_TO_WIN)
                 {
-                    Console.WriteLine("GAME OVER");
+                    Logger.Instance.Info(_playerNames[player.Key] + " has reached the score limit");
 
                     int playerCount = ComponentClients.Count;
                     int[] playerScores = new int[playerCount];

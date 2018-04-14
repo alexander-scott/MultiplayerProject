@@ -42,7 +42,7 @@ namespace MultiplayerProject.Source
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            int xDistanceBetweenEach = 100;
+            int xDistanceBetweenEach = 150;
             int textWidth = 50;
 
             int currentXpos = (_width / 2) - (_playerCount/2 * (xDistanceBetweenEach + textWidth)); // Calculate starting xpos
