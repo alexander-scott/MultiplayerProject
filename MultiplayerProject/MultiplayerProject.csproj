@@ -62,7 +62,8 @@
     <Compile Include="Source\Effects\ExplosionManager.cs" />
     <Compile Include="Source\GameObjects\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
-    <Compile Include="Source\Logger.cs" />
+    <Compile Include="Source\Helpers\BackwardReader.cs" />
+    <Compile Include="Source\Helpers\Logger.cs" />
     <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />
     <Compile Include="Source\MonoGame\TextBox\Extensions.cs" />
     <Compile Include="Source\MonoGame\TextBox\KeyboardInput.cs" />
