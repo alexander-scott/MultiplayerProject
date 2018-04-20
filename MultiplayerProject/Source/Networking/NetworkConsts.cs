@@ -141,27 +141,6 @@ namespace MultiplayerProject.Source
     }
 
     [Serializable]
-    public class NetworkPacket : BasePacket
-    {
-        public byte[] SomeArbitaryBytes { get; set; }
-        public int SomeArbitaryInt { get; set; }
-        public double SomeArbitaryDouble { get; set; }
-        public string SomeArbitaryString { get; set; }
-
-        public NetworkPacket() : base()
-        {
-            SomeArbitaryInt = 7;
-            SomeArbitaryDouble = 98.1;
-            SomeArbitaryBytes = new byte[10];
-            for (var i = 0; i < SomeArbitaryBytes.Length; i++)
-            {
-                SomeArbitaryBytes[i] = (byte)i;
-            }
-            SomeArbitaryString = "Test string";
-        }
-    }
-
-    [Serializable]
     public class RoomInformation : BasePacket
     {
         public string RoomName { get; set; }
