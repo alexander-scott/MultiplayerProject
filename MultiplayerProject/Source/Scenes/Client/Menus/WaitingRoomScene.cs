@@ -148,16 +148,16 @@ namespace MultiplayerProject.Source
             _waitingForResponseFromServer = false;
         }
 
-        private void Client_OnWaitingRoomInformationRecieved(BasePacket packet)
+        private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation packet)
         {
-            WaitingRoomInformation waitingRoom = (WaitingRoomInformation)packet;
+            WaitingRoomInformation waitingRoom = packet;
 
             _waitingRoom = waitingRoom;
 
             List<GameRoomUIItem> newItems = new List<GameRoomUIItem>();
 
             RoomInformation joinedRoom = null;
-            if (_waitingRoom != null)
+            if (_waitingRoom != null && _waitingRoom.Rooms != null)
             {
                 int startYPos = _roomStartYPos;
                 foreach (var room in _waitingRoom.Rooms)
@@ -165,7 +165,7 @@ namespace MultiplayerProject.Source
                     GameRoomUIItem uiItem = new GameRoomUIItem();
                     uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
 
-                    switch (room.RoomState)
+                    switch ((GameRoomState)room.RoomState)
                     {
                         case GameRoomState.Waiting:
                             uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
@@ -271,9 +271,9 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && _waitingRoom.Rooms[i].RoomState != GameRoomState.InSession && _waitingRoom.Rooms[i].RoomState != GameRoomState.Leaderboards)
+                                if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position) && (GameRoomState)_waitingRoom.Rooms[i].RoomState != GameRoomState.InSession && (GameRoomState)_waitingRoom.Rooms[i].RoomState != GameRoomState.Leaderboards)
                                 {
-                                    SendMessageToTheServer(new StringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_JoinRoom);
+                                    SendMessageToTheServer(NetworkPacketFactory.Instance.MakeStringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_JoinRoom);
                                     _waitingForResponseFromServer = true;
                                 }
                             }
@@ -282,7 +282,7 @@ namespace MultiplayerProject.Source
                         {
                             for (int i = 0; i < _roomUIItems.Count; i++)
                             {
-                                if (_waitingRoom.Rooms[i].RoomState == GameRoomState.InSession || _waitingRoom.Rooms[i].RoomState == GameRoomState.Leaderboards)
+                                if ((GameRoomState)_waitingRoom.Rooms[i].RoomState == GameRoomState.InSession || (GameRoomState)_waitingRoom.Rooms[i].RoomState == GameRoomState.Leaderboards)
                                 {
                                     _roomUIItems[i].BorderColour = Color.Red;
                                 }
@@ -310,7 +310,7 @@ namespace MultiplayerProject.Source
                                 {
                                     if (_roomUIItems[i].Rect.Contains(inputInfo.CurrentMouseState.Position))
                                     {
-                                        SendMessageToTheServer(new StringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_LeaveRoom);
+                                        SendMessageToTheServer(NetworkPacketFactory.Instance.MakeStringPacket(_waitingRoom.Rooms[i].RoomID), MessageType.WR_ClientRequest_LeaveRoom);
                                         _waitingForResponseFromServer = true;
                                     }
                                 }
@@ -475,12 +475,12 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        public void RecieveServerResponse(BasePacket recievedPacket)
         {
-            switch (messageType)
+            switch ((MessageType)recievedPacket.MessageType)
             {
                 case MessageType.WR_ServerSend_WaitingRoomFullInfo:
-                    var waitingRooms = packetBytes.DeserializeFromBytes<WaitingRoomInformation>();
+                    var waitingRooms = (WaitingRoomInformation)recievedPacket;
                     Client_OnWaitingRoomInformationRecieved(waitingRooms);
                     break;
 
@@ -494,14 +494,14 @@ namespace MultiplayerProject.Source
 
                 case MessageType.WR_ServerResponse_SuccessJoinRoom:
                     {
-                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        StringPacket lobbyID = (StringPacket)recievedPacket;
                         ClientMessageReciever_OnRoomSuccessfullyJoined(lobbyID.String);
                         break;
                     }
 
                 case MessageType.WR_ServerResponse_SuccessLeaveRoom:
                     {
-                        StringPacket lobbyID = packetBytes.DeserializeFromBytes<StringPacket>();
+                        StringPacket lobbyID = (StringPacket)recievedPacket;
                         ClientMessageReciever_OnRoomSuccessfullyLeft(lobbyID.String);
                         break;
                     }

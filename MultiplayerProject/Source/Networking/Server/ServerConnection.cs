@@ -1,4 +1,5 @@
 ﻿using MultiplayerProject.Source;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -63,7 +64,7 @@ namespace MultiplayerProject
 
         private void CleanUp()
         {
-            ClientSocket.Close();        
+            ClientSocket.Close();
             for (int i = 0; i < _messageableComponents.Count; i++)
             {
                 _messageableComponents[i].RemoveClient(this);
@@ -73,20 +74,10 @@ namespace MultiplayerProject
 
         public void SendPacketToClient(BasePacket packet, MessageType type)
         {
-            byte[] bytes = packet.PackMessage(type);
-            string stringToSend = Convert.ToBase64String(bytes);
+            packet.SendDate = DateTime.UtcNow;
+            packet.MessageType = (int)type;
 
-            try
-            {
-                var testBytes = Convert.FromBase64String(stringToSend);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("FAILED TO CONVERT TO BASE64 STRING: " + e.Message);
-            }
-
-
-            Writer.Write(stringToSend);
+            Serializer.SerializeWithLengthPrefix(Writer.BaseStream, packet, PrefixStyle.Base128);
             Writer.Flush();
         }
 
@@ -94,21 +85,16 @@ namespace MultiplayerProject
         {
             try
             {
-                while (true)
+                using (Stream)
                 {
-                    string message;
-                    while ((message = Reader.ReadString()) != null)
+                    while (true)
                     {
-                        byte[] bytes = Convert.FromBase64String(message);
-                        using (var stream = new MemoryStream(bytes))
+                        BasePacket packet = Serializer.DeserializeWithLengthPrefix<BasePacket>(Stream, PrefixStyle.Base128);
+                        if (packet != null)
                         {
-                            while (stream.HasValidPackage(out int messageSize))
+                            for (int i = 0; i < _messageableComponents.Count; i++)
                             {
-                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                for (int i = 0; i < _messageableComponents.Count; i++)
-                                {
-                                    _messageableComponents[i].RecieveClientMessage(this, type, buffer);
-                                }
+                                _messageableComponents[i].RecieveClientMessage(this, packet);
                             }
                         }
                     }

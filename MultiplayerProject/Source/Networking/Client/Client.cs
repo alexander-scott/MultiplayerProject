@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+using ProtoBuf;
+
 namespace MultiplayerProject
 {
     class NotConnectedException : Exception
@@ -88,17 +90,10 @@ namespace MultiplayerProject
 
         public void SendMessageToServer(BasePacket packet, MessageType type)
         {
-            var bytes = packet.PackMessage(type);
-            var convertedString = Convert.ToBase64String(bytes);
-            try
-            {
-                var testCOnvert = Convert.FromBase64String(convertedString); // THis is here in an attempt to catch a conversion error
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("ERROR WRITING BYTES: " + e.Message);
-            }
-            _writer.Write(convertedString);
+            packet.SendDate = DateTime.UtcNow;
+            packet.MessageType = (int)type;
+
+            Serializer.SerializeWithLengthPrefix(_writer.BaseStream, packet, PrefixStyle.Base128);
             _writer.Flush();
         }
 
@@ -106,19 +101,14 @@ namespace MultiplayerProject
         {
             try
             {
-                while (true)
+                using (_stream)
                 {
-                    string message;
-                    while ((message = _reader.ReadString()) != null)
+                    while (true)
                     {
-                        byte[] bytes = Convert.FromBase64String(message);
-                        using (var stream = new MemoryStream(bytes))
+                        BasePacket packet = Serializer.DeserializeWithLengthPrefix<BasePacket>(_stream, PrefixStyle.Base128);
+                        if (packet != null)
                         {
-                            while (stream.HasValidPackage(out Int32 messageSize))
-                            {
-                                MessageType type = stream.UnPackMessage(messageSize, out byte[] buffer);
-                                ProcessServerPacket(type, buffer);
-                            }
+                            ProcessServerPacket(packet);
                         }
                     }
                 }
@@ -133,9 +123,9 @@ namespace MultiplayerProject
             }
         }
 
-        private void ProcessServerPacket(MessageType messageType, byte[] packetBytes)
+        private void ProcessServerPacket(BasePacket packet)
         {
-            switch (messageType)
+            switch ((MessageType)packet.MessageType)
             {
                 case MessageType.Server_Disconnect:
                     OnServerForcedDisconnect();
@@ -143,14 +133,13 @@ namespace MultiplayerProject
 
                 case MessageType.GI_ServerSend_LoadNewGame:
                     {
-                        OnLoadNewGame(packetBytes.DeserializeFromBytes<GameInstanceInformation>());
+                        OnLoadNewGame(packet);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_GameOver:
                     {
-                        var leaderboard = packetBytes.DeserializeFromBytes<LeaderboardPacket>();
-                        OnGameOver(leaderboard);
+                        OnGameOver(packet);
                         break;
                     }
 
@@ -158,7 +147,7 @@ namespace MultiplayerProject
                     {
                         // Let the current scene handle the message
                         if (_currentScene != null)
-                            _currentScene.RecieveServerResponse(messageType, packetBytes);
+                            _currentScene.RecieveServerResponse(packet);
                         break;
 
                     }

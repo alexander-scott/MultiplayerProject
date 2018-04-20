@@ -41,8 +41,14 @@
     <Reference Include="MonoGame.Framework, Version=3.6.0.1625, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MonoGame.Framework.WindowsDX.3.6.0.1625\lib\net40\MonoGame.Framework.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net, Version=2.3.7.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\protobuf-net.2.3.7\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -76,6 +82,7 @@
     <Compile Include="Source\Networking\Client\RemotePlayer.cs" />
     <Compile Include="Source\Networking\Client\RollingAverage.cs" />
     <Compile Include="Source\Networking\NetworkConsts.cs" />
+    <Compile Include="Source\Networking\NetworkPacketFactory.cs" />
     <Compile Include="Source\Networking\Package.cs" />
     <Compile Include="Source\Networking\Server\GameInstance.cs" />
     <Compile Include="Source\Networking\Server\IMessageable.cs" />

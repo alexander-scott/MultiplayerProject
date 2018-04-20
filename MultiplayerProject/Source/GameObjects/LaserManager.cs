@@ -101,7 +101,7 @@ namespace MultiplayerProject.Source
                 _previousLaserSpawnTime = TimeSpan.FromSeconds(totalGameSeconds);
 
                 // Add the laser to our list.
-                var laser = AddLaser(position, rotation, laserID, playerFiredID, new PlayerColour(255, 255, 255));
+                var laser = AddLaser(position, rotation, laserID, playerFiredID, NetworkPacketFactory.Instance.MakePlayerColour(255, 255, 255));
                 laser.Update(deltaTime); // Update it so it's in the correct position on the server as it is on the client
 
                 return laser;

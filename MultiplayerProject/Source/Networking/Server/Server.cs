@@ -100,17 +100,17 @@ namespace MultiplayerProject
             }
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        public void RecieveClientMessage(ServerConnection client, BasePacket recievedPacket)
         {
             // The only packets we should look for recieving here are disconnect or exit messages. Or perhaps info like round trip time or ping time
-            switch (messageType)
+            switch ((MessageType)recievedPacket.MessageType)
             {
                 case MessageType.Client_Disconnect:
                     client.StopAll();
                     break;
 
                 case MessageType.Client_SendPlayerName:
-                    StringPacket namePacket = packetBytes.DeserializeFromBytes<StringPacket>();
+                    StringPacket namePacket = (StringPacket)recievedPacket;
                     client.SetPlayerName(namePacket.String);
                     Logger.Instance.Info("New player connected : " + client.Name);
                     break;

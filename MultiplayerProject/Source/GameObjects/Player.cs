@@ -145,7 +145,7 @@ namespace MultiplayerProject.Source
             Vector2 pos = new Vector2((float)Math.Round((decimal)PlayerState.Position.X, 1), (float)Math.Round((decimal)PlayerState.Position.Y, 1));
             float speed = (float)Math.Round((decimal)PlayerState.Speed, 1);
             float rot = (float)Math.Round((decimal)PlayerState.Rotation, 1);
-            return new PlayerUpdatePacket(pos.X, pos.Y, speed, rot);
+            return NetworkPacketFactory.Instance.MakePlayerUpdatePacket(pos.X, pos.Y, speed, rot);
         }
     }
 }

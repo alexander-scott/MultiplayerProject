@@ -30,9 +30,9 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        public void RecieveClientMessage(ServerConnection client, BasePacket packet)
         {
-            switch (messageType)
+            switch ((MessageType)packet.MessageType)
             {
                 case MessageType.LB_ClientSend_RematchReady:
                     {
@@ -75,7 +75,7 @@ namespace MultiplayerProject.Source
 
             for (int i = 0; i < ComponentClients.Count; i++)
             {
-                LeaderboardUpdatePacket packet = new LeaderboardUpdatePacket(ComponentClients.Count, readyCount, _clientReadyStatus[ComponentClients[i]]);
+                LeaderboardUpdatePacket packet = NetworkPacketFactory.Instance.MakeLeaderboardUpdatePacket(ComponentClients.Count, readyCount, _clientReadyStatus[ComponentClients[i]]);
                 ComponentClients[i].SendPacketToClient(packet, MessageType.LB_ServerSend_UpdateLeaderboard);
             }               
         }

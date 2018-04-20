@@ -47,17 +47,17 @@ namespace MultiplayerProject.Source
 
         public RoomInformation GetRoomInformation()
         {
-            return new RoomInformation(RoomName, ID, ComponentClients, GetReadyCount(), roomState);
+            return NetworkPacketFactory.Instance.MakeRoomInformationPacket(RoomName, ID, ComponentClients, GetReadyCount(), roomState);
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
+        public void RecieveClientMessage(ServerConnection client, BasePacket recievedPacket)
         {
-            switch (type)
+            switch ((MessageType)recievedPacket.MessageType)
             {
                 case MessageType.WR_ClientRequest_LeaveRoom:
                     {
-                        StringPacket leavePacket = buffer.DeserializeFromBytes<StringPacket>();
-                        client.SendPacketToClient(new StringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveRoom);
+                        StringPacket leavePacket = (StringPacket)recievedPacket;
+                        client.SendPacketToClient(NetworkPacketFactory.Instance.MakeStringPacket(leavePacket.String), MessageType.WR_ServerResponse_SuccessLeaveRoom);
                         RemoveClient(client);
                         Logger.Instance.Info(client.Name + " left " + RoomName);
                         break;

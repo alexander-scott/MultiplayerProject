@@ -177,7 +177,7 @@ namespace MultiplayerProject.Source
                 {
                     input.FirePressed = true;
                     var dataPacket = _localPlayer.BuildUpdatePacket();
-                    PlayerFiredPacket packet = new PlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
+                    PlayerFiredPacket packet = NetworkPacketFactory.Instance.MakePlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds; // TOTAL GAME TIME NOT ELAPSED TIME!
                     packet.LaserID = laser.LaserID;
 
@@ -270,9 +270,9 @@ namespace MultiplayerProject.Source
             _enemyManager.AddEnemy(new Vector2(enemySpawn.XPosition, enemySpawn.YPosition), enemySpawn.EnemyID);
         }
 
-        private void ClientMessenger_OnEnemyDefeatedPacket(BasePacket packet)
+        private void ClientMessenger_OnEnemyDefeatedPacket(EnemyDefeatedPacket packet)
         {
-            EnemyDefeatedPacket enemyDefeatedPacket = (EnemyDefeatedPacket)packet;
+            EnemyDefeatedPacket enemyDefeatedPacket = packet;
 
             _GUI.UpdatePlayerScore(enemyDefeatedPacket.AttackingPlayerID, enemyDefeatedPacket.AttackingPlayerNewScore);
 
@@ -315,41 +315,41 @@ namespace MultiplayerProject.Source
             return localUpdate;
         }
 
-        public void RecieveServerResponse(MessageType messageType, byte[] packetBytes)
+        public void RecieveServerResponse(BasePacket recievedPacket)
         {
-            switch (messageType)
+            switch ((MessageType)recievedPacket.MessageType)
             {
                 case MessageType.GI_ServerSend_UpdateRemotePlayer:
                     {
-                        var playerPacket = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
+                        var playerPacket = (PlayerUpdatePacket)recievedPacket;
                         OnRecievedPlayerUpdatePacket(playerPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_RemotePlayerFired:
                     {
-                        var playerPacket = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
+                        var playerPacket = (PlayerFiredPacket)recievedPacket;
                         ClientMessenger_OnRecievedPlayerFiredPacket(playerPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_EnemySpawn:
                     {
-                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemySpawnedPacket>();
+                        var enemyPacket = (EnemySpawnedPacket)recievedPacket;
                         ClientMessenger_OnEnemySpawnedPacket(enemyPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_EnemyDefeated:
                     {
-                        var enemyPacket = packetBytes.DeserializeFromBytes<EnemyDefeatedPacket>();
+                        var enemyPacket = (EnemyDefeatedPacket)recievedPacket;
                         ClientMessenger_OnEnemyDefeatedPacket(enemyPacket);
                         break;
                     }
 
                 case MessageType.GI_ServerSend_PlayerDefeated:
                     {
-                        var enemyPacket = packetBytes.DeserializeFromBytes<PlayerDefeatedPacket>();
+                        var enemyPacket = (PlayerDefeatedPacket)recievedPacket;
                         ClientMessenger_OnPlayerDefeatedPacket(enemyPacket);
                         break;
                     }

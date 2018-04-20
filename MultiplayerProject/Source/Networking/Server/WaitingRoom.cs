@@ -37,6 +37,7 @@ namespace MultiplayerProject.Source
                     var closedRoom = _activeRooms[i];
                     _activeRooms.RemoveAt(i);
                     _closedRooms.Add(closedRoom);
+                    Logger.Instance.Info(closedRoom.RoomName + " was closed because all players have left it.");
                     return;
                 }
             }
@@ -118,9 +119,9 @@ namespace MultiplayerProject.Source
             throw new Exception("UNABLE TO FIND ROOM");
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType type, byte[] buffer)
+        public void RecieveClientMessage(ServerConnection client, BasePacket recievedPacket)
         {
-            switch (type)
+            switch ((MessageType)recievedPacket.MessageType)
             {
                 case MessageType.WR_ClientRequest_WaitingRoomInfo:
                     {
@@ -145,11 +146,11 @@ namespace MultiplayerProject.Source
                     
                 case MessageType.WR_ClientRequest_JoinRoom:
                 {
-                    StringPacket joinPacket = buffer.DeserializeFromBytes<StringPacket>();
+                    StringPacket joinPacket = (StringPacket)recievedPacket;
                     GameRoom joinedRoom = GetGameRoomFromID(joinPacket.String);
                     if (joinedRoom.ComponentClients.Count < MAX_PEOPLE_PER_ROOM)
                     {
-                        client.SendPacketToClient(new StringPacket(joinPacket.String), MessageType.WR_ServerResponse_SuccessJoinRoom);
+                        client.SendPacketToClient(NetworkPacketFactory.Instance.MakeStringPacket(joinPacket.String), MessageType.WR_ServerResponse_SuccessJoinRoom);
                         joinedRoom.AddClientToRoom(client);
                         GameRoom_OnRoomStateChanged();
                         Logger.Instance.Info(client.Name + " joined " + joinedRoom.RoomName);

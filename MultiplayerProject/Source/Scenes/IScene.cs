@@ -14,7 +14,7 @@ namespace MultiplayerProject.Source
         void ProcessInput(GameTime gameTime, InputInformation inputInfo);
         void Draw(SpriteBatch spriteBatch);
 
-        void RecieveServerResponse(MessageType messageType, byte[] packetBytes);
+        void RecieveServerResponse(BasePacket packet);
         void SendMessageToTheServer(BasePacket packet, MessageType messageType);
     }
 }

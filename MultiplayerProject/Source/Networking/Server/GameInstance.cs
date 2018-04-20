@@ -64,7 +64,7 @@ namespace MultiplayerProject.Source
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 ComponentClients[i].AddServerComponent(this);
-                ComponentClients[i].SendPacketToClient(new GameInstanceInformation(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
+                ComponentClients[i].SendPacketToClient(NetworkPacketFactory.Instance.MakeGameInstanceInformationPacket(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
 
                 _playerUpdates[ComponentClients[i].ID] = null;
                 _playerLasers[ComponentClients[i].ID] = new LaserManager();
@@ -78,13 +78,13 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void RecieveClientMessage(ServerConnection client, MessageType messageType, byte[] packetBytes)
+        public void RecieveClientMessage(ServerConnection client, BasePacket recievedPacket)
         {
-            switch (messageType)
+            switch ((MessageType)recievedPacket.MessageType)
             {
                 case MessageType.GI_ClientSend_PlayerUpdate:
                     {
-                        var packet = packetBytes.DeserializeFromBytes<PlayerUpdatePacket>();
+                        var packet = (PlayerUpdatePacket)recievedPacket;
                         packet.PlayerID = client.ID;
                         _playerUpdates[client.ID] = packet;
                         break;
@@ -92,7 +92,7 @@ namespace MultiplayerProject.Source
 
                 case MessageType.GI_ClientSend_PlayerFired:
                     {
-                        var packet = packetBytes.DeserializeFromBytes<PlayerFiredPacket>();
+                        var packet = (PlayerFiredPacket)recievedPacket;
                         packet.PlayerID = client.ID;
 
                         var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
@@ -171,7 +171,7 @@ namespace MultiplayerProject.Source
 
                 for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients
                 {
-                    EnemySpawnedPacket packet = new EnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID);
+                    EnemySpawnedPacket packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID);
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
                     ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemySpawn);
@@ -199,7 +199,7 @@ namespace MultiplayerProject.Source
                         _playerScores[collisions[iCollision].AttackingPlayerID]++;
 
                         // Create packet to send to clients
-                        EnemyDefeatedPacket packet = new EnemyDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedEnemyID, collisions[iCollision].AttackingPlayerID, _playerScores[collisions[iCollision].AttackingPlayerID]);
+                        EnemyDefeatedPacket packet = NetworkPacketFactory.Instance.MakeEnemyDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedEnemyID, collisions[iCollision].AttackingPlayerID, _playerScores[collisions[iCollision].AttackingPlayerID]);
                         for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
                         {
                             ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemyDefeated);
@@ -213,7 +213,7 @@ namespace MultiplayerProject.Source
 
                         // Create packet to send to clients
                         // TODO: In future move player to a random spot on the map and send that data with this packet
-                        PlayerDefeatedPacket packet = new PlayerDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedPlayerID, _playerScores[collisions[iCollision].DefeatedPlayerID]);
+                        PlayerDefeatedPacket packet = NetworkPacketFactory.Instance.MakePlayerDefeatedPacket(collisions[iCollision].LaserID, collisions[iCollision].DefeatedPlayerID, _playerScores[collisions[iCollision].DefeatedPlayerID]);
                         for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
                         {
                             ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_PlayerDefeated);
@@ -267,11 +267,11 @@ namespace MultiplayerProject.Source
                     index = 0;
                     foreach (KeyValuePair<string, Color> playerColour in _playerColours)
                     {
-                        playerColours[index] = new PlayerColour(playerColour.Value.R, playerColour.Value.G, playerColour.Value.B);
+                        playerColours[index] = NetworkPacketFactory.Instance.MakePlayerColour(playerColour.Value.R, playerColour.Value.G, playerColour.Value.B);
                         index++;
                     }
 
-                    LeaderboardPacket packet = new LeaderboardPacket(playerCount, playerNames, playerScores, playerColours);
+                    LeaderboardPacket packet = NetworkPacketFactory.Instance.MakeLeaderboardPacket(playerCount, playerNames, playerScores, playerColours);
                     for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
                     {
                         ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_GameOver);

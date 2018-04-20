@@ -51,7 +51,7 @@ namespace MultiplayerProject.Source
                     newScene.Initalise(_contentManager, _graphicsDevice);
                     SetNewScene(newScene);
 
-                    _client.SendMessageToServer(new StringPacket(playerName), MessageType.Client_SendPlayerName);
+                    _client.SendMessageToServer(NetworkPacketFactory.Instance.MakeStringPacket(playerName), MessageType.Client_SendPlayerName);
                 }
                 catch (NotConnectedException e)
                 {
