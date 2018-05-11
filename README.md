@@ -1,33 +1,57 @@
-# Multiplayer Space Shooter
+# Game Description
+The artefact produced is a simple 2D space shooter game where the user controls a spaceship and is able to shoot lasers from it. The player can move the spaceship with the arrow keys and shoot with the spacebar. The aim of the game is to shoot other players and scrolling enemies in order to increase their score. Shooting an enemy or another player increases the player’s score by one and getting shot by another player reduces the player’s score by one. The game is over when a player reaches a score of five.
 
-## Overview
+Players can meet in a waiting room and join lobbies containing other players. To navigate through the menus the user simply needs to click on UI buttons. Once all players in the lobby ready up, a game instance is started among those players. When finished, a leaderboard is displayed with every player’s scores on it. From there players have the option to restart the game instance or return to the waiting room.
 
-### General
+# Core Game Features
+Multithreaded Server and Client setup: The artefact houses both the client and server versions of the game. A server can house an instance of a game that multiple clients can connect and disconnect from. Clients do not have any sensitive information about any other clients and can only communicate with the server.
 
-The game that will be created for Concurrent and Multiplayer Game Programming
-is a variation of the original 2D space shooter games developed for arcade.
-The premise is that you control a spaceship and can rotate it 360 degrees,
-accelarte forwards and shoot missiles in the direction that the spaceship is
-in. The goal is to shoot and destroy all other space ships around you, with
-each spaceship having a set amount of health and 3 lives. 
+Real-time 2D game with game rules: The game is real-time with messages containing state and input being sent very frequently. All clients/players can see their spaceships in an identical way and the game is played until a score is reached by one of the players.
 
-The aim of the game is to be the last one standing. At the end of each game
-a scoreboard is presented detailing the order in which people died/survived
-and how many kills each player got. 
+Authoritative Server: The server is authoritative which means clients send inputs to the server and then the server processes and then broadcasts the game state to all clients. This prevents players from cheating by sending modified and incorrect game states to other clients and having an advantage. 
 
-### Multiplayer aspect
+# Additional Game Features
+Lobby system with multiple game instances: The server holds a list of game rooms which have various states such as WaitingForPlayers, WaitingForReady, InGame, AtLeaderboards, etc. Each game room is in charge of managing it’s 2-6 connected clients from waiting in the game room to starting the actual game instance. All parts of the server/game that can receive messages inherit IMessagable and a reference to it gets added to the client instance stored on the server when it becomes relevant and removed when it becomes irrelevant. For example, when a client requests to join a game room, that game room instance is added to the client’s list of messable components. If a client would then send a message to the server then, it would pass it to all messagable components the client belongs to, including the game room.
 
-The spaceships that the player will be fighting against are player controlled.
-This will be achieved through a server/client setup where the server will 
-be able to hold multiple instances of a networked game. The server will also persist
-data through a text file which will track things like games won/lost/deaths/kills etc.
+Advanced Serialisation: To send messages between clients and server, objects are serialised and converted into a stream of bytes that are sent across the network. Objects are serialised in the protocol buffer serialisation format engineered by Google and then sent between client and server via a NetworkStream through a socket. To serialise and deserialise the data an open-source, contract based serialiser called protobuf-net is used. The objects that contracted to be serialised are abstract classes called ‘Packets’ which contain information like time sent and IDs and can be extended to contain relevant game logic data. All packets are sent with a type enum so it can be passed to the relevant part of the application to be handled.
 
-The game will also feature a lobby where the players can meet and agree to start
-a game instance. The lobby will also feature an optional matchmaking system that
-will feature selecting players that are local to one another and with a basic
-skill based selection system (games won and lost).
+Lag-reduction algorithms: The artefact uses various algorithms in an effort to improve the user experience including Client-Side Prediction, Server Reconciliation and Entity Interpolation. 
 
-### Future features
+Client-Side Prediction solves the problem of latency, where messages take time (30-40ms) to travel between client and server. It does this by running an instance of the game locally and then doing the same processing the server does instantly. This means the updated game state is available straight away without the delay of waiting for a response from the server. However because the server is authoritative, the client must display the game state that it receives from the server after the server processes the clients inputs. This can result in synchronisation issues, as the client may process multiple inputs before it receives a single processed input from the server, displaying a rubber-band like effect as the client snaps back to the game state of the first input after it had already processed multiple inputs locally. To solve this it’s important to realise that the client sees the game world in present time, but because of lag, the game states it gets from the server are actually the state of the game in the past. By the time the server sent the updated game state, it hadn’t processed all the inputs sent by the client.
 
-The game might feature AI spaceships where the AI processing is done on the server
-and synced between clients.
+Server Reconciliation solves this problem through adding sequence numbers to each input the client sends to the server to process and by keeping a copy of inputs sent to the server. When the client receives a processed input back from the server it replaces the locally processed input that the client applied through Client-Side Prediction. So applying Client-Side Prediction again, the client can calculate the “present” state of the game based on the last authoritative update sent by the server, plus the inputs the server hasn’t processed yet. The client can then discard all previous inputs.
+
+Entity Interpolation is used to enable the server to update less frequently, saving CPU and bandwidth. However if the server only sends updates to clients 10 times per second, the clients will not have enough information to smoothly display other clients, resulting in choppy movement. To solve this problem, remotely controlled entities are visually interpolated between past authoritative states, resulting in smooth movement.
+
+# Critical Evaluation
+During the development of the artefact I had to make various design and implementation choices that I felt would benefit the solution. Some of these choices were definitely the right choice however some could have been improved or refined further.
+
+One decision I made involved the serialisation of the data sent between clients and server. Originally I went down the route of using the .NET BinaryFormatter class to serialise data between client and server. However, after inspecting some transmitted packets I discovered the huge amount of unnecessary bytes the BinaryFormatter adds to a deserialised object. Larger packet payloads are there main cause of bandwidth bottlenecks so solving this problem early on was important. From there I switched to Google’s protocol buffer compiler and API, which boasted a 10x performance increase in serialisation, deserialisation and a 15x payload size decrease (Cui, Y. 2011). After attempting to add and implement it in my project I found, being originally a C++, the protocol buffer compiler didn’t work well with a lot of .NET features, such as nested lists of classes within a serialisable object. Nonetheless, the protocol buffer language/format was still decreasing payload size by 15x so I instead used protobuf-net to compile the serialisable objects. As protobuf-net was open-source and exclusively targeted the .NET platform it allowed for the serialisation functionality of the BinaryFormatter and the payload size of protocol buffers, being the best solution for the problem.
+
+The decision to implement various algorithms in an effort to improve the responsiveness of a real-time game came about after implementing synchronised movement and noticing how choppy remote player’s movement was. This was of course caused by the round trip delay between clients and servers. This exact problem could not be solved, but could be hidden by 3 clever algorithms; Client-Side Prediction, Server Reconciliation and Entity Prediction. This allows local players see their inputs processed instantly, the server to have authoritative control and for remote players movement/actions appear smooth on local clients. Implementing these algorithms also indirectly solves a potential problem: cheating. Since the server is now authoritative, if a client was to modify the value within the application, such as speed, that client would send updates to the server with positions that can’t normally be obtained. However because of the server’s authoritative state that position wouldn’t be send to any other clients and would be corrected on that client. 
+
+Overall the system was successful, in that it was a real-time game with multiple lag-reducing algorithms implemented and it supported a client-server architecture that could handle multiple game instances. For future work the system could be extended in a few ways. Extensions could include adding the ability to send text messages to other users in a game room, adding basic AI to enemies that is processed on the server, or changing the client-server setup so that a master/login server exists which then forwards connected clients to multiple server instances.
+
+# Global Market
+Releasing this game for a global market requires making a few considerations. Firstly, the text displayed in the lobby and for the GUI for the game would need to be localised. This would mean that depending on the country that the game was being downloaded in, the text would be displayed in the language of that country. This comes with many time-consuming problems that would need to be dealt with, including resizing the GUI text based on the length of the translated word, pulling hard-coded strings out of the code and setting up a pipeline for fetching the required translated text, and of course the actual translation of text. The financial burdens of localising text include the work spent developing the pipeline and hiring a translator to translate the text (Bushouse, E. 2015). 
+
+In addition to text localisation, most markets require games to have a content rating before it can be released in the market. Some markets have different rating system, but the rating system markets in Europe use is PEGI. A PEGI rating gives a game an age rating and various content descriptions based on the content of the game. I would need to therefore apply for a PEGI rating to release the game in Europe and I would need to apply for other ratings for other countries/markets. Applying for ratings is also a huge financial burden, with PEGI ratings potentially costing thousands of dollars to obtain, depending on the size of the application (Wawro, A. 2015). As the game includes explosions and shooting, it may have a higher age rating than originally intended. The higher the age rating the less people that will have access to it, meaning less sales. Additionally, if the age rating is too high or contains offensive content it may be fully restricted from being sold in certain countries.
+
+External Code/Frameworks Used
+Monogame (Art/Graphics): http://www.monogame.net/
+Protobuf-net (Serialisation): https://github.com/mgravell/protobuf-net
+
+References
+Bushouse, E. (2015). The Practice and Evolution of Video Game
+Translation: Expanding the Definition of Translation.
+https://scholarworks.umass.edu/cgi/viewcontent.cgi?article=1218&context=masters_theses_2
+
+Cui, Y. (2011). Performance Test – BinaryFormatter vs Protobuf-Net. https://theburningmonk.com/2011/08/performance-test-binaryformatter-vs-protobuf-net/
+
+Wawro, A. (2015). How paying for content ratings is hurting devs who release in Europe. https://www.gamasutra.com/view/news/253603/How_paying_for_content_ratings_is_hurting_devs_who_release_in_Europe.php
+
+https://softwareengineering.stackexchange.com/questions/153903/move-from-json-to-protobuf-is-it-worth-it
+
+https://aloiskraus.wordpress.com/2017/04/23/the-definitive-serialization-performance-guide/
+
+http://www.gabrielgambetta.com/client-server-game-architecture.html
